@@ -6,7 +6,7 @@ import { useTasks } from './hooks/useTasks'
 
 export const App = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
-  const { tasks, addTask, completeTask, deleteTask, newTaskIds } = useTasks()
+  const { tasks, categories, addTask, completeTask, deleteTask, addCategory, newTaskIds } = useTasks()
 
   // Filter out completed tasks for the Today view
   const todayTasks = tasks.filter(task => task.completedAt === null)
@@ -23,10 +23,12 @@ export const App = () => {
         return (
           <TodayView
             tasks={todayTasks}
+            categories={categories}
             onAddTask={addTask}
             onCompleteTask={completeTask}
             onDeleteTask={deleteTask}
             onDeferTask={deferTask}
+            onCreateCategory={addCategory}
             newTaskIds={newTaskIds}
           />
         )

@@ -4,14 +4,16 @@ import { AddTaskInput } from '../components/AddTaskInput'
 
 interface TodayViewProps {
   tasks: Task[]
+  categories: string[]
   onAddTask?: (text: string) => void
   onCompleteTask: (id: string) => void
   onDeleteTask: (id: string) => void
   onDeferTask: (id: string) => void
+  onCreateCategory: (name: string) => void
   newTaskIds?: Set<string>
 }
 
-export const TodayView = ({ tasks, onAddTask, onCompleteTask, onDeleteTask, onDeferTask, newTaskIds }: TodayViewProps) => {
+export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onDeferTask, onCreateCategory, newTaskIds }: TodayViewProps) => {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -32,10 +34,12 @@ export const TodayView = ({ tasks, onAddTask, onCompleteTask, onDeleteTask, onDe
     <div className="flex flex-col gap-3">
       <TaskList
         tasks={tasks}
+        categories={categories}
         newTaskIds={newTaskIds}
         onComplete={onCompleteTask}
         onDelete={onDeleteTask}
         onDefer={onDeferTask}
+        onCreateCategory={onCreateCategory}
       />
       {onAddTask && <AddTaskInput onAddTask={onAddTask} />}
     </div>

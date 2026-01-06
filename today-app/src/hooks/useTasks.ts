@@ -3,7 +3,7 @@ import type { Task } from '../types'
 
 /**
  * Action types for task state management
- * Expandable for DELETE_TASK, DEFER_TASK in future stories
+ * Expandable for DEFER_TASK in future stories
  */
 type TaskAction =
   | { type: 'ADD_TASK'; id: string; text: string }
@@ -45,6 +45,7 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
  */
 export const useTasks = () => {
   const [tasks, dispatch] = useReducer(taskReducer, initialState)
+  const [categories, setCategories] = useState<string[]>([])
   const [newTaskIds, setNewTaskIds] = useState<Set<string>>(new Set())
   const timeoutRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
@@ -77,5 +78,25 @@ export const useTasks = () => {
     dispatch({ type: 'DELETE_TASK', id })
   }, [])
 
-  return { tasks, addTask, completeTask, deleteTask, newTaskIds, dispatch }
+  /**
+   * Add a new category to the categories list
+   * Validates: non-empty, trimmed, no duplicates
+   */
+  const addCategory = useCallback((name: string) => {
+    const trimmedName = name.trim()
+    if (!trimmedName) return // Reject empty names
+
+    setCategories(prev => {
+      // Check for duplicate (case-insensitive comparison)
+      if (prev.some(cat => cat.toLowerCase() === trimmedName.toLowerCase())) {
+        return prev // Already exists, don't add duplicate
+      }
+      if (import.meta.env.DEV) {
+        console.log('[Today] ADD_CATEGORY', trimmedName)
+      }
+      return [...prev, trimmedName]
+    })
+  }, [])
+
+  return { tasks, categories, addTask, completeTask, deleteTask, addCategory, newTaskIds, dispatch }
 }

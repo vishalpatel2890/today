@@ -1,0 +1,222 @@
+<story-context id="3-3-defer-modal-category-selection-and-creation" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Defer Modal - Category Selection &amp; Creation</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-3-defer-modal-category-selection-and-creation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to assign a category when deferring a task</iWant>
+    <soThat>my deferred tasks are organized and easy to find later</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Create CategoryDropdown component with Radix Select, existing categories list, and "Create new..." option</task>
+      <task id="2" ac="3,4,6">Implement category creation flow with inline input, Enter to create, empty validation</task>
+      <task id="3" ac="1,7">Integrate CategoryDropdown into DeferModal below date selection</task>
+      <task id="4" ac="5">Add categories to AppState and ensure persistence through useTasks hook</task>
+      <task id="5" ac="7">Implement Defer button enable/disable logic based on date AND category selection</task>
+      <task id="6" ac="all">Build verification - npm build, manual testing of all AC</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.3.1">Given the defer modal is open, the "Category" section displays a dropdown with existing categories plus "Create new..." option at the bottom</ac>
+    <ac id="3.3.2">Given I click the dropdown and select an existing category, that category is selected for the task</ac>
+    <ac id="3.3.3">Given I select "Create new...", an inline input field appears below the dropdown for entering a new category name</ac>
+    <ac id="3.3.4">Given I type a category name and press Enter, the category is created and automatically selected for the task</ac>
+    <ac id="3.3.5">Given I create a new category, it is immediately available in the dropdown for future deferrals</ac>
+    <ac id="3.3.6">Given I press Enter with an empty input field, nothing happens (no empty category created)</ac>
+    <ac id="3.3.7">Given both a date option AND a category are selected, the "Defer" button becomes enabled; otherwise it remains disabled</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Data Architecture</section>
+        <snippet>AppState interface with tasks array and categories array. Categories stored as string[]. All state changes flow through useTasks reducer.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Deferment System</title>
+        <section>Detailed Design - CategoryDropdown</section>
+        <snippet>CategoryDropdownProps interface: categories string[], selectedCategory string|null, onSelect callback, onCreate callback. Use Radix Select for accessible dropdown.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 3.3</section>
+        <snippet>FR8-10, FR24-27 covered: category assignment at deferment, dropdown with existing categories, create new option, category persistence.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Defer Modal</section>
+        <snippet>Category dropdown appears below date selection. Styling: bg-surface border rounded-lg. "Create new..." option with distinct styling.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/components/DeferModal.tsx</path>
+        <kind>component</kind>
+        <symbol>DeferModal</symbol>
+        <lines>1-177</lines>
+        <reason>MODIFY: Add category section below date selection (line 146-151 placeholder), update Defer button logic (line 162-169), extend DeferModalProps</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task</symbol>
+        <lines>1-12</lines>
+        <reason>VERIFY/ADD: Task has category field. Need to add AppState interface with categories: string[]</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks, TaskAction</symbol>
+        <lines>1-82</lines>
+        <reason>MODIFY: Add categories state, addCategory function, expose categories in return. May add DEFER_TASK action for Story 3.4</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>App</symbol>
+        <lines>1-58</lines>
+        <reason>MODIFY: Get categories from useTasks, pass through component tree to DeferModal</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskCard.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskCard</symbol>
+        <lines>86-90</lines>
+        <reason>MODIFY: Pass categories prop to DeferModal, add onDefer callback with category</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/DatePicker.tsx</path>
+        <kind>component</kind>
+        <symbol>DatePicker</symbol>
+        <lines>1-all</lines>
+        <reason>REFERENCE: Use as pattern for component structure, Tailwind styling, Radix integration</reason>
+      </file>
+      <file>
+        <path>today-app/src/views/TodayView.tsx</path>
+        <kind>view</kind>
+        <symbol>TodayView</symbol>
+        <lines>1-all</lines>
+        <reason>MODIFY: Accept categories prop, pass to TaskCard</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <production>
+          <package name="@radix-ui/react-select" version="^2.2.6">Accessible dropdown for CategoryDropdown - REQUIRED for this story</package>
+          <package name="@radix-ui/react-dialog" version="^1.1.15">Already used in DeferModal</package>
+          <package name="react" version="^19.2.0">UI framework</package>
+          <package name="lucide-react" version="^0.562.0">Icons - may need ChevronDown for dropdown</package>
+        </production>
+        <devDependencies>
+          <package name="typescript" version="~5.9.3">Type safety</package>
+          <package name="tailwindcss" version="^4.1.18">Styling</package>
+          <package name="vite" version="^7.2.4">Build tool</package>
+        </devDependencies>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">All components MUST be functional components with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint source="architecture.md">All state updates MUST use reducer pattern via useTasks hook, return new objects (no mutation)</constraint>
+    <constraint source="architecture.md">Categories stored in AppState.categories as string[]</constraint>
+    <constraint source="tech-spec">Category names: trimmed, empty strings rejected, duplicates handled (use existing)</constraint>
+    <constraint source="tech-spec">Modal can be dismissed without side effects (Escape, click outside)</constraint>
+    <constraint source="architecture.md">Console logging in dev mode only: if (import.meta.env.DEV) console.log('[Today]', ...)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CategoryDropdownProps</name>
+      <kind>component-props</kind>
+      <signature><![CDATA[interface CategoryDropdownProps {
+  categories: string[];
+  selectedCategory: string | null;
+  onSelect: (category: string) => void;
+  onCreate: (name: string) => void;
+}]]></signature>
+      <path>today-app/src/components/CategoryDropdown.tsx (NEW)</path>
+    </interface>
+    <interface>
+      <name>DeferModalProps (extended)</name>
+      <kind>component-props</kind>
+      <signature><![CDATA[interface DeferModalProps {
+  task: Task;
+  categories: string[];  // ADD
+  isOpen: boolean;
+  onClose: () => void;
+  onCreateCategory: (name: string) => void;  // ADD
+  // onDefer callback added in Story 3.4
+}]]></signature>
+      <path>today-app/src/components/DeferModal.tsx</path>
+    </interface>
+    <interface>
+      <name>AppState</name>
+      <kind>type</kind>
+      <signature><![CDATA[interface AppState {
+  tasks: Task[];
+  categories: string[];
+}]]></signature>
+      <path>today-app/src/types/index.ts (ADD)</path>
+    </interface>
+    <interface>
+      <name>Radix Select Pattern</name>
+      <kind>component-usage</kind>
+      <signature><![CDATA[<Select.Root value={value} onValueChange={setValue}>
+  <Select.Trigger className="...">
+    <Select.Value placeholder="Select category" />
+    <Select.Icon><ChevronDown /></Select.Icon>
+  </Select.Trigger>
+  <Select.Portal>
+    <Select.Content className="...">
+      <Select.Viewport>
+        {categories.map(cat => (
+          <Select.Item key={cat} value={cat}>
+            <Select.ItemText>{cat}</Select.ItemText>
+          </Select.Item>
+        ))}
+        <Select.Item value="__create_new__">
+          <Select.ItemText>Create new...</Select.ItemText>
+        </Select.Item>
+      </Select.Viewport>
+    </Select.Content>
+  </Select.Portal>
+</Select.Root>]]></signature>
+      <path>@radix-ui/react-select</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Testing framework not yet configured. Per architecture.md, Vitest + Testing Library will be used for component and integration tests. Console-only dev logging enabled. Manual browser testing is primary validation method for MVP. All stories include Frontend Test Gate for human verification.</standards>
+    <locations>
+      <location>today-app/tests/components/*.test.tsx (planned)</location>
+      <location>today-app/tests/hooks/*.test.ts (planned)</location>
+    </locations>
+    <ideas>
+      <idea ac="3.3.1">Render CategoryDropdown with empty categories, verify "Create new..." appears</idea>
+      <idea ac="3.3.1">Render with ["Work", "Personal"], verify both appear plus "Create new..."</idea>
+      <idea ac="3.3.2">Click dropdown, select "Work", verify onSelect called with "Work"</idea>
+      <idea ac="3.3.3">Select "Create new...", verify input field renders</idea>
+      <idea ac="3.3.4">Type "Home" in input, press Enter, verify onCreate called with "Home"</idea>
+      <idea ac="3.3.5">Create category, verify it appears in dropdown on next open</idea>
+      <idea ac="3.3.6">Focus input, press Enter with empty value, verify onCreate NOT called</idea>
+      <idea ac="3.3.7">DeferModal: select date only, verify Defer button disabled</idea>
+      <idea ac="3.3.7">DeferModal: select category only, verify Defer button disabled</idea>
+      <idea ac="3.3.7">DeferModal: select both date and category, verify Defer button enabled</idea>
+    </ideas>
+  </tests>
+</story-context>

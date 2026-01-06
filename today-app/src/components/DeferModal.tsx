@@ -4,26 +4,34 @@ import { X } from 'lucide-react'
 import { addDays, startOfDay, format, parseISO } from 'date-fns'
 import type { Task } from '../types'
 import { DatePicker } from './DatePicker'
+import { CategoryDropdown } from './CategoryDropdown'
 
 type DateOption = 'tomorrow' | 'pick-date' | 'no-date' | null
 
 interface DeferModalProps {
   task: Task
+  categories: string[]
   isOpen: boolean
   onClose: () => void
+  onCreateCategory: (name: string) => void
 }
 
-export const DeferModal = ({ task, isOpen, onClose }: DeferModalProps) => {
+export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory }: DeferModalProps) => {
   const [dateOption, setDateOption] = useState<DateOption>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setDateOption(null)
       setSelectedDate(null)
+      setSelectedCategory(null)
     }
   }, [isOpen])
+
+  // AC-3.3.7: Defer button enabled only when both date AND category selected
+  const canDefer = dateOption !== null && selectedCategory !== null
 
   const tomorrow = addDays(startOfDay(new Date()), 1)
 
@@ -134,21 +142,33 @@ export const DeferModal = ({ task, isOpen, onClose }: DeferModalProps) => {
               />
             )}
 
+            {/* Category Section */}
+            <div className="mt-4 pt-4 border-t border-border">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Category
+              </label>
+              <CategoryDropdown
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelect={setSelectedCategory}
+                onCreate={onCreateCategory}
+              />
+            </div>
+
             {/* Selection Summary */}
-            {dateOption && (
+            {(dateOption || selectedCategory) && (
               <div className="mt-4 p-3 bg-surface-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  Deferring to: <span className="text-foreground font-medium">{getDisplayDate()}</span>
+                  {dateOption && (
+                    <>Deferring to: <span className="text-foreground font-medium">{getDisplayDate()}</span></>
+                  )}
+                  {dateOption && selectedCategory && ' / '}
+                  {selectedCategory && (
+                    <span className="text-foreground font-medium">{selectedCategory}</span>
+                  )}
                 </p>
               </div>
             )}
-
-            {/* Category Section Placeholder - Story 3.3 */}
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground text-center">
-                Category selection coming in Story 3.3
-              </p>
-            </div>
 
             {/* Action Buttons */}
             <div className="mt-6 flex gap-3">
@@ -161,9 +181,13 @@ export const DeferModal = ({ task, isOpen, onClose }: DeferModalProps) => {
               </button>
               <button
                 type="button"
-                disabled
-                className="flex-1 py-2 px-4 text-sm font-medium rounded-md bg-primary text-white opacity-50 cursor-not-allowed"
-                title="Category selection required (Story 3.3)"
+                disabled={!canDefer}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md bg-primary text-white transition-colors ${
+                  canDefer
+                    ? 'hover:bg-primary/90 cursor-pointer'
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+                title={canDefer ? 'Defer task' : 'Select date and category to defer'}
               >
                 Defer
               </button>

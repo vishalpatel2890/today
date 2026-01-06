@@ -1,6 +1,6 @@
 # Story 3.2: Defer Modal - Date Selection
 
-Status: review
+Status: done
 
 ## Story
 

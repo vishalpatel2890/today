@@ -5,13 +5,15 @@ import { DeferModal } from './DeferModal'
 
 interface TaskCardProps {
   task: Task
+  categories: string[]
   isNew?: boolean
   onComplete: (id: string) => void
   onDelete: (id: string) => void
   onDefer: (id: string) => void
+  onCreateCategory: (name: string) => void
 }
 
-export const TaskCard = ({ task, isNew = false, onComplete, onDelete, onDefer: _onDefer }: TaskCardProps) => {
+export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onDefer: _onDefer, onCreateCategory }: TaskCardProps) => {
   const [showCheck, setShowCheck] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [isDeferModalOpen, setIsDeferModalOpen] = useState(false)
@@ -85,8 +87,10 @@ export const TaskCard = ({ task, isNew = false, onComplete, onDelete, onDefer: _
 
       <DeferModal
         task={task}
+        categories={categories}
         isOpen={isDeferModalOpen}
         onClose={() => setIsDeferModalOpen(false)}
+        onCreateCategory={onCreateCategory}
       />
     </>
   )
