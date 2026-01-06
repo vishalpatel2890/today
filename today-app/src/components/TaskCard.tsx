@@ -9,14 +9,16 @@ interface TaskCardProps {
   isNew?: boolean
   onComplete: (id: string) => void
   onDelete: (id: string) => void
-  onDefer: (id: string) => void
+  onDefer: (id: string, deferredTo: string | null, category: string) => void
   onCreateCategory: (name: string) => void
+  onShowToast?: (message: string) => void
 }
 
-export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onDefer: _onDefer, onCreateCategory }: TaskCardProps) => {
+export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onDefer, onCreateCategory, onShowToast }: TaskCardProps) => {
   const [showCheck, setShowCheck] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [isDeferModalOpen, setIsDeferModalOpen] = useState(false)
+  const [isSliding, setIsSliding] = useState(false)
 
   const handleComplete = () => {
     // Prevent double-clicks
@@ -46,10 +48,50 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
     setIsDeferModalOpen(true)
   }
 
+  // Handle defer from modal - AC-3.4.2: Slide out animation before defer
+  const handleDeferFromModal = (deferredTo: string | null, category: string) => {
+    // Close modal first
+    setIsDeferModalOpen(false)
+
+    // Start slide-out animation
+    setIsSliding(true)
+
+    // After animation completes (300ms), execute the defer action
+    setTimeout(() => {
+      onDefer(task.id, deferredTo, category)
+      // Show toast if handler provided
+      onShowToast?.(formatToastMessage(deferredTo, category))
+    }, 300)
+  }
+
+  // Format toast message based on deferredTo value - AC-3.4.3
+  const formatToastMessage = (deferredTo: string | null, category: string): string => {
+    if (deferredTo === null) {
+      return `Deferred to Someday / ${category}`
+    }
+
+    const deferDate = new Date(deferredTo)
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+
+    const deferDateNormalized = new Date(deferDate)
+    deferDateNormalized.setHours(0, 0, 0, 0)
+
+    if (deferDateNormalized.getTime() === tomorrow.getTime()) {
+      return `Deferred to Tomorrow / ${category}`
+    }
+
+    // Format as "Jan 15" style
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const formattedDate = `${monthNames[deferDate.getMonth()]} ${deferDate.getDate()}`
+    return `Deferred to ${formattedDate} / ${category}`
+  }
+
   return (
     <>
       <div
-        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''}`}
+        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''} ${isSliding ? 'animate-defer-slide-out' : ''}`}
       >
         <button
           type="button"
@@ -91,6 +133,7 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
         isOpen={isDeferModalOpen}
         onClose={() => setIsDeferModalOpen(false)}
         onCreateCategory={onCreateCategory}
+        onDefer={handleDeferFromModal}
       />
     </>
   )

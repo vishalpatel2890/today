@@ -9,6 +9,7 @@ type TaskAction =
   | { type: 'ADD_TASK'; id: string; text: string }
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'DELETE_TASK'; id: string }
+  | { type: 'DEFER_TASK'; id: string; deferredTo: string | null; category: string }
 
 const initialState: Task[] = []
 
@@ -34,6 +35,15 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
       )
     case 'DELETE_TASK':
       return state.filter(task => task.id !== action.id)
+    case 'DEFER_TASK':
+      if (import.meta.env.DEV) {
+        console.log('[Today] DEFER_TASK', { id: action.id, deferredTo: action.deferredTo, category: action.category })
+      }
+      return state.map(task =>
+        task.id === action.id
+          ? { ...task, deferredTo: action.deferredTo, category: action.category }
+          : task
+      )
     default:
       return state
   }
@@ -79,6 +89,16 @@ export const useTasks = () => {
   }, [])
 
   /**
+   * Defer a task to a future date with a category
+   * @param id - Task ID to defer
+   * @param deferredTo - ISO date string or null for "someday"
+   * @param category - Category name (required)
+   */
+  const deferTask = useCallback((id: string, deferredTo: string | null, category: string) => {
+    dispatch({ type: 'DEFER_TASK', id, deferredTo, category })
+  }, [])
+
+  /**
    * Add a new category to the categories list
    * Validates: non-empty, trimmed, no duplicates
    */
@@ -98,5 +118,5 @@ export const useTasks = () => {
     })
   }, [])
 
-  return { tasks, categories, addTask, completeTask, deleteTask, addCategory, newTaskIds, dispatch }
+  return { tasks, categories, addTask, completeTask, deleteTask, deferTask, addCategory, newTaskIds, dispatch }
 }

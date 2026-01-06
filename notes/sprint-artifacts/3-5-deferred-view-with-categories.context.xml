@@ -1,0 +1,271 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>5</storyId>
+    <title>Deferred View with Categories</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-5-deferred-view-with-categories.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see all my deferred tasks organized by category</iWant>
+    <soThat>I can review what I've pushed back and find tasks easily</soThat>
+    <tasks>
+      <task n="1" ac="2,3">Create CategorySection component
+        <subtask>Create today-app/src/components/CategorySection.tsx</subtask>
+        <subtask>Define CategorySectionProps interface with category, tasks, isExpanded, onToggle, and action handlers</subtask>
+        <subtask>Implement collapsible header with ChevronDown/ChevronRight icon, category name, task count</subtask>
+        <subtask>Use CSS transition for smooth expand/collapse animation</subtask>
+        <subtask>Render TaskList inside when expanded</subtask>
+      </task>
+      <task n="2" ac="1,4,6">Create DeferredView component
+        <subtask>Create today-app/src/views/DeferredView.tsx</subtask>
+        <subtask>Define DeferredViewProps interface matching TomorrowView pattern</subtask>
+        <subtask>Filter tasks: future dates OR deferredTo===null with category set</subtask>
+        <subtask>Group tasks by category using reduce</subtask>
+        <subtask>Sort categories alphabetically</subtask>
+        <subtask>Track expanded state with useState Set</subtask>
+        <subtask>Initialize first category as expanded on mount</subtask>
+        <subtask>Add empty state message</subtask>
+      </task>
+      <task n="3" ac="3,4">Implement expand/collapse state management
+        <subtask>Manage expandedCategories Set state in DeferredView</subtask>
+        <subtask>useEffect to expand first category by default</subtask>
+        <subtask>toggleCategory function to add/remove from Set</subtask>
+        <subtask>Pass isExpanded and onToggle to CategorySection</subtask>
+      </task>
+      <task n="4" ac="5">Display deferred date on task cards
+        <subtask>Add date badge to TaskCard or CategorySection</subtask>
+        <subtask>Format with date-fns: format(parseISO(deferredTo), 'MMM d') or "Someday"</subtask>
+        <subtask>Style: text-xs text-muted-foreground</subtask>
+        <subtask>Only show in Deferred view (prop-controlled)</subtask>
+      </task>
+      <task n="5" ac="1">Integrate DeferredView into App
+        <subtask>Import DeferredView in App.tsx</subtask>
+        <subtask>Replace placeholder in renderView switch case 'deferred'</subtask>
+        <subtask>Pass required props matching TomorrowView pattern</subtask>
+      </task>
+      <task n="6" ac="all">Build verification and testing
+        <subtask>Run npm run build - verify no TypeScript errors</subtask>
+        <subtask>Manual testing of all acceptance criteria</subtask>
+        <subtask>Verify no console errors</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.5.1">Given I click the "Deferred" tab, the view shows tasks grouped under category headers</ac>
+    <ac id="3.5.2">Given I see a category header, it displays: chevron icon (down when expanded, right when collapsed), category name, and task count in parentheses</ac>
+    <ac id="3.5.3">Given I click a category header, it toggles between expanded (showing tasks) and collapsed (hiding tasks)</ac>
+    <ac id="3.5.4">Given I open the Deferred view with multiple categories, the first category is expanded by default and others are collapsed</ac>
+    <ac id="3.5.5">Given I view tasks within a category, each task shows its deferred date (formatted as "Jan 15") or "Someday" for tasks with no date</ac>
+    <ac id="3.5.6">Given I have multiple categories with deferred tasks, categories are sorted alphabetically</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Deferment System</title>
+        <section>Story 3.5: Deferred View with Categories</section>
+        <snippet>AC-3.5.1 through AC-3.5.6 define category grouping, collapsible headers with chevron/name/count, expand/collapse toggle, first expanded by default, date display, alphabetical sorting.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Deferment System</title>
+        <section>CategorySection Props</section>
+        <snippet>CategorySectionProps: category (string), tasks (Task[]), isExpanded (boolean), onToggle (() => void).</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Deferment System</title>
+        <section>Workflows and Sequencing - View Filtering Logic</section>
+        <snippet>Deferred: task.deferredTo === null || (!isToday(task.deferredTo) && !isTomorrow(task.deferredTo)) AND task.completedAt === null AND task.category !== null</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 3.5: Deferred View with Categories</section>
+        <snippet>User story with AC: tasks grouped under category headers, chevron+name+count format, click to toggle, first expanded by default, date/Someday display, alphabetical sort.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Data Architecture - Core Types</section>
+        <snippet>Task interface with deferredTo (string|null), category (string|null), completedAt (string|null). AppState with tasks[] and categories[].</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Project Structure</section>
+        <snippet>Components in src/components/, views in src/views/, hooks in src/hooks/, types in src/types/. DeferredView.tsx and CategorySection.tsx to be created.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Implementation Patterns - Component Patterns</section>
+        <snippet>All components MUST be functional with TypeScript, arrow function syntax, destructured props, named exports.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/views/TomorrowView.tsx</path>
+        <kind>view</kind>
+        <symbol>TomorrowView</symbol>
+        <lines>1-60</lines>
+        <reason>Reference implementation for view component pattern - DeferredView should follow same structure with TaskList, filtering logic, empty state, and props interface.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskList.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskList</symbol>
+        <reason>Reusable component to render tasks within CategorySection - accepts tasks, categories, and action handlers.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskCard.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskCard</symbol>
+        <lines>1-141</lines>
+        <reason>Task rendering component - may need modification to show optional date badge in Deferred view context.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>root</kind>
+        <symbol>App</symbol>
+        <lines>52-58</lines>
+        <reason>Contains placeholder for Deferred view in renderView switch - replace with DeferredView component matching TodayView/TomorrowView patterns.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks</symbol>
+        <lines>1-123</lines>
+        <reason>State management hook providing tasks, categories, deferTask, and action handlers - already complete, no modifications needed.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task, AppState</symbol>
+        <lines>1-22</lines>
+        <reason>Task interface with deferredTo, category, completedAt fields used for filtering logic.</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>styles</kind>
+        <reason>Contains design tokens and animations - may add category expand/collapse animation if needed.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>Core UI framework - useState, useEffect, useCallback for state management</usage>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+        <usage>Date formatting and comparison - format, parseISO, isToday, isTomorrow for filtering and display</usage>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>^0.562.0</version>
+        <usage>Icons - ChevronDown, ChevronRight for expand/collapse indicators</usage>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^4.1.18</version>
+        <usage>Utility-first styling for CategorySection header and date badge</usage>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>~5.9.3</version>
+        <usage>Type safety for CategorySectionProps, DeferredViewProps interfaces</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">All components MUST be functional components with TypeScript using arrow function syntax</constraint>
+    <constraint source="architecture.md">Use named exports (not default exports) for all components</constraint>
+    <constraint source="architecture.md">Destructure props in function signature</constraint>
+    <constraint source="architecture.md">All state updates MUST use the reducer pattern via useTasks hook</constraint>
+    <constraint source="architecture.md">All dates MUST be stored as ISO 8601 strings and compared using date-fns</constraint>
+    <constraint source="tech-spec-epic-3.md">Animation smoothness: 60fps (CSS transitions only, no JS animation libraries)</constraint>
+    <constraint source="tech-spec-epic-3.md">View switch must be under 100ms - instant filter operation on existing tasks array</constraint>
+    <constraint source="tech-spec-epic-3.md">Categories stored in AppState.categories array - no direct mutation</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>DeferredViewProps</name>
+      <kind>component-props</kind>
+      <signature>interface DeferredViewProps {
+  tasks: Task[];
+  categories: string[];
+  onComplete: (id: string) => void;
+  onDelete: (id: string) => void;
+  onDefer: (id: string, deferredTo: string | null, category: string) => void;
+  onCreateCategory: (name: string) => void;
+  onShowToast: (message: string) => void;
+}</signature>
+      <path>today-app/src/views/DeferredView.tsx</path>
+    </interface>
+    <interface>
+      <name>CategorySectionProps</name>
+      <kind>component-props</kind>
+      <signature>interface CategorySectionProps {
+  category: string;
+  tasks: Task[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onComplete: (id: string) => void;
+  onDelete: (id: string) => void;
+  onDefer: (id: string, deferredTo: string | null, category: string) => void;
+  categories: string[];
+  onCreateCategory: (name: string) => void;
+  onShowToast: (message: string) => void;
+}</signature>
+      <path>today-app/src/components/CategorySection.tsx</path>
+    </interface>
+    <interface>
+      <name>Task</name>
+      <kind>data-model</kind>
+      <signature>interface Task {
+  id: string;
+  text: string;
+  createdAt: string;
+  deferredTo: string | null;
+  category: string | null;
+  completedAt: string | null;
+}</signature>
+      <path>today-app/src/types/index.ts</path>
+    </interface>
+    <interface>
+      <name>useTasks return</name>
+      <kind>hook-return</kind>
+      <signature>{ tasks, categories, addTask, completeTask, deleteTask, deferTask, addCategory, newTaskIds, dispatch }</signature>
+      <path>today-app/src/hooks/useTasks.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Per architecture.md: Component tests use Vitest + Testing Library. Test individual components in isolation (CategorySection expand/collapse, DeferredView filtering). Integration tests for component interactions. E2E via manual testing for full defer workflow and view switching. No formal test files required for MVP but build must pass.</standards>
+    <locations>
+      <location>today-app/tests/components/</location>
+      <location>today-app/tests/hooks/</location>
+    </locations>
+    <ideas>
+      <idea ac="3.5.1">Render DeferredView with tasks in multiple categories - verify category headers rendered for each unique category</idea>
+      <idea ac="3.5.2">Render CategorySection - verify header shows chevron, category name, and task count in parentheses format</idea>
+      <idea ac="3.5.3">Click CategorySection header - verify isExpanded toggles and content visibility changes</idea>
+      <idea ac="3.5.4">Render DeferredView with 3 categories - verify first category expanded (chevron down), others collapsed (chevron right)</idea>
+      <idea ac="3.5.5">Render task with deferredTo date - verify displays "Jan 15" format. Render task with null deferredTo - verify displays "Someday"</idea>
+      <idea ac="3.5.6">Render DeferredView with categories "Work", "Personal", "Ideas" - verify sorted order is "Ideas", "Personal", "Work"</idea>
+      <idea ac="edge">Render DeferredView with no deferred tasks - verify empty state message displayed</idea>
+      <idea ac="edge">Complete task in Deferred view - verify task disappears and category count updates</idea>
+    </ideas>
+  </tests>
+</story-context>

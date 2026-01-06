@@ -180,3 +180,50 @@ body {
     animation: slideUpDesktop 200ms ease-out;
   }
 }
+
+/* Defer task slide-out animation - AC-3.4.2 */
+@keyframes deferSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.animate-defer-slide-out {
+  animation: deferSlideOut 300ms ease-out forwards;
+}
+
+/* Toast animations - AC-3.4.3, AC-3.4.4 */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+}
+
+.animate-toast-in {
+  animation: toastSlideIn 300ms ease-out;
+}
+
+.animate-toast-out {
+  animation: toastSlideOut 300ms ease-out forwards;
+}

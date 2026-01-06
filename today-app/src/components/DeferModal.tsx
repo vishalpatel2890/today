@@ -14,9 +14,10 @@ interface DeferModalProps {
   isOpen: boolean
   onClose: () => void
   onCreateCategory: (name: string) => void
+  onDefer: (deferredTo: string | null, category: string) => void
 }
 
-export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory }: DeferModalProps) => {
+export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory, onDefer }: DeferModalProps) => {
   const [dateOption, setDateOption] = useState<DateOption>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -32,6 +33,13 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
 
   // AC-3.3.7: Defer button enabled only when both date AND category selected
   const canDefer = dateOption !== null && selectedCategory !== null
+
+  // Handle defer action - AC-3.4.1: Close modal after defer
+  const handleDefer = () => {
+    if (!canDefer || !selectedCategory) return
+    onDefer(selectedDate, selectedCategory)
+    onClose()
+  }
 
   const tomorrow = addDays(startOfDay(new Date()), 1)
 
@@ -181,6 +189,7 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
               </button>
               <button
                 type="button"
+                onClick={handleDefer}
                 disabled={!canDefer}
                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-md bg-primary text-white transition-colors ${
                   canDefer

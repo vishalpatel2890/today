@@ -1,0 +1,151 @@
+<story-context id="bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Defer Action & Tomorrow View</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-4-defer-action-and-tomorrow-view.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to confirm deferment and see the task move to the appropriate view</iWant>
+    <soThat>I know my deferment was successful</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Implement DEFER_TASK action in useTasks - add reducer case and deferTask function</task>
+      <task id="2" ac="1">Wire DeferModal to execute defer action - add onDefer prop and handleDefer</task>
+      <task id="3" ac="2">Implement task slide-out animation - add isSliding state and CSS keyframes</task>
+      <task id="4" ac="3,4">Create Toast component - fixed bottom-center, auto-dismiss after 3s</task>
+      <task id="5" ac="3,4">Add toast state management to App - showToast/hideToast functions</task>
+      <task id="6" ac="3">Format toast message - Tomorrow/MMM d/Someday + Category</task>
+      <task id="7" ac="5,6">Create TomorrowView component - filter tasks by isTomorrow(deferredTo)</task>
+      <task id="8" ac="5,6">Integrate TomorrowView into App - render when activeTab === 'tomorrow'</task>
+      <task id="9" ac="2">Update TodayView filtering - exclude deferred tasks</task>
+      <task id="10" ac="all">Build verification and testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.4.1">Given I have selected a date and category in the defer modal, when I click "Defer", then the modal closes</criterion>
+    <criterion id="AC-3.4.2">Given I click "Defer" with valid selections, the task slides out of the current view with a 300ms animation (opacity fade + translateX left)</criterion>
+    <criterion id="AC-3.4.3">Given I defer a task, a toast notification appears at bottom-center showing: "Deferred to [Tomorrow/Jan 15/Someday] / [Category]"</criterion>
+    <criterion id="AC-3.4.4">Given a toast appears, it auto-dismisses after 3 seconds with a slide-down animation</criterion>
+    <criterion id="AC-3.4.5">Given I navigate to the Tomorrow tab, I see tasks that have been deferred to tomorrow (deferredTo equals tomorrow's date)</criterion>
+    <criterion id="AC-3.4.6">Given I view tasks in the Tomorrow tab, they display in the same card format as Today view (checkbox, text, action icons)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-3.md" title="Epic 3 Tech Spec" section="Story 3.4: Defer Action & Tomorrow View" snippet="AC-3.4.1 through AC-3.4.6 define defer action, toast notifications, and Tomorrow view requirements. Includes workflow sequencing for view filtering logic." />
+      <doc path="notes/architecture.md" title="Architecture" section="Data Architecture" snippet="Task interface with deferredTo (string|null), category (string|null). TaskAction type includes DEFER_TASK. ADR-005: useReducer pattern for state management." />
+      <doc path="notes/ux-design-specification.md" title="UX Spec" section="Toast Notification" snippet="Appears bottom-center, auto-dismisses after 3 seconds, no manual dismiss. Stacks if multiple (rare). Slide in from below." />
+      <doc path="notes/epics.md" title="Epics" section="Story 3.4" snippet="As a user, I want to confirm deferment and see the task move to the appropriate view, so that I know my deferment was successful." />
+      <doc path="notes/sprint-artifacts/3-3-defer-modal-category-selection-and-creation.md" title="Story 3.3 Learnings" section="Dev Agent Record" snippet="CategoryDropdown created, DeferModal has dateOption/selectedDate/selectedCategory state, canDefer logic implemented, categories threaded App→TodayView→TaskList→TaskCard→DeferModal." />
+    </docs>
+
+    <code>
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks, taskReducer" lines="1-103" reason="MODIFY: Add DEFER_TASK case to reducer (line ~17), add deferTask function (line ~77), export from hook return" />
+      <file path="today-app/src/components/DeferModal.tsx" kind="component" symbol="DeferModal" lines="1-200" reason="MODIFY: Add onDefer prop to DeferModalProps (line 11), implement handleDefer function, connect Defer button onClick" />
+      <file path="today-app/src/components/TaskCard.tsx" kind="component" symbol="TaskCard" lines="1-97" reason="MODIFY: Add isSliding state for animation, trigger slide-out before defer action executes" />
+      <file path="today-app/src/App.tsx" kind="component" symbol="App" lines="1-59" reason="MODIFY: Add toast state, showToast/hideToast functions, render Toast component, add TomorrowView case in renderView switch" />
+      <file path="today-app/src/views/TodayView.tsx" kind="view" symbol="TodayView" lines="1-47" reason="MODIFY: Update task filtering to exclude deferred tasks (line 12 - filter by deferredTo)" />
+      <file path="today-app/src/components/TaskList.tsx" kind="component" symbol="TaskList" lines="1-31" reason="REFERENCE: TaskList pattern for TomorrowView reuse" />
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task, AppState" lines="1-21" reason="REFERENCE: Task.deferredTo and Task.category fields used in defer action" />
+      <file path="today-app/src/index.css" kind="styles" symbol="animations" lines="104-182" reason="REFERENCE: Existing animations (slideIn, taskComplete, fadeIn, slideUp) - add slideOut keyframes for defer animation" />
+      <file path="today-app/src/components/DatePicker.tsx" kind="component" symbol="DatePicker" lines="*" reason="REFERENCE: Date formatting patterns with date-fns (format, parseISO)" />
+      <file path="today-app/src/components/CategoryDropdown.tsx" kind="component" symbol="CategoryDropdown" lines="*" reason="REFERENCE: Already integrated in DeferModal, no changes needed" />
+    </code>
+
+    <dependencies>
+      <ecosystem name="node">
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="date-fns" version="^4.1.0" use="isTomorrow, parseISO, format, addDays" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="tailwindcss" version="^4.1.18" dev="true" />
+        <package name="typescript" version="~5.9.3" dev="true" />
+        <package name="vite" version="^7.2.4" dev="true" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="DeferModalProps" kind="component-props" path="today-app/src/components/DeferModal.tsx">
+      <signature><![CDATA[interface DeferModalProps {
+  task: Task
+  categories: string[]
+  isOpen: boolean
+  onClose: () => void
+  onCreateCategory: (name: string) => void
+  onDefer: (deferredTo: string | null, category: string) => void  // ADD THIS
+}]]></signature>
+    </interface>
+    <interface name="TaskAction (DEFER_TASK)" kind="reducer-action" path="today-app/src/hooks/useTasks.ts">
+      <signature><![CDATA[| { type: 'DEFER_TASK'; id: string; deferredTo: string | null; category: string }]]></signature>
+    </interface>
+    <interface name="ToastProps" kind="component-props" path="today-app/src/components/Toast.tsx">
+      <signature><![CDATA[interface ToastProps {
+  message: string
+  isVisible: boolean
+  onDismiss: () => void
+}]]></signature>
+    </interface>
+    <interface name="TomorrowViewProps" kind="component-props" path="today-app/src/views/TomorrowView.tsx">
+      <signature><![CDATA[interface TomorrowViewProps {
+  tasks: Task[]
+  categories: string[]
+  onComplete: (id: string) => void
+  onDelete: (id: string) => void
+  onDefer: (id: string, deferredTo: string | null, category: string) => void
+  onCreateCategory: (name: string) => void
+  onShowToast: (message: string) => void
+}]]></signature>
+    </interface>
+    <interface name="useTasks return" kind="hook-return" path="today-app/src/hooks/useTasks.ts">
+      <signature><![CDATA[{
+  tasks: Task[]
+  categories: string[]
+  addTask: (text: string) => void
+  completeTask: (id: string) => void
+  deleteTask: (id: string) => void
+  addCategory: (name: string) => void
+  deferTask: (id: string, deferredTo: string | null, category: string) => void  // ADD THIS
+  newTaskIds: Set<string>
+  dispatch: Dispatch<TaskAction>
+}]]></signature>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="pattern">All components MUST be functional components with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint type="pattern">All state updates flow through useTasks reducer - immutable updates only, no direct mutation</constraint>
+    <constraint type="pattern">Dates stored as ISO 8601 strings, use date-fns for comparison (isToday, isTomorrow, parseISO)</constraint>
+    <constraint type="styling">Use Tailwind utility classes with design tokens from index.css (--foreground, --surface, etc.)</constraint>
+    <constraint type="animation">CSS transitions/animations only (no JS animation libraries), 300ms slide-out duration</constraint>
+    <constraint type="ux">Toast: fixed bottom-center, z-50, auto-dismiss 3000ms, dark bg (#0f172a) light text (#ffffff)</constraint>
+    <constraint type="filtering">Today: (!deferredTo || isToday(deferredTo)) && !completedAt | Tomorrow: deferredTo && isTomorrow(deferredTo) && !completedAt</constraint>
+    <constraint type="performance">Defer action &lt; 100ms synchronous, animation 60fps CSS-only</constraint>
+  </constraints>
+
+  <tests>
+    <standards>No test framework currently installed. Testing will be manual browser testing per Frontend Test Gate. Architecture specifies Vitest + Testing Library for future test implementation. Console logging in dev mode: [Today] DEFER_TASK { id, deferredTo, category }.</standards>
+    <locations>
+      <location>today-app/tests/ (not yet created)</location>
+      <location>Manual testing via npm run dev at localhost:5173</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-3.4.1">Verify clicking Defer button with valid selections closes modal immediately</idea>
+      <idea ac="AC-3.4.2">Verify task slide-out animation plays (300ms, opacity fade + translateX left)</idea>
+      <idea ac="AC-3.4.3">Verify toast message format: "Deferred to Tomorrow / Work", "Deferred to Jan 15 / Personal", "Deferred to Someday / Ideas"</idea>
+      <idea ac="AC-3.4.4">Verify toast auto-dismisses after ~3 seconds with slide-down animation</idea>
+      <idea ac="AC-3.4.5">Verify Tomorrow tab filters tasks correctly: only tasks with deferredTo === tomorrow's ISO date</idea>
+      <idea ac="AC-3.4.6">Verify Tomorrow view task cards identical to Today view (checkbox, text, hover actions)</idea>
+      <idea ac="all">Verify no console errors during defer flow, tab switching, and toast lifecycle</idea>
+    </ideas>
+  </tests>
+</story-context>

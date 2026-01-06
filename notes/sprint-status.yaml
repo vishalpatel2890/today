@@ -55,12 +55,12 @@ development_status:
   3-1-defer-button-on-task-cards: done
   3-2-defer-modal-date-selection: done
   3-3-defer-modal-category-selection-and-creation: done
-  3-4-defer-action-and-tomorrow-view: backlog
-  3-5-deferred-view-with-categories: backlog
+  3-4-defer-action-and-tomorrow-view: review
+  3-5-deferred-view-with-categories: review
   epic-3-retrospective: optional
 
   # Epic 4: Persistence & Polish
-  epic-4: backlog
+  epic-4: contexted
   4-1-localstorage-persistence: backlog
   4-2-auto-surfacing: backlog
   4-3-toast-notifications: backlog

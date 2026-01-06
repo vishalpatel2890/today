@@ -2,19 +2,24 @@ import { useState, useCallback } from 'react'
 import { Header } from './components/Header'
 import { TabBar, type TabId } from './components/TabBar'
 import { TodayView } from './views/TodayView'
+import { TomorrowView } from './views/TomorrowView'
+import { DeferredView } from './views/DeferredView'
+import { Toast } from './components/Toast'
 import { useTasks } from './hooks/useTasks'
 
 export const App = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
-  const { tasks, categories, addTask, completeTask, deleteTask, addCategory, newTaskIds } = useTasks()
+  const { tasks, categories, addTask, completeTask, deleteTask, deferTask, addCategory, newTaskIds } = useTasks()
 
-  // Filter out completed tasks for the Today view
-  const todayTasks = tasks.filter(task => task.completedAt === null)
+  // Toast state - AC-3.4.3, AC-3.4.4
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false })
 
-  // Placeholder defer function - full implementation in Story 3.4
-  const deferTask = useCallback((id: string) => {
-    console.log('[Today] Defer requested for task:', id)
-    // Full implementation in Story 3.4
+  const showToast = useCallback((message: string) => {
+    setToast({ message, visible: true })
+  }, [])
+
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, visible: false }))
   }, [])
 
   const renderView = () => {
@@ -22,27 +27,40 @@ export const App = () => {
       case 'today':
         return (
           <TodayView
-            tasks={todayTasks}
+            tasks={tasks}
             categories={categories}
             onAddTask={addTask}
             onCompleteTask={completeTask}
             onDeleteTask={deleteTask}
             onDeferTask={deferTask}
             onCreateCategory={addCategory}
+            onShowToast={showToast}
             newTaskIds={newTaskIds}
           />
         )
       case 'tomorrow':
         return (
-          <div className="flex items-center justify-center rounded-lg border border-border-subtle bg-surface-muted p-12 text-muted-foreground">
-            Tomorrow View
-          </div>
+          <TomorrowView
+            tasks={tasks}
+            categories={categories}
+            onCompleteTask={completeTask}
+            onDeleteTask={deleteTask}
+            onDeferTask={deferTask}
+            onCreateCategory={addCategory}
+            onShowToast={showToast}
+          />
         )
       case 'deferred':
         return (
-          <div className="flex items-center justify-center rounded-lg border border-border-subtle bg-surface-muted p-12 text-muted-foreground">
-            Deferred View
-          </div>
+          <DeferredView
+            tasks={tasks}
+            categories={categories}
+            onComplete={completeTask}
+            onDelete={deleteTask}
+            onDefer={deferTask}
+            onCreateCategory={addCategory}
+            onShowToast={showToast}
+          />
         )
     }
   }
@@ -54,6 +72,8 @@ export const App = () => {
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
         <main className="py-6">{renderView()}</main>
       </div>
+      {/* Toast notification - rendered at App level for consistent positioning */}
+      <Toast message={toast.message} isVisible={toast.visible} onDismiss={hideToast} />
     </div>
   )
 }

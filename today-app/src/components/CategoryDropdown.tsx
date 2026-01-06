@@ -125,11 +125,17 @@ export const CategoryDropdown = ({
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={handleCancelCreate}
             placeholder="Category name"
             className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             autoComplete="off"
           />
+          <button
+            type="button"
+            onClick={handleCancelCreate}
+            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       )}
     </div>

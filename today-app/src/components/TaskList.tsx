@@ -7,11 +7,12 @@ interface TaskListProps {
   newTaskIds?: Set<string>
   onComplete: (id: string) => void
   onDelete: (id: string) => void
-  onDefer: (id: string) => void
+  onDefer: (id: string, deferredTo: string | null, category: string) => void
   onCreateCategory: (name: string) => void
+  onShowToast?: (message: string) => void
 }
 
-export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, onDefer, onCreateCategory }: TaskListProps) => {
+export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, onDefer, onCreateCategory, onShowToast }: TaskListProps) => {
   return (
     <div className="flex flex-col gap-3">
       {tasks.map((task) => (
@@ -24,6 +25,7 @@ export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, 
           onDelete={onDelete}
           onDefer={onDefer}
           onCreateCategory={onCreateCategory}
+          onShowToast={onShowToast}
         />
       ))}
     </div>
