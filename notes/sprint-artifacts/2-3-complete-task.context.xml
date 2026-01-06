@@ -1,0 +1,238 @@
+<story-context id="2-3-complete-task" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Complete Task</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-3-complete-task.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to mark a task as done and see it disappear with satisfaction</iWant>
+    <soThat>I feel progress and closure when completing tasks</soThat>
+    <tasks>
+      <task n="1" ac="4">Add COMPLETE_TASK Action to useTasks Hook
+        - Open today-app/src/hooks/useTasks.ts
+        - Add 'COMPLETE_TASK' to TaskAction type: { type: 'COMPLETE_TASK'; id: string }
+        - Implement COMPLETE_TASK case in reducer (set completedAt timestamp)
+        - Export completeTask helper function alongside addTask
+        - Verify action doesn't mutate state (immutable update)
+      </task>
+      <task n="2" ac="4">Update Task Type Export if Needed
+        - Verify today-app/src/types/index.ts has TaskAction type exported
+        - Ensure COMPLETE_TASK action type is added to union
+      </task>
+      <task n="3" ac="2,5">Add Completion Animation CSS
+        - Open today-app/src/index.css
+        - Add @keyframes task-complete (opacity 1->0, translateX 0->-20px)
+        - Create .animate-task-complete utility class (300ms ease-out forwards)
+      </task>
+      <task n="4" ac="1,2,3">Make TaskCard Checkbox Interactive
+        - Update TaskCardProps: add onComplete: (id: string) => void
+        - Add local state: isCompleting, showCheck (useState)
+        - Replace Circle with button for accessibility
+        - On click: showCheck=true (instant), isCompleting=true (300ms), onComplete (600ms)
+        - Render CheckCircle2 when showCheck=true (green, text-success)
+        - Apply .animate-task-complete when isCompleting=true
+      </task>
+      <task n="5" ac="3,6">Update TaskList Props
+        - Update TaskListProps: add onComplete: (id: string) => void
+        - Pass onComplete prop to each TaskCard
+      </task>
+      <task n="6" ac="3">Update TodayView Props
+        - Update TodayViewProps: add onCompleteTask: (id: string) => void
+        - Pass onComplete prop to TaskList
+      </task>
+      <task n="7" ac="3,4">Filter Completed Tasks in App
+        - Get completeTask from useTasks hook
+        - Filter tasks: tasks.filter(t => t.completedAt === null)
+        - Pass completeTask to TodayView as onCompleteTask
+      </task>
+      <task n="8" ac="all">Build Verification and Testing
+        - Run npm run build to verify no TypeScript errors
+        - Test completing single task - verify animation sequence
+        - Test completing multiple tasks in succession
+        - Test completing last task - verify empty state appears
+        - Verify no console warnings about unmounted components
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="2.3.1">Given I see a task in the Today list and click the circle checkbox, it immediately fills with a green checkmark (#22c55e / text-success)</ac>
+    <ac id="2.3.2">Given I completed a task and saw the checkmark, after 300ms the task gently fades out (opacity 0) and slides left (translateX -20px) over 300ms</ac>
+    <ac id="2.3.3">Given the completion animation finishes, the task is removed from the Today list view</ac>
+    <ac id="2.3.4">Given a task is completed, its completedAt field is set to the current ISO timestamp</ac>
+    <ac id="2.3.5">The completion animation feels calm and satisfying (no confetti, no sounds, no celebratory effects)</ac>
+    <ac id="2.3.6">Given multiple tasks exist, completing one task does not affect the others in the list</ac>
+    <ac id="2.3.7">Given I complete multiple tasks in quick succession, each completes independently with proper animation</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/prd.md" title="Product Requirements Document" section="Functional Requirements">
+        FR2: Users can mark a task as complete; completed tasks are removed from view
+      </doc>
+      <doc path="notes/architecture.md" title="Architecture" section="Data Architecture">
+        Task interface with completedAt: string | null field; TaskAction type with COMPLETE_TASK action pattern
+      </doc>
+      <doc path="notes/architecture.md" title="Architecture" section="Implementation Patterns">
+        State updates via useReducer; immutable updates only; return new objects/arrays
+      </doc>
+      <doc path="notes/ux-design-specification.md" title="UX Design Specification" section="5.1 Critical User Paths - Journey 2">
+        Complete Task: Click checkbox -> immediate green checkmark -> 300ms pause -> fade out + slide left over 300ms
+      </doc>
+      <doc path="notes/ux-design-specification.md" title="UX Design Specification" section="6.1 Component Strategy - Task Card">
+        TaskCard states: Default, Hover, Completing (checkbox fills green, brief pause, fade out)
+      </doc>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-2.md" title="Epic 2 Tech Spec" section="Workflows and Sequencing">
+        Complete Task Flow: Click checkbox -> checkmark appears -> 300ms delay -> opacity 0, translateX(-20px) -> filtered out
+      </doc>
+    </docs>
+    <code>
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task" lines="1-12" reason="Task interface with completedAt field to be updated on completion">
+        <![CDATA[export interface Task {
+  id: string
+  text: string
+  createdAt: string
+  deferredTo: string | null
+  category: string | null
+  completedAt: string | null  // Set to ISO timestamp on completion
+}]]>
+      </file>
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="1-63" reason="Add COMPLETE_TASK action to reducer and export completeTask helper">
+        <![CDATA[// Current TaskAction only has ADD_TASK - extend with:
+type TaskAction =
+  | { type: 'ADD_TASK'; id: string; text: string }
+  | { type: 'COMPLETE_TASK'; id: string }
+
+// Add to reducer:
+case 'COMPLETE_TASK':
+  return state.map(task =>
+    task.id === action.id
+      ? { ...task, completedAt: new Date().toISOString() }
+      : task
+  )
+
+// Add helper function and export alongside addTask]]>
+      </file>
+      <file path="today-app/src/components/TaskCard.tsx" kind="component" symbol="TaskCard" lines="1-22" reason="Make checkbox interactive with completion animation states">
+        <![CDATA[// Current: displays Circle icon, no onClick handler
+// Add: onComplete prop, local state (showCheck, isCompleting)
+// Add: CheckCircle2 icon import from lucide-react
+// Add: animation class when isCompleting=true
+// Handle click: showCheck=true (instant), isCompleting=true (300ms), onComplete (600ms)]]>
+      </file>
+      <file path="today-app/src/components/TaskList.tsx" kind="component" symbol="TaskList" lines="1-17" reason="Pass onComplete prop to TaskCard components">
+        <![CDATA[// Add onComplete prop to TaskListProps interface
+// Pass onComplete to each TaskCard in map]]>
+      </file>
+      <file path="today-app/src/views/TodayView.tsx" kind="view" symbol="TodayView" lines="1-34" reason="Pass onCompleteTask prop to TaskList">
+        <![CDATA[// Add onCompleteTask prop to TodayViewProps interface
+// Pass as onComplete to TaskList component]]>
+      </file>
+      <file path="today-app/src/App.tsx" kind="root" symbol="App" lines="1-39" reason="Filter completed tasks, pass completeTask to TodayView">
+        <![CDATA[// Get completeTask from useTasks hook
+// Filter tasks: tasks.filter(t => t.completedAt === null)
+// Pass completeTask to TodayView as onCompleteTask]]>
+      </file>
+      <file path="today-app/src/index.css" kind="styles" symbol="animations" lines="104-118" reason="Add task-complete animation keyframes">
+        <![CDATA[/* Existing slideIn animation - add similar pattern:
+@keyframes taskComplete {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.animate-task-complete {
+  animation: taskComplete 300ms ease-out forwards;
+}
+*/]]>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0" use="useState for local animation state" />
+        <package name="lucide-react" version="^0.562.0" use="Circle (unchecked), CheckCircle2 (completed) icons" />
+        <package name="date-fns" version="^4.1.0" use="Not needed for this story" />
+        <package name="tailwindcss" version="^4.1.18" use="text-success color class for green checkmark" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">Components MUST be functional with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint source="architecture.md">State updates MUST be immutable - use spread operator, never mutate</constraint>
+    <constraint source="architecture.md">Use useReducer pattern via useTasks hook for task operations</constraint>
+    <constraint source="ux-spec">Animation must be CSS-based (GPU accelerated) - no JS animation libraries</constraint>
+    <constraint source="ux-spec">Completion must feel calm - no confetti, sounds, or celebratory effects</constraint>
+    <constraint source="prd">Interaction response must be under 100ms (immediate checkbox fill)</constraint>
+    <constraint source="tech-spec">Total animation: 300ms pause + 300ms fade = ~600ms from click to removal</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="TaskCardProps" kind="component-props" path="today-app/src/components/TaskCard.tsx">
+      <![CDATA[interface TaskCardProps {
+  task: Task
+  isNew?: boolean
+  onComplete: (id: string) => void  // ADD THIS
+}]]>
+    </interface>
+    <interface name="TaskListProps" kind="component-props" path="today-app/src/components/TaskList.tsx">
+      <![CDATA[interface TaskListProps {
+  tasks: Task[]
+  newTaskIds?: Set<string>
+  onComplete: (id: string) => void  // ADD THIS
+}]]>
+    </interface>
+    <interface name="TodayViewProps" kind="component-props" path="today-app/src/views/TodayView.tsx">
+      <![CDATA[interface TodayViewProps {
+  tasks: Task[]
+  onAddTask?: (text: string) => void
+  newTaskIds?: Set<string>
+  onCompleteTask: (id: string) => void  // ADD THIS
+}]]>
+    </interface>
+    <interface name="useTasks" kind="hook-return" path="today-app/src/hooks/useTasks.ts">
+      <![CDATA[const useTasks = () => {
+  // Returns:
+  tasks: Task[]
+  addTask: (text: string) => void
+  completeTask: (id: string) => void  // ADD THIS
+  newTaskIds: Set<string>
+  dispatch: React.Dispatch<TaskAction>
+}]]>
+    </interface>
+    <interface name="TaskAction" kind="type" path="today-app/src/hooks/useTasks.ts">
+      <![CDATA[type TaskAction =
+  | { type: 'ADD_TASK'; id: string; text: string }
+  | { type: 'COMPLETE_TASK'; id: string }  // ADD THIS]]>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Per architecture.md, testing uses Vitest + Testing Library. Tests should be placed in tests/ directory at project root. Focus on reducer logic unit tests and component integration tests. Manual frontend testing via the Frontend Test Gate is primary validation method for this story.
+    </standards>
+    <locations>
+      <location>today-app/tests/hooks/useTasks.test.ts</location>
+      <location>today-app/tests/components/TaskCard.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="2.3.1">Unit test: COMPLETE_TASK reducer sets completedAt to valid ISO timestamp</idea>
+      <idea ac="2.3.3">Unit test: Completed tasks (completedAt !== null) filtered out of today view</idea>
+      <idea ac="2.3.4">Unit test: COMPLETE_TASK finds correct task by id and only updates that task</idea>
+      <idea ac="2.3.6">Unit test: Completing one task doesn't modify other tasks in state</idea>
+      <idea ac="2.3.7">Integration test: Rapid completion calls don't cause race conditions</idea>
+      <idea ac="all">Manual test: Frontend Test Gate 2-3-TG1 with 10 test steps</idea>
+    </ideas>
+  </tests>
+</story-context>

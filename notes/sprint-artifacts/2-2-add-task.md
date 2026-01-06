@@ -1,6 +1,6 @@
 # Story 2.2: Add Task
 
-Status: in-progress
+Status: done
 
 ## Story
 

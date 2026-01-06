@@ -3,10 +3,12 @@ import type { Task } from '../types'
 
 /**
  * Action types for task state management
- * Expandable for COMPLETE_TASK, DELETE_TASK, DEFER_TASK in future stories
+ * Expandable for DELETE_TASK, DEFER_TASK in future stories
  */
 type TaskAction =
   | { type: 'ADD_TASK'; id: string; text: string }
+  | { type: 'COMPLETE_TASK'; id: string }
+  | { type: 'DELETE_TASK'; id: string }
 
 const initialState: Task[] = []
 
@@ -24,6 +26,14 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
           completedAt: null,
         },
       ]
+    case 'COMPLETE_TASK':
+      return state.map(task =>
+        task.id === action.id
+          ? { ...task, completedAt: new Date().toISOString() }
+          : task
+      )
+    case 'DELETE_TASK':
+      return state.filter(task => task.id !== action.id)
     default:
       return state
   }
@@ -59,5 +69,13 @@ export const useTasks = () => {
     dispatch({ type: 'ADD_TASK', id, text })
   }, [])
 
-  return { tasks, addTask, newTaskIds, dispatch }
+  const completeTask = useCallback((id: string) => {
+    dispatch({ type: 'COMPLETE_TASK', id })
+  }, [])
+
+  const deleteTask = useCallback((id: string) => {
+    dispatch({ type: 'DELETE_TASK', id })
+  }, [])
+
+  return { tasks, addTask, completeTask, deleteTask, newTaskIds, dispatch }
 }

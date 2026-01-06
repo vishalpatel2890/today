@@ -45,15 +45,15 @@ development_status:
   # Epic 2: Today's Tasks
   epic-2: contexted
   2-1-today-view-with-task-list: done
-  2-2-add-task: in-progress
-  2-3-complete-task: drafted
-  2-4-delete-task: backlog
+  2-2-add-task: done
+  2-3-complete-task: done
+  2-4-delete-task: done
   epic-2-retrospective: optional
 
   # Epic 3: Deferment System
-  epic-3: backlog
-  3-1-defer-button-on-task-cards: backlog
-  3-2-defer-modal-date-selection: backlog
+  epic-3: contexted
+  3-1-defer-button-on-task-cards: review
+  3-2-defer-modal-date-selection: review
   3-3-defer-modal-category-selection-and-creation: backlog
   3-4-defer-action-and-tomorrow-view: backlog
   3-5-deferred-view-with-categories: backlog

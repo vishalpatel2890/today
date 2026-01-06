@@ -1,0 +1,158 @@
+<story-context id="2-4-delete-task" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>Delete Task</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-4-delete-task.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to permanently delete a task I no longer need</iWant>
+    <soThat>I can clean up tasks that are no longer relevant</soThat>
+    <tasks>
+      <task id="1" ac="6">Add DELETE_TASK Action to useTasks Hook - implement reducer case that filters out task by id</task>
+      <task id="2" ac="6">Update Task Type Export - ensure DELETE_TASK is in TaskAction union</task>
+      <task id="3" ac="1,2">Add Delete Button to TaskCard - Trash2 icon with hover/mobile visibility</task>
+      <task id="4" ac="3,4,5">Add Delete Confirmation Handler - window.confirm with aria-label</task>
+      <task id="5" ac="4">Update TaskList Props - add onDelete prop</task>
+      <task id="6" ac="4">Update TodayView Props - add onDeleteTask prop</task>
+      <task id="7" ac="4,7">Wire Up Delete in App.tsx - get deleteTask from hook, pass to TodayView</task>
+      <task id="8" ac="all">Build Verification and Testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="2.4.1">Given I hover over a task card on desktop, the actions area becomes visible showing a trash icon after any other action icons</ac>
+    <ac id="2.4.2">Given I am on mobile (&lt; 768px), the trash icon is always visible in the task card actions area (no hover required)</ac>
+    <ac id="2.4.3">Given I click the trash icon, a confirmation prompt appears asking "Delete this task?"</ac>
+    <ac id="2.4.4">Given I confirm the deletion prompt, the task is immediately removed from the list</ac>
+    <ac id="2.4.5">Given I cancel the deletion prompt, nothing happens and the task remains in the list</ac>
+    <ac id="2.4.6">Given a task is deleted, it is completely removed from state (filtered out of tasks array entirely)</ac>
+    <ac id="2.4.7">Given I delete the last task in the list, the empty state message appears ("Nothing for today.")</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/architecture.md" title="Architecture" section="Data Architecture">
+        Task interface with completedAt field; TaskAction union type pattern; useReducer state management per ADR-005
+      </doc>
+      <doc path="notes/architecture.md" title="Architecture" section="Implementation Patterns">
+        Functional components with TypeScript; arrow function syntax; named exports; immutable state updates
+      </doc>
+      <doc path="notes/ux-design-specification.md" title="UX Design" section="6.1 Component Strategy - Task Card">
+        Actions menu revealed on hover; Delete icon (trash) appears in actions area
+      </doc>
+      <doc path="notes/ux-design-specification.md" title="UX Design" section="7.1 Consistency Rules">
+        Delete requires confirmation to prevent accidents on destructive action
+      </doc>
+      <doc path="notes/ux-design-specification.md" title="UX Design" section="8.1 Responsive Strategy">
+        Desktop: actions hover-revealed; Mobile (&lt;768px): actions always visible with 44px touch targets
+      </doc>
+      <doc path="notes/epics.md" title="Epics" section="Story 2.4: Delete Task">
+        FR3 coverage; window.confirm for MVP; task actions appear on hover; mobile always shows actions
+      </doc>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-2.md" title="Epic 2 Tech Spec" section="Story 2.4 Acceptance Criteria">
+        AC-2.4.1 through AC-2.4.6; Delete Task Flow diagram; taskReducer DELETE_TASK implementation
+      </doc>
+      <doc path="notes/prd.md" title="PRD" section="Functional Requirements">
+        FR3: Users can delete a task permanently
+      </doc>
+    </docs>
+
+    <code>
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="43-74" reason="Add DELETE_TASK case to reducer; export deleteTask callback following existing addTask/completeTask pattern">
+        <currentState>Has ADD_TASK and COMPLETE_TASK actions; needs DELETE_TASK action that filters task by id</currentState>
+      </file>
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task" lines="1-12" reason="Task interface reference; may need TaskAction type export">
+        <currentState>Task interface defined; TaskAction type is in useTasks.ts, may need moving to types</currentState>
+      </file>
+      <file path="today-app/src/components/TaskCard.tsx" kind="component" symbol="TaskCard" lines="1-53" reason="Add Trash2 icon and onDelete prop; implement handleDelete with window.confirm">
+        <currentState>Has onComplete prop and CheckCircle2 icon; needs onDelete prop and Trash2 icon with responsive visibility</currentState>
+      </file>
+      <file path="today-app/src/components/TaskList.tsx" kind="component" symbol="TaskList" lines="1-23" reason="Add onDelete prop and pass to TaskCard">
+        <currentState>Has onComplete prop; needs parallel onDelete prop</currentState>
+      </file>
+      <file path="today-app/src/views/TodayView.tsx" kind="view" symbol="TodayView" lines="1-35" reason="Add onDeleteTask prop and pass to TaskList">
+        <currentState>Has onCompleteTask prop; needs onDeleteTask prop</currentState>
+      </file>
+      <file path="today-app/src/App.tsx" kind="component" symbol="App" lines="1-49" reason="Get deleteTask from useTasks; pass to TodayView as onDeleteTask">
+        <currentState>Uses addTask and completeTask; needs deleteTask</currentState>
+      </file>
+      <file path="today-app/src/index.css" kind="styles" symbol="design-tokens" lines="1-135" reason="Reference for design tokens; --error color (#ef4444) for hover state">
+        <currentState>Has design tokens including --error; no changes needed</currentState>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <production>
+          <package name="react" version="^19.2.0" />
+          <package name="lucide-react" version="^0.562.0" note="Trash2 icon for delete button" />
+        </production>
+        <dev>
+          <package name="typescript" version="~5.9.3" />
+          <package name="tailwindcss" version="^4.1.18" />
+          <package name="vite" version="^7.2.4" />
+        </dev>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="TaskCardProps" kind="component-props" path="today-app/src/components/TaskCard.tsx">
+      <current>{ task: Task; isNew?: boolean; onComplete: (id: string) => void }</current>
+      <required>{ task: Task; isNew?: boolean; onComplete: (id: string) => void; onDelete: (id: string) => void }</required>
+    </interface>
+    <interface name="TaskListProps" kind="component-props" path="today-app/src/components/TaskList.tsx">
+      <current>{ tasks: Task[]; newTaskIds?: Set&lt;string&gt;; onComplete: (id: string) => void }</current>
+      <required>{ tasks: Task[]; newTaskIds?: Set&lt;string&gt;; onComplete: (id: string) => void; onDelete: (id: string) => void }</required>
+    </interface>
+    <interface name="TodayViewProps" kind="component-props" path="today-app/src/views/TodayView.tsx">
+      <current>{ tasks: Task[]; onAddTask?: (text: string) => void; onCompleteTask: (id: string) => void; newTaskIds?: Set&lt;string&gt; }</current>
+      <required>{ tasks: Task[]; onAddTask?: (text: string) => void; onCompleteTask: (id: string) => void; onDeleteTask: (id: string) => void; newTaskIds?: Set&lt;string&gt; }</required>
+    </interface>
+    <interface name="useTasks" kind="hook-return" path="today-app/src/hooks/useTasks.ts">
+      <current>{ tasks: Task[]; addTask: (text: string) => void; completeTask: (id: string) => void; newTaskIds: Set&lt;string&gt;; dispatch }</current>
+      <required>{ tasks: Task[]; addTask: (text: string) => void; completeTask: (id: string) => void; deleteTask: (id: string) => void; newTaskIds: Set&lt;string&gt;; dispatch }</required>
+    </interface>
+    <interface name="TaskAction" kind="type-union" path="today-app/src/hooks/useTasks.ts">
+      <current>{ type: 'ADD_TASK'; id: string; text: string } | { type: 'COMPLETE_TASK'; id: string }</current>
+      <required>{ type: 'ADD_TASK'; id: string; text: string } | { type: 'COMPLETE_TASK'; id: string } | { type: 'DELETE_TASK'; id: string }</required>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint source="architecture.md">All state updates MUST use reducer pattern via useTasks hook; return new objects/arrays (no mutation)</constraint>
+    <constraint source="architecture.md">All components MUST be functional with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint source="architecture.md">Destructure props in function signature</constraint>
+    <constraint source="ux-spec">Delete requires confirmation dialog (window.confirm for MVP)</constraint>
+    <constraint source="ux-spec">Desktop: action icons appear on hover; Mobile: action icons always visible</constraint>
+    <constraint source="ux-spec">Touch targets minimum 44x44px on mobile</constraint>
+    <constraint source="ux-spec">Use design token --error (#ef4444) for delete hover state</constraint>
+    <constraint source="tech-spec">Delete removes task from array entirely (filter), not soft delete</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Manual browser testing per Frontend Test Gate pattern established in previous stories. Run `npm run build` to verify TypeScript compilation. Check browser DevTools for console errors. Test responsive behavior at mobile breakpoint (&lt;768px). Vitest available for unit tests but not required for this story scope.
+    </standards>
+    <locations>
+      <location>today-app/tests/ (for future unit tests)</location>
+      <location>Manual testing at localhost:5173</location>
+    </locations>
+    <ideas>
+      <idea ac="2.4.1">Desktop hover test: hover task card, verify trash icon appears in actions area</idea>
+      <idea ac="2.4.2">Mobile test: resize to &lt;768px, verify trash icon visible without hover</idea>
+      <idea ac="2.4.3">Confirmation test: click trash, verify "Delete this task?" prompt appears</idea>
+      <idea ac="2.4.4">Confirm delete test: click OK on prompt, verify task immediately removed</idea>
+      <idea ac="2.4.5">Cancel delete test: click Cancel on prompt, verify task remains</idea>
+      <idea ac="2.4.6">State test: after delete, check DevTools/React state that task is filtered out</idea>
+      <idea ac="2.4.7">Empty state test: delete all tasks, verify "Nothing for today." message appears</idea>
+      <idea ac="all">Build test: run npm run build, verify no TypeScript errors</idea>
+    </ideas>
+  </tests>
+</story-context>

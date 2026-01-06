@@ -116,3 +116,67 @@ body {
 .animate-slide-in {
   animation: slideIn 200ms ease-out;
 }
+
+/* Task completion animation - fade out and slide left */
+@keyframes taskComplete {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.animate-task-complete {
+  animation: taskComplete 300ms ease-out forwards;
+}
+
+/* Modal fade-in animation for overlay */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 150ms ease-out;
+}
+
+/* Modal slide-up animation for content (mobile bottom sheet) */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 100%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Desktop centered modal animation */
+@keyframes slideUpDesktop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 200ms ease-out;
+}
+
+@media (min-width: 768px) {
+  .animate-slide-up {
+    animation: slideUpDesktop 200ms ease-out;
+  }
+}

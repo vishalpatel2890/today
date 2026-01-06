@@ -1,6 +1,6 @@
 # Story 2.3: Complete Task
 
-Status: drafted
+Status: done
 
 ## Story
 
@@ -68,23 +68,23 @@ so that **I feel progress and closure when completing tasks**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Add COMPLETE_TASK Action to useTasks Hook** (AC: 4)
-  - [ ] Open `today-app/src/hooks/useTasks.ts`
-  - [ ] Add 'COMPLETE_TASK' to TaskAction type: `{ type: 'COMPLETE_TASK'; id: string }`
-  - [ ] Implement COMPLETE_TASK case in reducer:
+- [x] **Task 1: Add COMPLETE_TASK Action to useTasks Hook** (AC: 4)
+  - [x] Open `today-app/src/hooks/useTasks.ts`
+  - [x] Add 'COMPLETE_TASK' to TaskAction type: `{ type: 'COMPLETE_TASK'; id: string }`
+  - [x] Implement COMPLETE_TASK case in reducer:
     - Find task by id
     - Set `completedAt` to `new Date().toISOString()`
     - Return new state with updated task
-  - [ ] Export `completeTask` helper function alongside `addTask`
-  - [ ] Verify action doesn't mutate state (immutable update)
+  - [x] Export `completeTask` helper function alongside `addTask`
+  - [x] Verify action doesn't mutate state (immutable update)
 
-- [ ] **Task 2: Update Task Type Export if Needed** (AC: 4)
-  - [ ] Verify `today-app/src/types/index.ts` has TaskAction type exported
-  - [ ] Ensure COMPLETE_TASK action type is added to union
+- [x] **Task 2: Update Task Type Export if Needed** (AC: 4)
+  - [x] Verify `today-app/src/types/index.ts` has TaskAction type exported
+  - [x] Ensure COMPLETE_TASK action type is added to union
 
-- [ ] **Task 3: Add Completion Animation CSS** (AC: 2, 5)
-  - [ ] Open `today-app/src/index.css`
-  - [ ] Add keyframe animation for fade-out + slide-left:
+- [x] **Task 3: Add Completion Animation CSS** (AC: 2, 5)
+  - [x] Open `today-app/src/index.css`
+  - [x] Add keyframe animation for fade-out + slide-left:
     ```css
     @keyframes task-complete {
       from {
@@ -97,47 +97,47 @@ so that **I feel progress and closure when completing tasks**.
       }
     }
     ```
-  - [ ] Create utility class `.animate-task-complete`:
+  - [x] Create utility class `.animate-task-complete`:
     - animation: task-complete 300ms ease-out forwards
-  - [ ] Duration: 300ms as per UX spec
+  - [x] Duration: 300ms as per UX spec
 
-- [ ] **Task 4: Make TaskCard Checkbox Interactive** (AC: 1, 2, 3)
-  - [ ] Open `today-app/src/components/TaskCard.tsx`
-  - [ ] Update TaskCardProps: add `onComplete: (id: string) => void`
-  - [ ] Add local state for completion: `const [isCompleting, setIsCompleting] = useState(false)`
-  - [ ] Add local state for showing check: `const [showCheck, setShowCheck] = useState(false)`
-  - [ ] Replace Circle icon with button wrapper for accessibility
-  - [ ] On checkbox click:
+- [x] **Task 4: Make TaskCard Checkbox Interactive** (AC: 1, 2, 3)
+  - [x] Open `today-app/src/components/TaskCard.tsx`
+  - [x] Update TaskCardProps: add `onComplete: (id: string) => void`
+  - [x] Add local state for completion: `const [isCompleting, setIsCompleting] = useState(false)`
+  - [x] Add local state for showing check: `const [showCheck, setShowCheck] = useState(false)`
+  - [x] Replace Circle icon with button wrapper for accessibility
+  - [x] On checkbox click:
     1. Set `showCheck = true` (immediate green checkmark)
     2. Set `isCompleting = true` after 300ms timeout (starts fade animation)
     3. Call `onComplete(task.id)` after animation completes (another 300ms)
-  - [ ] Render CheckCircle2 icon when `showCheck` is true (from lucide-react, green color)
-  - [ ] Render Circle icon when `showCheck` is false
-  - [ ] Apply `.animate-task-complete` class when `isCompleting` is true
+  - [x] Render CheckCircle2 icon when `showCheck` is true (from lucide-react, green color)
+  - [x] Render Circle icon when `showCheck` is false
+  - [x] Apply `.animate-task-complete` class when `isCompleting` is true
 
-- [ ] **Task 5: Update TaskList Props** (AC: 3, 6)
-  - [ ] Open `today-app/src/components/TaskList.tsx`
-  - [ ] Update TaskListProps: add `onComplete: (id: string) => void`
-  - [ ] Pass `onComplete` prop to each TaskCard
+- [x] **Task 5: Update TaskList Props** (AC: 3, 6)
+  - [x] Open `today-app/src/components/TaskList.tsx`
+  - [x] Update TaskListProps: add `onComplete: (id: string) => void`
+  - [x] Pass `onComplete` prop to each TaskCard
 
-- [ ] **Task 6: Update TodayView Props** (AC: 3)
-  - [ ] Open `today-app/src/views/TodayView.tsx`
-  - [ ] Update TodayViewProps: add `onCompleteTask: (id: string) => void`
-  - [ ] Pass `onComplete` prop to TaskList
+- [x] **Task 6: Update TodayView Props** (AC: 3)
+  - [x] Open `today-app/src/views/TodayView.tsx`
+  - [x] Update TodayViewProps: add `onCompleteTask: (id: string) => void`
+  - [x] Pass `onComplete` prop to TaskList
 
-- [ ] **Task 7: Filter Completed Tasks in App** (AC: 3, 4)
-  - [ ] Open `today-app/src/App.tsx`
-  - [ ] Get `completeTask` from useTasks hook
-  - [ ] Filter tasks before passing to TodayView: `tasks.filter(t => t.completedAt === null)`
-  - [ ] Pass `completeTask` to TodayView as `onCompleteTask`
+- [x] **Task 7: Filter Completed Tasks in App** (AC: 3, 4)
+  - [x] Open `today-app/src/App.tsx`
+  - [x] Get `completeTask` from useTasks hook
+  - [x] Filter tasks before passing to TodayView: `tasks.filter(t => t.completedAt === null)`
+  - [x] Pass `completeTask` to TodayView as `onCompleteTask`
 
-- [ ] **Task 8: Build Verification and Testing** (AC: all)
-  - [ ] Run `npm run build` to verify no TypeScript errors
-  - [ ] Test completing single task - verify animation sequence
-  - [ ] Test completing multiple tasks in succession
-  - [ ] Test completing last task - verify empty state appears
-  - [ ] Verify no console warnings about state updates on unmounted components
-  - [ ] Test animation timing feels right (adjust if needed)
+- [x] **Task 8: Build Verification and Testing** (AC: all)
+  - [x] Run `npm run build` to verify no TypeScript errors
+  - [x] Test completing single task - verify animation sequence
+  - [x] Test completing multiple tasks in succession
+  - [x] Test completing last task - verify empty state appears
+  - [x] Verify no console warnings about state updates on unmounted components
+  - [x] Test animation timing feels right (adjust if needed)
 
 ## Dev Notes
 
@@ -257,24 +257,42 @@ No new dependencies required. Uses existing:
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `notes/sprint-artifacts/2-3-complete-task.context.xml`
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+- Implemented all 8 tasks in order: useTasks hook extension, CSS animation, TaskCard interactive checkbox, props threading through TaskList/TodayView, App filtering
+- Build passes: 218.59KB JS (68.19KB gzipped), 15.23KB CSS
+
 ### Completion Notes List
+
+- Added COMPLETE_TASK action to useTasks reducer with immutable state update
+- Created taskComplete CSS keyframe animation (fade-out + slide-left, 300ms)
+- Made TaskCard checkbox interactive with CheckCircle2 icon for completed state
+- Animation sequence: immediate green checkmark -> 300ms pause -> 300ms fade/slide -> state update
+- Threaded onComplete prop through TaskList and TodayView to App
+- App.tsx now filters completed tasks (completedAt === null) before rendering
+- ✅ Test Gate PASSED by Vishal (2026-01-06)
 
 ### File List
 
 | File | Status | Description |
 |------|--------|-------------|
-| | | |
+| today-app/src/hooks/useTasks.ts | Modified | Added COMPLETE_TASK action and completeTask helper |
+| today-app/src/index.css | Modified | Added taskComplete keyframes and animate-task-complete class |
+| today-app/src/components/TaskCard.tsx | Modified | Interactive checkbox with local animation state |
+| today-app/src/components/TaskList.tsx | Modified | Added onComplete prop |
+| today-app/src/views/TodayView.tsx | Modified | Added onCompleteTask prop |
+| today-app/src/App.tsx | Modified | Filter completed tasks, pass completeTask |
 
 ## Change Log
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-01-06 | Story drafted from sprint-status backlog (2-3-complete-task) | SM Agent |
+| 2026-01-06 | Implemented all 8 tasks: COMPLETE_TASK action, CSS animation, interactive TaskCard | Dev Agent |
+| 2026-01-06 | Test Gate PASSED, story marked for review | Vishal |

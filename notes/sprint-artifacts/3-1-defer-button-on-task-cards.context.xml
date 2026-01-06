@@ -1,0 +1,183 @@
+<story-context id="3-1-defer-button-on-task-cards" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>Defer Button on Task Cards</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-1-defer-button-on-task-cards.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see a defer button on each task</iWant>
+    <soThat>I can initiate the deferment workflow</soThat>
+    <tasks>
+      <task id="1" ac="2,4">Install Radix Dialog dependency - verify @radix-ui/react-dialog in package.json</task>
+      <task id="2" ac="2,4">Create placeholder DeferModal.tsx with Radix Dialog, DeferModalProps interface, desktop centered/mobile bottom sheet styling</task>
+      <task id="3" ac="1,3">Add Clock icon to TaskCard - import from lucide-react, add onDefer prop, responsive visibility</task>
+      <task id="4" ac="2">Add modal state management to TaskCard - useState for isDeferModalOpen, render DeferModal</task>
+      <task id="5" ac="2">Update TaskList to pass onDefer prop to TaskCard</task>
+      <task id="6" ac="2">Update TodayView to pass onDeferTask prop to TaskList</task>
+      <task id="7" ac="2">Wire up placeholder deferTask in App.tsx with console.log</task>
+      <task id="8" ac="4">Style bottom sheet for mobile with Tailwind responsive classes and animations</task>
+      <task id="9" ac="all">Build verification and testing - npm run build, manual browser tests</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.1.1">Given I hover over a task card on desktop, a clock icon (defer button) appears in the actions area before the trash icon</criterion>
+    <criterion id="AC-3.1.2">Given I click the defer button (clock icon), a modal dialog opens (placeholder for now)</criterion>
+    <criterion id="AC-3.1.3">Given I am on mobile (&lt; 768px), the defer button is always visible in the task card actions area (no hover required)</criterion>
+    <criterion id="AC-3.1.4">Given the modal opens on desktop, it appears centered on the screen; on mobile, it appears as a bottom sheet</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Project Structure, Integration Points, Implementation Patterns</section>
+        <snippet>Component patterns: functional TypeScript, arrow functions, named exports. Radix UI for accessible primitives. All components in src/components/. Integration: TaskCard opens DeferModal.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Deferment System</title>
+        <section>Story 3.1, Detailed Design, Workflows</section>
+        <snippet>DeferModal.tsx uses Radix Dialog, opens centered on desktop, bottom sheet on mobile. Clock icon in TaskCard actions area before trash. Modal is placeholder for stories 3.2-3.3.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 3.1: Defer Button on Task Cards</section>
+        <snippet>First story in Epic 3. Adds clock icon to TaskCard actions. Opens placeholder modal. Prerequisites: Story 2.4 (delete task) complete.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/2-4-delete-task.md</path>
+        <title>Previous Story: Delete Task</title>
+        <section>Dev Agent Record, Completion Notes</section>
+        <snippet>Established action icons pattern: opacity-100 md:opacity-0 md:group-hover:opacity-100. Icon size 18px. Prop threading: TaskCard-TaskList-TodayView-App.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/components/TaskCard.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskCard</symbol>
+        <lines>1-68</lines>
+        <reason>Primary modification target: add Clock icon, onDefer prop, isDeferModalOpen state, DeferModal render. Copy delete button pattern for defer button.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskList.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskList</symbol>
+        <lines>1-26</lines>
+        <reason>Pass-through onDefer prop to TaskCard. Follow onComplete/onDelete pattern.</reason>
+      </file>
+      <file>
+        <path>today-app/src/views/TodayView.tsx</path>
+        <kind>view</kind>
+        <symbol>TodayView</symbol>
+        <lines>1-37</lines>
+        <reason>Add onDeferTask prop to interface, pass to TaskList. Follow onCompleteTask/onDeleteTask pattern.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>root</kind>
+        <symbol>App</symbol>
+        <lines>1-51</lines>
+        <reason>Wire placeholder deferTask callback, pass to TodayView. Add useCallback for deferTask.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks</symbol>
+        <lines>1-82</lines>
+        <reason>Reference for action patterns. DEFER_TASK action will be added in Story 3.4, placeholder for now.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task</symbol>
+        <lines>1-13</lines>
+        <reason>Task interface already has deferredTo and category fields for future use.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package>@radix-ui/react-dialog</package>
+        <version>^1.1.15</version>
+        <note>Already installed. Use Dialog.Root, Dialog.Portal, Dialog.Overlay, Dialog.Content, Dialog.Title, Dialog.Close</note>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>^0.562.0</version>
+        <note>Already installed. Import Clock icon for defer button.</note>
+      </node>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <note>useState for modal open state in TaskCard</note>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^4.1.18</version>
+        <note>Responsive classes for mobile bottom sheet vs desktop centered modal</note>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">All components MUST be functional TypeScript with arrow functions and named exports</constraint>
+    <constraint source="architecture.md">Use Radix UI primitives for accessible modal (Dialog)</constraint>
+    <constraint source="tech-spec-epic-3.md">Modal centered on desktop, bottom sheet on mobile (&lt;768px)</constraint>
+    <constraint source="tech-spec-epic-3.md">Clock icon appears BEFORE trash icon in actions area</constraint>
+    <constraint source="tech-spec-epic-3.md">Actions visible on hover (desktop), always visible on mobile</constraint>
+    <constraint source="2-4-delete-task.md">Follow established pattern: opacity-100 md:opacity-0 md:group-hover:opacity-100</constraint>
+    <constraint source="architecture.md">No state mutations - use immutable patterns</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>DeferModalProps</name>
+      <kind>component-props</kind>
+      <signature>interface DeferModalProps { task: Task; isOpen: boolean; onClose: () =&gt; void; }</signature>
+      <path>today-app/src/components/DeferModal.tsx (NEW)</path>
+    </interface>
+    <interface>
+      <name>TaskCardProps</name>
+      <kind>component-props</kind>
+      <signature>interface TaskCardProps { task: Task; isNew?: boolean; onComplete: (id: string) =&gt; void; onDelete: (id: string) =&gt; void; onDefer: (id: string) =&gt; void; }</signature>
+      <path>today-app/src/components/TaskCard.tsx</path>
+    </interface>
+    <interface>
+      <name>TaskListProps</name>
+      <kind>component-props</kind>
+      <signature>interface TaskListProps { tasks: Task[]; newTaskIds?: Set&lt;string&gt;; onComplete: (id: string) =&gt; void; onDelete: (id: string) =&gt; void; onDefer?: (id: string) =&gt; void; }</signature>
+      <path>today-app/src/components/TaskList.tsx</path>
+    </interface>
+    <interface>
+      <name>TodayViewProps</name>
+      <kind>component-props</kind>
+      <signature>interface TodayViewProps { tasks: Task[]; onAddTask?: (text: string) =&gt; void; onCompleteTask: (id: string) =&gt; void; onDeleteTask: (id: string) =&gt; void; onDeferTask?: (id: string) =&gt; void; newTaskIds?: Set&lt;string&gt;; }</signature>
+      <path>today-app/src/views/TodayView.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual browser testing per Frontend Test Gate. Run npm run build to verify TypeScript compilation. Check DevTools console for errors. Test hover states on desktop viewport, always-visible on mobile viewport. Test modal open/close with Escape key, click outside, X button.</standards>
+    <locations>
+      <location>today-app/tests/ (future - no automated tests yet)</location>
+      <location>Manual: localhost:5173</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-3.1.1">Hover task card on desktop, verify Clock icon appears before Trash icon</idea>
+      <idea ac="AC-3.1.2">Click Clock icon, verify modal opens with placeholder content</idea>
+      <idea ac="AC-3.1.3">Resize to mobile (&lt;768px), verify Clock icon always visible without hover</idea>
+      <idea ac="AC-3.1.4">On desktop, verify modal centered. Resize to mobile, verify bottom sheet style.</idea>
+      <idea ac="all">Close modal via X, Escape, click outside - verify task unchanged</idea>
+      <idea ac="all">Run npm run build - verify no TypeScript errors</idea>
+    </ideas>
+  </tests>
+</story-context>

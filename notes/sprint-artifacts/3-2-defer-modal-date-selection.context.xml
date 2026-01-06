@@ -1,0 +1,199 @@
+<story-context id="3-2-defer-modal-date-selection" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.2</storyId>
+    <title>Defer Modal - Date Selection</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-2-defer-modal-date-selection.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to choose when to defer a task (tomorrow, specific date, or no date)</iWant>
+    <soThat>I can decide when to revisit the task</soThat>
+    <tasks>
+      <task id="1" ac="3,4">Install date-fns if not present - verify ^4.x version</task>
+      <task id="2" ac="3,4">Create DatePicker.tsx component with month-view calendar grid, navigation, date-fns integration, disabled past dates</task>
+      <task id="3" ac="1,2,5">Update DeferModal.tsx with date selection UI - "When?" section with Tomorrow/Pick date/No date buttons</task>
+      <task id="4" ac="3,4">Integrate DatePicker into DeferModal - conditional render when pick-date selected</task>
+      <task id="5" ac="2,4">Implement date helper functions - getTomorrowISO(), formatDisplayDate()</task>
+      <task id="6" ac="all">Update DeferModalProps interface - prepare for category in Story 3.3</task>
+      <task id="7" ac="all">Build verification and testing - npm run build, manual browser testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.2.1">Given the defer modal is open, the "When?" section displays three date options: "Tomorrow", "Pick date", "No date"</ac>
+    <ac id="3.2.2">Given I click "Tomorrow", that button becomes selected (dark background) and stores tomorrow's date as the deferral target</ac>
+    <ac id="3.2.3">Given I click "Pick date", an inline calendar appears below the buttons allowing date selection</ac>
+    <ac id="3.2.4">Given the calendar is visible, only future dates (not today or past) are selectable; past/today dates are disabled</ac>
+    <ac id="3.2.5">Given I click "No date", that option is selected (task will go to Deferred with no date/someday)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Deferment System</title>
+        <section>Story 3.2: Defer Modal - Date Selection</section>
+        <snippet>AC-3.2.1 through AC-3.2.5 define date selection UI with Tomorrow/Pick date/No date options. DatePicker shows inline calendar with future dates only.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Deferment System</title>
+        <section>APIs and Interfaces - DatePicker Props</section>
+        <snippet>DatePickerProps interface: selectedDate (string|null), onSelect callback, minDate (Date, tomorrow). Calendar only allows future dates.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>Component Library - Defer Modal</section>
+        <snippet>Modal shows "When?" section with quick buttons [Tomorrow] [Pick date] [No date]. "Pick date" reveals inline calendar. Escape/click outside closes.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Date Handling Patterns</section>
+        <snippet>All dates MUST be stored as ISO 8601 strings. Use date-fns for comparison/formatting with isToday(), isTomorrow(), parseISO().</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Component Patterns</section>
+        <snippet>All components MUST be functional with TypeScript, arrow function syntax, named exports, destructured props.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today Epic Breakdown</title>
+        <section>Story 3.2: Defer Modal - Date Selection</section>
+        <snippet>User selects date option. Tomorrow auto-selects. Pick date shows calendar for future dates. No date for someday/indefinite deferral.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/components/DeferModal.tsx</path>
+        <kind>component</kind>
+        <symbol>DeferModal</symbol>
+        <lines>1-49</lines>
+        <reason>MODIFY: Replace placeholder content with date selection UI (Tomorrow/Pick date/No date buttons). Add dateOption and selectedDate state.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task</symbol>
+        <lines>1-12</lines>
+        <reason>REFERENCE: Task interface with deferredTo (string|null) field - date selection sets this value.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks, TaskAction</symbol>
+        <lines>1-81</lines>
+        <reason>REFERENCE: Will need DEFER_TASK action in Story 3.4. Understand existing reducer pattern for state updates.</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>styles</kind>
+        <symbol>animate-slide-up, animate-fade-in</symbol>
+        <lines>136-182</lines>
+        <reason>REFERENCE: Existing modal animations. May add calendar-specific animations if needed.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskCard.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskCard</symbol>
+        <reason>REFERENCE: Opens DeferModal with task prop. Understand modal trigger pattern.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="date-fns" version="^4.1.0" use="Date manipulation: startOfMonth, endOfMonth, eachDayOfInterval, isBefore, isToday, isSameDay, format, addMonths, subMonths, addDays, startOfDay" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" use="Accessible modal dialog - already used in DeferModal" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" use="OPTIONAL: Could use for calendar popover, but inline calendar preferred per UX spec" />
+        <package name="lucide-react" version="^0.562.0" use="Icons: ChevronLeft, ChevronRight for calendar navigation, Calendar icon optional" />
+        <package name="react" version="^19.2.0" use="UI framework - useState for date selection state" />
+        <package name="tailwindcss" version="^4.1.18" use="Styling utility classes" />
+        <package name="typescript" version="~5.9.3" use="Type safety" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>DatePickerProps</name>
+      <kind>component-props</kind>
+      <signature><![CDATA[interface DatePickerProps {
+  selectedDate: string | null;
+  onSelect: (date: string | null) => void;
+  minDate?: Date;  // Tomorrow (cannot select today or past)
+}]]></signature>
+      <path>today-app/src/components/DatePicker.tsx (TO CREATE)</path>
+    </interface>
+    <interface>
+      <name>DeferModalProps</name>
+      <kind>component-props</kind>
+      <signature><![CDATA[interface DeferModalProps {
+  task: Task;
+  isOpen: boolean;
+  onClose: () => void;
+  // Future (Story 3.3/3.4):
+  // categories: string[];
+  // onDefer: (deferredTo: string | null, category: string) => void;
+  // onCreateCategory: (name: string) => void;
+}]]></signature>
+      <path>today-app/src/components/DeferModal.tsx</path>
+    </interface>
+    <interface>
+      <name>DateOption</name>
+      <kind>type-alias</kind>
+      <signature><![CDATA[type DateOption = 'tomorrow' | 'pick-date' | 'no-date' | null;]]></signature>
+      <path>today-app/src/components/DeferModal.tsx (internal state type)</path>
+    </interface>
+    <interface>
+      <name>Task.deferredTo</name>
+      <kind>field</kind>
+      <signature><![CDATA[deferredTo: string | null  // ISO date string or null for "someday"]]></signature>
+      <path>today-app/src/types/index.ts</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="pattern">Functional components only with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint type="pattern">All dates stored as ISO 8601 strings - use date-fns for manipulation</constraint>
+    <constraint type="pattern">State updates through reducer pattern (useTasks hook)</constraint>
+    <constraint type="styling">Selected button: bg-primary text-white (#475569 bg, white text)</constraint>
+    <constraint type="styling">Unselected button: bg-surface border border-border text-foreground</constraint>
+    <constraint type="styling">Disabled date: text-muted-foreground cursor-not-allowed opacity-50</constraint>
+    <constraint type="styling">Calendar grid: 7 columns, 32x32px minimum touch target per cell</constraint>
+    <constraint type="ux">Calendar appears INLINE below date buttons, not in popover</constraint>
+    <constraint type="ux">Only one date option selected at a time (radio-button behavior)</constraint>
+    <constraint type="ux">Calendar only allows future dates (not today or past)</constraint>
+    <constraint type="ux">Modal closes with X, click outside, or Escape key</constraint>
+    <constraint type="architecture">No external API calls - all operations synchronous</constraint>
+    <constraint type="performance">Date operations should complete in &lt;16ms for 60fps</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Per architecture.md, use Vitest + Testing Library for component tests. All components should be testable in isolation. Manual browser testing for visual/interaction verification. Console should have no errors.</standards>
+    <locations>
+      <location>today-app/tests/components/</location>
+      <location>Manual: localhost:5173</location>
+    </locations>
+    <ideas>
+      <idea ac="3.2.1">Component test: DeferModal renders three date buttons with correct labels</idea>
+      <idea ac="3.2.2">Component test: Clicking Tomorrow button updates state and shows selected styling</idea>
+      <idea ac="3.2.3">Component test: Clicking Pick date conditionally renders DatePicker component</idea>
+      <idea ac="3.2.4">Component test: DatePicker disables dates before minDate (tomorrow)</idea>
+      <idea ac="3.2.4">Component test: DatePicker allows clicking future dates, updates selectedDate</idea>
+      <idea ac="3.2.5">Component test: Clicking No date updates state and hides calendar if visible</idea>
+      <idea ac="all">Manual: Open modal, click each option, verify visual state changes correctly</idea>
+      <idea ac="all">Manual: Calendar navigation (prev/next month) works correctly</idea>
+      <idea ac="all">Manual: Modal state resets when closed and reopened</idea>
+      <idea ac="all">Build: npm run build passes with no TypeScript errors</idea>
+    </ideas>
+  </tests>
+</story-context>
