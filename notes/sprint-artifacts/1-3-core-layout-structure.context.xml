@@ -1,0 +1,242 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Core Layout Structure</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-3-core-layout-structure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see the app shell with header and tab bar</iWant>
+    <soThat>I understand the app's basic navigation structure</soThat>
+    <tasks>
+      <task id="1" ac="1,2">
+        <title>Create Header Component</title>
+        <subtasks>
+          <subtask>Create today-app/src/components/Header.tsx component</subtask>
+          <subtask>Display "Today" title using font-display (Playfair Display), text-2xl, font-medium</subtask>
+          <subtask>Display current date using date-fns format: "MMMM d"</subtask>
+          <subtask>Use flexbox with justify-between for left/right alignment</subtask>
+          <subtask>Apply design tokens: text-foreground for title, text-muted-foreground for date</subtask>
+          <subtask>Use named export pattern: export const Header = () => { ... }</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="3,4,5">
+        <title>Create TabBar Component</title>
+        <subtasks>
+          <subtask>Create today-app/src/components/TabBar.tsx component</subtask>
+          <subtask>Define TabId type: 'today' | 'tomorrow' | 'deferred'</subtask>
+          <subtask>Accept props: activeTab: TabId, onTabChange: (tab: TabId) => void</subtask>
+          <subtask>Render three tab buttons: Today, Tomorrow, Deferred</subtask>
+          <subtask>Active tab styling: bg-surface (white), shadow-sm, text-foreground</subtask>
+          <subtask>Inactive tab styling: bg-transparent, text-muted-foreground</subtask>
+          <subtask>Apply hover state for inactive tabs: slight background highlight</subtask>
+          <subtask>Use DM Sans font (font-body), 14px, font-medium for tab labels</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="4,5">
+        <title>Implement Tab State in App</title>
+        <subtasks>
+          <subtask>Add useState hook: const [activeTab, setActiveTab] = useState&lt;TabId&gt;('today')</subtask>
+          <subtask>Pass activeTab and setActiveTab (as onTabChange) to TabBar</subtask>
+          <subtask>Verify Today is selected by default on page load</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="6,7,8">
+        <title>Create Responsive Layout Container</title>
+        <subtasks>
+          <subtask>Update App.tsx with main layout structure</subtask>
+          <subtask>Create container div with: max-w-[600px] mx-auto px-4</subtask>
+          <subtask>Add responsive padding: px-4 on mobile, appropriate on desktop</subtask>
+          <subtask>Create content area below TabBar for view placeholders</subtask>
+          <subtask>Add placeholder text for each tab view</subtask>
+          <subtask>Apply bg-background to overall page background</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="3,6,7">
+        <title>Style Tab Bar Container</title>
+        <subtasks>
+          <subtask>Tab bar container: bg-surface-muted (#f1f5f9), rounded corners</subtask>
+          <subtask>Ensure tab bar spans full width of content container</subtask>
+          <subtask>Add appropriate padding inside tab bar: p-1 or similar</subtask>
+          <subtask>Tabs should have equal width or be evenly distributed</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="all">
+        <title>Remove TokenShowcase (Cleanup)</title>
+        <subtasks>
+          <subtask>Remove TokenShowcase component import and usage from App.tsx</subtask>
+          <subtask>Optionally delete TokenShowcase.tsx file (or keep for reference)</subtask>
+          <subtask>Ensure clean app shell displays without test content</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="6,7,8">
+        <title>Visual Testing and Responsive Verification</title>
+        <subtasks>
+          <subtask>Test at mobile viewport (375px width)</subtask>
+          <subtask>Test at tablet viewport (768px width)</subtask>
+          <subtask>Test at desktop viewport (1280px width)</subtask>
+          <subtask>Verify max-width constraint at 600px on large screens</subtask>
+          <subtask>Verify full-width behavior on mobile</subtask>
+          <subtask>Run npm run build to ensure no TypeScript errors</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1.3.1">Header displays "Today" in Playfair Display font (24px, weight 500) on the left</criterion>
+    <criterion id="1.3.2">Header displays current date (e.g., "January 5") on the right</criterion>
+    <criterion id="1.3.3">Tab bar shows three tabs: Today, Tomorrow, Deferred</criterion>
+    <criterion id="1.3.4">Today tab is selected by default (visually indicated with white background and shadow)</criterion>
+    <criterion id="1.3.5">Clicking a tab changes the visual selection to that tab</criterion>
+    <criterion id="1.3.6">Content container is centered with max-width 600px on desktop</criterion>
+    <criterion id="1.3.7">On mobile (&lt; 768px), layout is full-width with appropriate padding</criterion>
+    <criterion id="1.3.8">Empty content area shows below tabs (placeholder for views)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.3: Core Layout Structure</section>
+        <snippet>Defines AC-1.3.1 through AC-1.3.8 for header, tab bar, and responsive layout. Header displays "Today" in Playfair Display with current date. Tab bar with Today/Tomorrow/Deferred tabs.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Project Structure, Component Patterns, ADR-004</section>
+        <snippet>Defines file locations (src/components/Header.tsx, TabBar.tsx), component patterns (functional, arrow functions, named exports), and tab-based navigation without router per ADR-004.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>4.2 Screen Layout Structure, 6.1 Component Strategy, 8.1 Responsive Strategy</section>
+        <snippet>Defines layout structure with header (title + date), tab bar (Today/Tomorrow/Deferred), and content area. Tab bar component spec with active/inactive states. Responsive breakpoints: mobile &lt;768px, tablet 768-1023px, desktop 1024px+.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.3: Core Layout Structure</section>
+        <snippet>Story definition: As a user, I want to see the app shell with header and tab bar. Prerequisites: Story 1.2 complete. Covers FR14 (Today view default), FR28-30 (responsive).</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/1-2-design-tokens-and-base-styling.md</path>
+        <title>Previous Story (1-2) Dev Record</title>
+        <section>Dev Agent Record, Learnings</section>
+        <snippet>Tailwind v4 with @theme directive in index.css. Design tokens available: bg-background, bg-surface, bg-surface-muted, text-foreground, text-muted-foreground. Font classes: font-display, font-body, font-mono. TokenShowcase component to be removed.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>App</symbol>
+        <lines>1-12</lines>
+        <reason>Root component to be modified - add tab state, Header, TabBar, remove TokenShowcase</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>styles</kind>
+        <symbol>design-tokens</symbol>
+        <lines>1-103</lines>
+        <reason>Contains all design tokens including bg-background, bg-surface, bg-surface-muted, text-foreground, text-muted-foreground, shadow-sm that will be used for styling</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TokenShowcase.tsx</path>
+        <kind>component</kind>
+        <symbol>TokenShowcase</symbol>
+        <lines>1-236</lines>
+        <reason>Temporary component to be removed from App.tsx in this story (cleanup task)</reason>
+      </file>
+      <file>
+        <path>today-app/src/main.tsx</path>
+        <kind>entry</kind>
+        <symbol>main</symbol>
+        <reason>Application entry point - no changes needed</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>useState hook for tab state management</usage>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+        <usage>format() function for date display in header: format(new Date(), 'MMMM d')</usage>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^4.1.18</version>
+        <usage>Utility classes for styling - bg-*, text-*, shadow-*, rounded-*, max-w-*, mx-auto, px-*, etc.</usage>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>~5.9.3</version>
+        <usage>Type definitions for TabId type, component props</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="component-pattern">All components MUST be functional components with TypeScript, arrow function syntax, named exports (not default), props destructured in function signature</constraint>
+    <constraint type="styling">Use Tailwind v4 utility classes with custom design tokens defined in @theme directive in index.css</constraint>
+    <constraint type="navigation">Tab-based navigation without URL router per ADR-004 - manage activeTab state with useState in App.tsx</constraint>
+    <constraint type="responsive">Layout must work at mobile (&lt;768px), tablet (768-1023px), and desktop (1024px+) breakpoints per UX spec Section 8.1</constraint>
+    <constraint type="design-tokens">Use established design tokens: bg-background, bg-surface, bg-surface-muted, text-foreground, text-muted-foreground, shadow-sm, font-display, font-body</constraint>
+    <constraint type="date-format">Use date-fns format() with pattern 'MMMM d' for date display (e.g., "January 6")</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TabId</name>
+      <kind>type</kind>
+      <signature>type TabId = 'today' | 'tomorrow' | 'deferred'</signature>
+      <path>today-app/src/components/TabBar.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>TabBarProps</name>
+      <kind>interface</kind>
+      <signature>interface TabBarProps { activeTab: TabId; onTabChange: (tab: TabId) => void; }</signature>
+      <path>today-app/src/components/TabBar.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>Header</name>
+      <kind>component</kind>
+      <signature>export const Header = () => JSX.Element</signature>
+      <path>today-app/src/components/Header.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>TabBar</name>
+      <kind>component</kind>
+      <signature>export const TabBar = ({ activeTab, onTabChange }: TabBarProps) => JSX.Element</signature>
+      <path>today-app/src/components/TabBar.tsx (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual visual verification in browser at multiple viewport sizes. Run npm run build to verify TypeScript compilation. Check browser DevTools for console errors and network failures. Per architecture.md, no automated tests required for UI shell stories - visual inspection against UX spec is the validation method.</standards>
+    <locations>
+      <location>Manual browser testing at localhost:5173</location>
+      <location>DevTools responsive mode for viewport testing</location>
+      <location>npm run build for TypeScript verification</location>
+    </locations>
+    <ideas>
+      <idea ac="1.3.1">Verify "Today" text in header uses Playfair Display font (inspect computed styles)</idea>
+      <idea ac="1.3.2">Verify current date displays correctly in "MMMM d" format</idea>
+      <idea ac="1.3.3">Verify all three tabs (Today, Tomorrow, Deferred) are visible in tab bar</idea>
+      <idea ac="1.3.4">Verify Today tab has white background and shadow on initial load</idea>
+      <idea ac="1.3.5">Click each tab and verify visual selection changes immediately</idea>
+      <idea ac="1.3.6">At 1280px viewport, verify content container is centered with ~600px max-width</idea>
+      <idea ac="1.3.7">At 375px viewport, verify layout is full-width with horizontal padding</idea>
+      <idea ac="1.3.8">Verify empty placeholder content area displays below tabs for active view</idea>
+    </ideas>
+  </tests>
+</story-context>

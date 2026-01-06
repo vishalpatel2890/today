@@ -1,0 +1,68 @@
+# generated: 2026-01-05
+# project: Today
+# project_key: today
+# tracking_system: file-system
+# story_location: notes/stories
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Next epic tech context created by *epic-tech-context (required)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder by *create-story
+#   - ready-for-dev: Draft approved and story context created by *story-ready
+#   - in-progress: Developer actively working on implementation by *dev-story
+#   - review: Implementation complete, ready for review by *code-review
+#   - done: Story completed by *story-done
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done by *retrospective
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
+
+generated: 2026-01-05
+project: Today
+project_key: today
+tracking_system: file-system
+story_location: notes/stories
+
+development_status:
+  # Epic 1: Foundation
+  epic-1: contexted
+  1-1-project-initialization: done
+  1-2-design-tokens-and-base-styling: done
+  1-3-core-layout-structure: done
+  epic-1-retrospective: optional
+
+  # Epic 2: Today's Tasks
+  epic-2: contexted
+  2-1-today-view-with-task-list: done
+  2-2-add-task: in-progress
+  2-3-complete-task: drafted
+  2-4-delete-task: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Deferment System
+  epic-3: backlog
+  3-1-defer-button-on-task-cards: backlog
+  3-2-defer-modal-date-selection: backlog
+  3-3-defer-modal-category-selection-and-creation: backlog
+  3-4-defer-action-and-tomorrow-view: backlog
+  3-5-deferred-view-with-categories: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Persistence & Polish
+  epic-4: backlog
+  4-1-localstorage-persistence: backlog
+  4-2-auto-surfacing: backlog
+  4-3-toast-notifications: backlog
+  4-4-empty-states-polish: backlog
+  epic-4-retrospective: optional

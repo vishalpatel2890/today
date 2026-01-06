@@ -1,0 +1,217 @@
+<story-context id="2-2-add-task" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Add Task</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-2-add-task.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to quickly add a new task by typing and pressing Enter</iWant>
+    <soThat>I can capture tasks with minimal friction (&lt;5 seconds)</soThat>
+    <tasks>
+      <task id="1" acs="3,4">Create useTasks Hook
+        <subtask>Create today-app/src/hooks/useTasks.ts</subtask>
+        <subtask>Define TaskAction type with ADD_TASK action</subtask>
+        <subtask>Implement useReducer with initial empty tasks array</subtask>
+        <subtask>ADD_TASK handler: generate id with crypto.randomUUID(), set text/createdAt/null fields</subtask>
+        <subtask>Return { tasks, dispatch } or { tasks, addTask } helper</subtask>
+        <subtask>Use named export pattern</subtask>
+      </task>
+      <task id="2" acs="1,2,4,6,7">Create AddTaskInput Component
+        <subtask>Create today-app/src/components/AddTaskInput.tsx</subtask>
+        <subtask>Define AddTaskInputProps: { onAddTask: (text: string) => void }</subtask>
+        <subtask>Render input with placeholder "Add a task...", dashed border default, solid on focus</subtask>
+        <subtask>Handle onKeyDown for Enter: trim, validate not empty, call onAddTask, clear input</subtask>
+        <subtask>Responsive: full-width on mobile</subtask>
+        <subtask>Use named export pattern</subtask>
+      </task>
+      <task id="3" acs="5">Add Slide-In Animation
+        <subtask>Add CSS @keyframes slideIn in index.css</subtask>
+        <subtask>Animation: translateY(10px) -> 0 and opacity 0 -> 1</subtask>
+        <subtask>Duration: 200-300ms, ease-out timing</subtask>
+        <subtask>Apply animate-slide-in class to new TaskCard</subtask>
+      </task>
+      <task id="4" acs="3">Integrate useTasks into App
+        <subtask>Import useTasks hook in App.tsx</subtask>
+        <subtask>Replace mockTasks array with useTasks hook state</subtask>
+        <subtask>Remove SHOW_MOCK_DATA toggle</subtask>
+        <subtask>Pass tasks to TodayView, addTask handler</subtask>
+      </task>
+      <task id="5" acs="1,2">Integrate AddTaskInput into TodayView
+        <subtask>Import AddTaskInput in TodayView.tsx</subtask>
+        <subtask>Accept onAddTask prop in TodayView</subtask>
+        <subtask>Render AddTaskInput below TaskList or empty state</subtask>
+        <subtask>Pass onAddTask prop to AddTaskInput</subtask>
+      </task>
+      <task id="6" acs="2,7">Style Input States
+        <subtask>Default: border-2 border-dashed border-border</subtask>
+        <subtask>Focus: border-solid border-foreground</subtask>
+        <subtask>Padding/sizing to match TaskCard (p-4, rounded-lg)</subtask>
+        <subtask>Transition for smooth border style change</subtask>
+      </task>
+      <task id="7" acs="all">Build Verification and Testing
+        <subtask>Run npm run build to verify no TypeScript errors</subtask>
+        <subtask>Test adding multiple tasks in succession</subtask>
+        <subtask>Test empty/whitespace submission handling</subtask>
+        <subtask>Test on mobile viewport</subtask>
+        <subtask>Verify animation timing feels right</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="2.2.1">Given I am on the Today tab, I see an "Add a task..." input field below the task list (or in the empty state area)</ac>
+    <ac id="2.2.2">Given the add task input is focused, the dashed border becomes solid (focus state indicator)</ac>
+    <ac id="2.2.3">Given I type text and press Enter, a new task appears at the bottom with unique ID via crypto.randomUUID(), createdAt ISO timestamp, null for deferredTo/category/completedAt</ac>
+    <ac id="2.2.4">Given I successfully add a task, the input clears and is ready for the next task</ac>
+    <ac id="2.2.5">Given the new task appears, it has a subtle slide-in animation (from below or fade-in)</ac>
+    <ac id="2.2.6">Given I press Enter with empty input or whitespace only, nothing happens - no empty task created, no error</ac>
+    <ac id="2.2.7">The add task input is responsive: full-width on mobile (&lt;768px), matches task card width on desktop (within 600px container)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Data Architecture, Implementation Patterns, ADR-005</section>
+        <snippet>Task interface with id/text/createdAt/deferredTo/category/completedAt. useReducer pattern via useTasks hook. crypto.randomUUID() for ID generation. ISO 8601 date strings.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 2.2: Add Task</section>
+        <snippet>FR1: Users can add a new task by entering text; new tasks default to Today view. Target: capture tasks with &lt;5 seconds friction.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Component Strategy, Design Tokens</section>
+        <snippet>Input styling: dashed border default, solid on focus. bg-surface, p-4, rounded-lg. Placeholder uses text-muted-foreground.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR1: Task Management</section>
+        <snippet>Users can add a new task by entering text; new tasks default to the Today view.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>type-definition</kind>
+        <symbol>Task</symbol>
+        <lines>5-12</lines>
+        <reason>Task interface required for useTasks hook and AddTaskInput. Fields: id, text, createdAt, deferredTo, category, completedAt.</reason>
+      </file>
+      <file>
+        <path>today-app/src/views/TodayView.tsx</path>
+        <kind>view-component</kind>
+        <symbol>TodayView</symbol>
+        <lines>1-21</lines>
+        <reason>View component to be modified - add onAddTask prop, render AddTaskInput below TaskList and empty state.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>app-root</kind>
+        <symbol>App</symbol>
+        <lines>1-70</lines>
+        <reason>Root component with mock data. Replace SHOW_MOCK_DATA and mockTasks with useTasks hook. Pass addTask to TodayView.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskCard.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskCard</symbol>
+        <lines>1-21</lines>
+        <reason>Existing TaskCard component - may need animation class for slide-in effect on new tasks.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TaskList.tsx</path>
+        <kind>component</kind>
+        <symbol>TaskList</symbol>
+        <reason>Container for task cards with gap-3 spacing. Reference for consistent styling.</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>styles</kind>
+        <symbol>design-tokens</symbol>
+        <lines>1-103</lines>
+        <reason>Add @keyframes slideIn animation and .animate-slide-in class here.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <devPackage name="tailwindcss" version="^4.1.18" />
+        <devPackage name="typescript" version="~5.9.3" />
+        <devPackage name="vite" version="^7.2.4" />
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">All components MUST be functional components with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint type="pattern">Destructure props in function signature: export const Comp = ({ prop }: Props) => {}</constraint>
+    <constraint type="state">All state updates through useTasks reducer - no direct mutation</constraint>
+    <constraint type="id">Use crypto.randomUUID() for task IDs</constraint>
+    <constraint type="date">Store dates as ISO 8601 strings</constraint>
+    <constraint type="styling">Use Tailwind v4 CSS-first config with @theme tokens in index.css</constraint>
+    <constraint type="styling">Token classes: bg-surface, border-border, text-foreground, text-muted-foreground</constraint>
+    <constraint type="ux">Task addition must be &lt;5 seconds friction - Enter key submits</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Task</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface Task { id: string; text: string; createdAt: string; deferredTo: string | null; category: string | null; completedAt: string | null; }</signature>
+      <path>today-app/src/types/index.ts</path>
+    </interface>
+    <interface>
+      <name>useTasks</name>
+      <kind>React hook (to create)</kind>
+      <signature>const useTasks = () => { tasks: Task[], addTask: (text: string) => void, dispatch: Dispatch }</signature>
+      <path>today-app/src/hooks/useTasks.ts</path>
+    </interface>
+    <interface>
+      <name>TodayViewProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TodayViewProps { tasks: Task[]; onAddTask?: (text: string) => void; }</signature>
+      <path>today-app/src/views/TodayView.tsx</path>
+    </interface>
+    <interface>
+      <name>AddTaskInputProps</name>
+      <kind>TypeScript interface (to create)</kind>
+      <signature>interface AddTaskInputProps { onAddTask: (text: string) => void; }</signature>
+      <path>today-app/src/components/AddTaskInput.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>No testing framework currently configured. Architecture.md specifies Vitest + Testing Library for future test implementation. Tests should be in tests/ directory with components/ and hooks/ subdirectories. For now, manual browser testing via Frontend Test Gate is the primary verification method.</standards>
+    <locations>
+      <location>tests/components/*.test.tsx</location>
+      <location>tests/hooks/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="2.2.1">Verify AddTaskInput renders with placeholder "Add a task..." and is visible</idea>
+      <idea ac="2.2.2">Test focus state changes border from dashed to solid</idea>
+      <idea ac="2.2.3">Test addTask creates task with correct fields: id (UUID), text (trimmed), createdAt (ISO), null fields</idea>
+      <idea ac="2.2.4">Test input clears after successful submission</idea>
+      <idea ac="2.2.5">Test animation class applied to new TaskCard</idea>
+      <idea ac="2.2.6">Test empty string and whitespace-only strings do not create tasks</idea>
+      <idea ac="2.2.7">Visual test responsive layout at different viewports</idea>
+    </ideas>
+  </tests>
+</story-context>

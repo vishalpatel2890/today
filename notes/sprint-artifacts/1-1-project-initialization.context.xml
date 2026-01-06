@@ -1,0 +1,204 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Project Initialization</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-1-project-initialization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>the project initialized with React, TypeScript, Vite, Tailwind, and Radix</iWant>
+    <soThat>I have a working development environment with all dependencies</soThat>
+    <tasks>
+      <task id="1" acs="1,3,5">
+        <name>Initialize Vite Project</name>
+        <subtasks>
+          <subtask>Run npm create vite@latest today-app -- --template react-ts</subtask>
+          <subtask>Navigate into project directory</subtask>
+          <subtask>Verify package.json has React 18 and TypeScript 5</subtask>
+          <subtask>Run npm install to install base dependencies</subtask>
+        </subtasks>
+      </task>
+      <task id="2" acs="4">
+        <name>Install Production Dependencies</name>
+        <subtasks>
+          <subtask>Install Radix UI: npm install @radix-ui/react-dialog @radix-ui/react-select @radix-ui/react-popover</subtask>
+          <subtask>Install Lucide icons: npm install lucide-react</subtask>
+          <subtask>Install date-fns: npm install date-fns</subtask>
+        </subtasks>
+      </task>
+      <task id="3" acs="4">
+        <name>Install and Configure Tailwind CSS</name>
+        <subtasks>
+          <subtask>Install Tailwind: npm install -D tailwindcss postcss autoprefixer</subtask>
+          <subtask>Initialize Tailwind: npx tailwindcss init -p</subtask>
+          <subtask>Configure tailwind.config.js content paths</subtask>
+          <subtask>Add Tailwind directives to src/index.css</subtask>
+        </subtasks>
+      </task>
+      <task id="4" acs="2">
+        <name>Create Minimal App Shell</name>
+        <subtasks>
+          <subtask>Update src/App.tsx to display "Today" as heading</subtask>
+          <subtask>Apply basic Tailwind classes to verify styling works</subtask>
+          <subtask>Remove Vite default content (logo, counter)</subtask>
+        </subtasks>
+      </task>
+      <task id="5" acs="1,3,5">
+        <name>Verify Development Environment</name>
+        <subtasks>
+          <subtask>Run npm run dev and verify server starts at localhost:5173</subtask>
+          <subtask>Verify page loads with "Today" heading</subtask>
+          <subtask>Test HMR by editing App.tsx and observing instant update</subtask>
+          <subtask>Run npm run build and verify no TypeScript errors</subtask>
+          <subtask>Check browser console for any errors</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" key="AC-1.1.1">Running npm run dev starts a development server at localhost:5173 without errors</criterion>
+    <criterion id="2" key="AC-1.1.2">The page displays "Today" as the app title</criterion>
+    <criterion id="3" key="AC-1.1.3">TypeScript compilation completes without errors (npm run build succeeds)</criterion>
+    <criterion id="4" key="AC-1.1.4">Tailwind utility classes (e.g., bg-white, text-slate-900) apply correctly</criterion>
+    <criterion id="5" key="AC-1.1.5">Hot module replacement (HMR) updates the page on file save without full reload</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Project Initialization</section>
+        <snippet>First story should execute: npm create vite@latest today-app -- --template react-ts with all dependency installations.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Decision Summary</section>
+        <snippet>Framework: React + TypeScript (React 18.x, TS 5.x). Build Tool: Vite 5.x. Styling: Tailwind CSS 3.x.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>ADR-002: Vite over Create React App</section>
+        <snippet>Vite is faster (esbuild, Rollup), better TypeScript support, smaller bundle sizes. CRA is deprecated.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>ADR-003: Tailwind CSS + Radix UI</section>
+        <snippet>Tailwind for utilities matching UX spec tokens. Radix provides unstyled, accessible modal/select/popover.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Project Structure</section>
+        <snippet>Structure: today-app/ with index.html, package.json, tsconfig.json, vite.config.ts, tailwind.config.js, src/ folder.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation</title>
+        <section>Story 1.1: Project Initialization</section>
+        <snippet>5 acceptance criteria covering dev server, TypeScript compilation, Tailwind classes, and HMR functionality.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Executive Summary</section>
+        <snippet>Today is a minimalist to-do app built on philosophy: you can only do what you can do today. Local-first architecture.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>Design System Foundation</section>
+        <snippet>Custom design system with Tailwind CSS for utilities, Radix UI primitives for accessible components.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - this story initializes the project from scratch -->
+      <note>Greenfield project initialization - no existing codebase to reference</note>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <note>Project will be initialized with these dependencies:</note>
+        <production>
+          <package name="react" version="^18.x" />
+          <package name="react-dom" version="^18.x" />
+          <package name="@radix-ui/react-dialog" version="latest" />
+          <package name="@radix-ui/react-select" version="latest" />
+          <package name="@radix-ui/react-popover" version="latest" />
+          <package name="lucide-react" version="latest" />
+          <package name="date-fns" version="^3.x" />
+        </production>
+        <development>
+          <package name="typescript" version="^5.x" />
+          <package name="vite" version="^5.x" />
+          <package name="tailwindcss" version="^3.x" />
+          <package name="postcss" version="latest" />
+          <package name="autoprefixer" version="latest" />
+          <package name="@types/react" version="latest" />
+          <package name="@types/react-dom" version="latest" />
+        </development>
+      </ecosystem>
+      <external>
+        <integration name="Google Fonts" type="CDN">
+          <fonts>Playfair Display, DM Sans, JetBrains Mono</fonts>
+        </integration>
+      </external>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md#Implementation-Patterns">
+      All components MUST be functional components with TypeScript, use arrow function syntax, destructure props, and export as named exports (not default).
+    </constraint>
+    <constraint source="architecture.md#Naming-Conventions">
+      Components: PascalCase (TaskCard.tsx). Hooks: camelCase with use prefix (useTasks.ts). Constants: SCREAMING_SNAKE_CASE.
+    </constraint>
+    <constraint source="architecture.md#ADR-001">
+      No backend - client-only SPA with localStorage. Zero operational cost, no authentication complexity.
+    </constraint>
+    <constraint source="architecture.md#Performance-Considerations">
+      Bundle targets: Total JS less than 100KB gzipped, CSS less than 20KB gzipped. Initial load under 2s on 3G.
+    </constraint>
+    <constraint source="tech-spec-epic-1.md#Security">
+      Use latest stable dependency versions. Run npm audit. Standard Vite CSP with Google Fonts allowed.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- No interfaces for this story - project initialization creates the base structure -->
+    <note>Story 1.1 establishes the project foundation. No existing interfaces to integrate with.</note>
+    <futureInterface>
+      <name>TabId type</name>
+      <kind>TypeScript type</kind>
+      <signature>type TabId = 'today' | 'tomorrow' | 'deferred'</signature>
+      <note>Will be created in Story 1.3 for tab state management</note>
+    </futureInterface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual visual verification for project initialization story. No automated tests required.
+      Vitest + Testing Library setup deferred to later story per architecture.md.
+      Focus on verifying dev server starts, TypeScript compiles, and Tailwind classes apply correctly.
+    </standards>
+    <locations>
+      <location>tests/ (to be created in future story)</location>
+      <location>src/**/*.test.tsx (co-located tests, future)</location>
+    </locations>
+    <ideas>
+      <idea acRef="1">Verify npm run dev starts without errors and outputs localhost:5173 URL</idea>
+      <idea acRef="2">Visual check: "Today" heading visible on page load</idea>
+      <idea acRef="3">Run npm run build and verify exit code 0 with no TypeScript errors</idea>
+      <idea acRef="4">Apply Tailwind class (bg-slate-100), verify computed style matches expected color</idea>
+      <idea acRef="5">Edit App.tsx text, verify page updates without full browser refresh (check network tab)</idea>
+    </ideas>
+  </tests>
+</story-context>

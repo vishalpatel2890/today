@@ -1,0 +1,219 @@
+<story-context id="2-1-today-view-with-task-list" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Today View with Task List</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-1-today-view-with-task-list.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see my today's tasks in a clean list</iWant>
+    <soThat>I know exactly what I need to focus on today</soThat>
+    <tasks>
+      <task id="1" ac="1,3">Create TaskCard Component
+        <subtask>Create today-app/src/components/TaskCard.tsx</subtask>
+        <subtask>Define TaskCardProps interface: { task: Task; }</subtask>
+        <subtask>Display circle checkbox on left (unchecked state only)</subtask>
+        <subtask>Display task text using font-body, text-base (16px)</subtask>
+        <subtask>Apply styling: bg-surface, border border-border, rounded-lg, p-4</subtask>
+        <subtask>Add hover state: shadow-sm on hover (transition-shadow)</subtask>
+        <subtask>Use named export pattern</subtask>
+      </task>
+      <task id="2" ac="6">Create TaskList Component
+        <subtask>Create today-app/src/components/TaskList.tsx</subtask>
+        <subtask>Define TaskListProps interface: { tasks: Task[]; }</subtask>
+        <subtask>Map over tasks array and render TaskCard for each</subtask>
+        <subtask>Apply gap-3 (12px) between cards using flex column layout</subtask>
+        <subtask>Use named export pattern</subtask>
+      </task>
+      <task id="3" ac="2,5">Create TodayView Component
+        <subtask>Create today-app/src/views/TodayView.tsx</subtask>
+        <subtask>Accept tasks prop (filtered for today)</subtask>
+        <subtask>Render TaskList when tasks exist</subtask>
+        <subtask>Render empty state when no tasks</subtask>
+        <subtask>Use named export pattern</subtask>
+      </task>
+      <task id="4" ac="5,6,7">Define Task Type
+        <subtask>Create today-app/src/types/index.ts</subtask>
+        <subtask>Define Task interface per architecture.md</subtask>
+        <subtask>Export Task type for use in components</subtask>
+      </task>
+      <task id="5" ac="1,5">Add Mock Data for Testing
+        <subtask>Create mock tasks array in App.tsx or separate mock file</subtask>
+        <subtask>Include 2-3 sample tasks with today's date</subtask>
+        <subtask>Pass mock tasks to TodayView for visual testing</subtask>
+        <subtask>Ensure easy toggle between mock data and empty state</subtask>
+      </task>
+      <task id="6" ac="4,5">Integrate TodayView into App
+        <subtask>Import TodayView in App.tsx</subtask>
+        <subtask>Render TodayView when activeTab === 'today'</subtask>
+        <subtask>Keep placeholder views for Tomorrow and Deferred tabs</subtask>
+        <subtask>Ensure responsive layout from Story 1.3 contains the views</subtask>
+      </task>
+      <task id="7" ac="1,3">Style Circle Checkbox
+        <subtask>Create checkbox circle UI element (unchecked state only)</subtask>
+        <subtask>Use Lucide Circle icon or custom SVG/div</subtask>
+        <subtask>Size: 20-24px diameter</subtask>
+        <subtask>Border: 2px solid border-muted</subtask>
+        <subtask>Add hover cursor pointer for future interactivity</subtask>
+      </task>
+      <task id="8" ac="4">Visual Testing Across Viewports
+        <subtask>Test at mobile viewport (375px width)</subtask>
+        <subtask>Test at tablet viewport (768px width)</subtask>
+        <subtask>Test at desktop viewport (1280px width)</subtask>
+        <subtask>Verify empty state displays correctly at all sizes</subtask>
+        <subtask>Run npm run build to ensure no TypeScript errors</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-2.1.1">Given I am on the Today tab with tasks, I see each task as a white card with circle checkbox on left, task text in DM Sans 16px, subtle border (#e2e8f0), 12px gap between cards</criterion>
+    <criterion id="AC-2.1.2">Given I am on the Today tab with no tasks, I see "Nothing for today." message, "Add a task to get started." subtitle, add task input visible below</criterion>
+    <criterion id="AC-2.1.3">Task cards have white background (bg-surface) with subtle shadow on hover (shadow-sm)</criterion>
+    <criterion id="AC-2.1.4">The view is responsive: full-width cards on mobile (&lt;768px), centered within 600px container on desktop</criterion>
+    <criterion id="AC-2.1.5">TodayView component receives and displays tasks filtered for today (mock data for now)</criterion>
+    <criterion id="AC-2.1.6">TaskList component renders an array of tasks with consistent spacing</criterion>
+    <criterion id="AC-2.1.7">TaskCard component displays individual task with checkbox circle and text</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Project Structure, Data Architecture, Component Patterns</section>
+        <snippet>Defines Task interface with id, text, createdAt, deferredTo, category, completedAt fields. Components must use functional TypeScript with arrow functions and named exports.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>6.1 Component Strategy (Task Card), 7.2 Empty States, 8.1 Responsive Strategy</section>
+        <snippet>Task Card: white card (bg-surface), gray border (#e2e8f0), circle checkbox on left, hover shadow lift. Empty state: centered "Nothing for today." message.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 2.1: Today View with Task List</section>
+        <snippet>Create TodayView.tsx, TaskList.tsx, TaskCard.tsx components. Use mock data initially for visual testing. Responsive full-width on mobile.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Functional Requirements FR1, FR2, FR14, FR28-30</section>
+        <snippet>FR14: Today view is the default screen showing only tasks dated today. FR28-30: Fully functional across desktop, tablet, mobile with touch-optimized interactions.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/1-2-design-tokens-and-base-styling.md</path>
+        <title>Story 1.2: Design Tokens</title>
+        <section>Dev Agent Record</section>
+        <snippet>Tailwind v4 uses CSS-first config via @theme directive. All 15 color tokens available: bg-surface, border-border, text-foreground, text-muted-foreground, etc.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>App</symbol>
+        <lines>1-27</lines>
+        <reason>Root component managing activeTab state. TodayView will be rendered when activeTab === 'today', replacing current placeholder div.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/TabBar.tsx</path>
+        <kind>component</kind>
+        <symbol>TabBar, TabId</symbol>
+        <lines>1-41</lines>
+        <reason>Exports TabId type used by App.tsx. TabBar handles tab switching which triggers view changes.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/Header.tsx</path>
+        <kind>component</kind>
+        <symbol>Header</symbol>
+        <lines>1-16</lines>
+        <reason>Example of component pattern: named export, functional TypeScript, date-fns usage. Follow same patterns.</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>stylesheet</kind>
+        <symbol>design-tokens</symbol>
+        <lines>1-103</lines>
+        <reason>Contains all design tokens: bg-surface (#ffffff), border-border (#e2e8f0), text-foreground (#0f172a), text-muted-foreground (#64748b), shadow-sm, gap-3 (12px).</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0">UI framework - functional components with hooks</package>
+        <package name="react-dom" version="^19.2.0">React DOM renderer</package>
+        <package name="lucide-react" version="^0.562.0">Icon library - use Circle icon for checkbox</package>
+        <package name="date-fns" version="^4.1.0">Date utilities (not needed for this story)</package>
+        <package name="tailwindcss" version="^4.1.18">CSS framework via @tailwindcss/vite plugin</package>
+        <package name="typescript" version="~5.9.3">Type checking</package>
+        <package name="vite" version="^7.2.4">Build tool with HMR</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>Task</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface Task { id: string; text: string; createdAt: string; deferredTo: string | null; category: string | null; completedAt: string | null; }</signature>
+      <path>today-app/src/types/index.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>TaskCardProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TaskCardProps { task: Task; }</signature>
+      <path>today-app/src/components/TaskCard.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>TaskListProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TaskListProps { tasks: Task[]; }</signature>
+      <path>today-app/src/components/TaskList.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>TodayViewProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TodayViewProps { tasks: Task[]; }</signature>
+      <path>today-app/src/views/TodayView.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>TabId</name>
+      <kind>TypeScript type alias</kind>
+      <signature>type TabId = 'today' | 'tomorrow' | 'deferred'</signature>
+      <path>today-app/src/components/TabBar.tsx</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="component-pattern">All components MUST be functional components with TypeScript, use arrow function syntax, use named exports (not default), destructure props in function signature.</constraint>
+    <constraint type="styling">Use Tailwind CSS utility classes with design tokens from index.css. Key tokens: bg-surface, border-border, text-foreground, text-muted-foreground, shadow-sm, gap-3.</constraint>
+    <constraint type="structure">Files go in: components/ for TaskCard.tsx and TaskList.tsx, views/ for TodayView.tsx, types/ for index.ts.</constraint>
+    <constraint type="responsive">Mobile (&lt;768px): full-width cards. Desktop: max-width 600px centered. Use responsive classes from Tailwind.</constraint>
+    <constraint type="data">Mock data only for this story. No localStorage persistence (Story 4.1). No state management hooks (Story 2.2+).</constraint>
+    <constraint type="scope">Checkbox is display only (no click handler). Complete task interaction is Story 2.3. Delete is Story 2.4.</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Manual visual testing in browser for UI stories. No Vitest/Testing Library automated tests required for Epic 1-2 foundational components. Use Chrome DevTools for computed styles verification. Run npm run build to catch TypeScript errors.</standards>
+    <locations>
+      <location>Manual browser testing at localhost:5173</location>
+      <location>DevTools responsive mode for viewport testing</location>
+      <location>future: today-app/tests/ (not created yet)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-2.1.1">Verify task cards render with white background, border, checkbox, and text at correct sizes</idea>
+      <idea ac="AC-2.1.2">Clear mock data to verify empty state shows both messages centered</idea>
+      <idea ac="AC-2.1.3">Hover over task card to verify shadow-sm appears with smooth transition</idea>
+      <idea ac="AC-2.1.4">Resize viewport: verify full-width on mobile, 600px centered on desktop</idea>
+      <idea ac="AC-2.1.5,6,7">Load app with mock data, confirm all tasks render in list with correct components</idea>
+    </ideas>
+  </tests>
+</story-context>

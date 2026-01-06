@@ -1,0 +1,220 @@
+<story-context id="1-2-design-tokens-and-base-styling" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Design Tokens and Base Styling</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-2-design-tokens-and-base-styling.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>the Slate Sophisticated design tokens configured in Tailwind CSS</iWant>
+    <soThat>all components use consistent colors, typography, and spacing from the UX specification</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Configure Tailwind CSS Design Tokens
+        <subtask>Add custom colors to Tailwind configuration using CSS variables</subtask>
+        <subtask>Define color tokens: background (#f8fafc), surface (#ffffff), surface-muted (#f1f5f9)</subtask>
+        <subtask>Define color tokens: border (#e2e8f0), border-subtle (#f1f5f9)</subtask>
+        <subtask>Define color tokens: foreground (#0f172a), muted-foreground (#64748b), tertiary (#94a3b8)</subtask>
+        <subtask>Define color tokens: primary (#475569), primary-hover (#334155), accent (#0f172a)</subtask>
+        <subtask>Define color tokens: success (#22c55e), success-bg (#f0fdf4), error (#ef4444), error-bg (#fef2f2)</subtask>
+      </task>
+      <task id="2" ac="3,5">Add Google Fonts Integration
+        <subtask>Add Google Fonts link to index.html for Playfair Display, DM Sans, JetBrains Mono</subtask>
+        <subtask>Configure font-display: swap for FOUT handling</subtask>
+        <subtask>Define font-family CSS variables in index.css</subtask>
+        <subtask>Add Tailwind font family extensions: font-display, font-body, font-mono</subtask>
+        <subtask>Add system font fallbacks for each font family</subtask>
+      </task>
+      <task id="3" ac="4">Configure Spacing Scale
+        <subtask>Verify Tailwind default spacing aligns with 8px base (space-2 = 0.5rem = 8px)</subtask>
+        <subtask>Add CSS custom properties for spacing tokens if needed</subtask>
+        <subtask>Document spacing scale: space-1 (4px), space-2 (8px), space-3 (12px), space-4 (16px), etc.</subtask>
+      </task>
+      <task id="4" ac="1">Add Shadow and Border Radius Tokens
+        <subtask>Configure shadow tokens: shadow-sm, shadow, shadow-lg per UX spec</subtask>
+        <subtask>Configure border-radius tokens: radius-sm (4px), radius (6px), radius-lg (8px), radius-xl (12px)</subtask>
+      </task>
+      <task id="5" ac="1,2,3,4">Create Token Showcase Test Component
+        <subtask>Create temporary TokenShowcase.tsx component to display all design tokens</subtask>
+        <subtask>Show color swatches with token names and hex values</subtask>
+        <subtask>Show typography samples with each font family</subtask>
+        <subtask>Show spacing examples with measurements</subtask>
+        <subtask>Add component to App.tsx temporarily for visual verification</subtask>
+      </task>
+      <task id="6" ac="1,2,3,4,5">Verify All Design Tokens
+        <subtask>Test each color token applies correctly via Tailwind classes</subtask>
+        <subtask>Verify font files load in Network tab</subtask>
+        <subtask>Confirm no fallback to system fonts</subtask>
+        <subtask>Check computed styles match expected values</subtask>
+        <subtask>Run build to ensure no TypeScript/CSS errors</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1.2.1">Custom Tailwind classes bg-background, bg-surface, text-foreground, text-muted-foreground, border-border apply correct colors</ac>
+    <ac id="1.2.2">Background color is #f8fafc, surface is #ffffff, border is #e2e8f0</ac>
+    <ac id="1.2.3">Font classes font-display, font-body, font-mono apply Playfair Display, DM Sans, JetBrains Mono respectively</ac>
+    <ac id="1.2.4">Spacing scale follows 8px base (space-2 = 8px, space-4 = 16px, etc.)</ac>
+    <ac id="1.2.5">Google Fonts load correctly (check Network tab for font files)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>1.2 Design Tokens</section>
+        <snippet>Complete design token definitions including colors (Slate Sophisticated palette), typography (Playfair Display, DM Sans, JetBrains Mono), spacing (8px base unit), border radius, and shadows.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>3.1 Color System</section>
+        <snippet>Color application guide mapping elements to specific color tokens: page background (#f8fafc), task cards (#ffffff), tab bar (#f1f5f9), text (#0f172a), etc.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>3.2 Typography System</section>
+        <snippet>Typography specifications: App title uses Playfair Display 24px/500, task text uses DM Sans 16px/400, category count uses JetBrains Mono 12px/400.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Decision Summary</section>
+        <snippet>Styling decision: Tailwind CSS 3.x matches UX spec design tokens, utility-first. Note: Project uses Tailwind v4 with CSS-first configuration.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>ADR-003: Tailwind CSS + Radix UI</section>
+        <snippet>UX spec already defines Tailwind tokens; Radix provides unstyled accessible primitives; full control over visual styling with minimal design system overhead.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.2 Acceptance Criteria</section>
+        <snippet>Authoritative ACs for design tokens: custom color classes, hex values, font families, spacing scale, and Google Fonts loading verification.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/1-1-project-initialization.md</path>
+        <title>Story 1.1 Project Initialization</title>
+        <section>Dev Agent Record</section>
+        <snippet>Tailwind v4 uses CSS-first configuration with @tailwindcss/vite plugin. No tailwind.config.js needed. React 19, TypeScript 5.9, Vite 7.3 installed.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>stylesheet</kind>
+        <symbol>main CSS entry</symbol>
+        <lines>1-2</lines>
+        <reason>Primary file for design token CSS variables and Tailwind @theme configuration. Currently has minimal @import "tailwindcss".</reason>
+      </file>
+      <file>
+        <path>today-app/index.html</path>
+        <kind>html</kind>
+        <symbol>document head</symbol>
+        <lines>1-13</lines>
+        <reason>Add Google Fonts link tags here. Currently has no font imports.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>App</symbol>
+        <lines>1-10</lines>
+        <reason>Root component using bg-slate-50, text-slate-900 classes. Will temporarily include TokenShowcase component for verification.</reason>
+      </file>
+      <file>
+        <path>today-app/vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>vite config</symbol>
+        <lines>1-8</lines>
+        <reason>Uses @tailwindcss/vite plugin for Tailwind v4 CSS-first configuration.</reason>
+      </file>
+      <file>
+        <path>today-app/src/main.tsx</path>
+        <kind>entry</kind>
+        <symbol>app entry</symbol>
+        <lines>1-10</lines>
+        <reason>App entry point importing index.css for global styles.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <production>
+          <package name="react" version="^19.2.0" />
+          <package name="react-dom" version="^19.2.0" />
+          <package name="@radix-ui/react-dialog" version="^1.1.15" />
+          <package name="@radix-ui/react-popover" version="^1.1.15" />
+          <package name="@radix-ui/react-select" version="^2.2.6" />
+          <package name="date-fns" version="^4.1.0" />
+          <package name="lucide-react" version="^0.562.0" />
+        </production>
+        <development>
+          <package name="tailwindcss" version="^4.1.18" />
+          <package name="@tailwindcss/vite" version="^4.1.18" />
+          <package name="postcss" version="^8.5.6" />
+          <package name="autoprefixer" version="^10.4.23" />
+          <package name="typescript" version="~5.9.3" />
+          <package name="vite" version="^7.2.4" />
+          <package name="@vitejs/plugin-react" version="^5.1.1" />
+        </development>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="framework">Tailwind v4 CSS-first configuration - use @theme directive in CSS, not tailwind.config.js</constraint>
+    <constraint type="pattern">All components use named exports (export const Component), not default exports</constraint>
+    <constraint type="pattern">All components are functional with TypeScript, using arrow function syntax</constraint>
+    <constraint type="pattern">Props destructured in function signature</constraint>
+    <constraint type="styling">CSS custom properties in :root for runtime token access</constraint>
+    <constraint type="styling">Tailwind utility classes for applying design tokens</constraint>
+    <constraint type="fonts">Google Fonts with font-display: swap for FOUT handling</constraint>
+    <constraint type="testing">Manual visual verification for styling stories - no automated tests required</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Tailwind Theme Extension (v4)</name>
+      <kind>CSS @theme directive</kind>
+      <signature>@theme { --color-*: value; --font-*: value; }</signature>
+      <path>today-app/src/index.css</path>
+    </interface>
+    <interface>
+      <name>CSS Custom Properties</name>
+      <kind>CSS variables</kind>
+      <signature>:root { --background: #f8fafc; --surface: #ffffff; ... }</signature>
+      <path>today-app/src/index.css</path>
+    </interface>
+    <interface>
+      <name>Google Fonts Import</name>
+      <kind>HTML link</kind>
+      <signature>&lt;link href="https://fonts.googleapis.com/css2?family=..." rel="stylesheet"&gt;</signature>
+      <path>today-app/index.html</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual visual verification for design token configuration. No automated tests required for styling stories per architecture.md. Visual comparison against UX spec color values (#f8fafc, #ffffff, #e2e8f0, etc.). Check DevTools Network tab for Google Fonts loading (woff2 files). Verify computed styles in DevTools match expected token values.</standards>
+    <locations>
+      <location>Browser DevTools - Computed Styles panel</location>
+      <location>Browser DevTools - Network tab (filter: Font)</location>
+      <location>Visual inspection at localhost:5173</location>
+    </locations>
+    <ideas>
+      <idea ac="1.2.1">Apply bg-background, bg-surface, text-foreground classes to test elements; verify colors match spec</idea>
+      <idea ac="1.2.2">Inspect computed background-color on page body; expect rgb(248, 250, 252)</idea>
+      <idea ac="1.2.3">Apply font-display class; inspect computed font-family includes "Playfair Display"</idea>
+      <idea ac="1.2.4">Apply spacing utilities (p-2, m-4); measure in DevTools; expect 8px, 16px</idea>
+      <idea ac="1.2.5">Open Network tab, filter by "Font"; expect woff2 files for Playfair, DM Sans, JetBrains Mono</idea>
+      <idea>Create TokenShowcase component displaying all tokens for visual review</idea>
+    </ideas>
+  </tests>
+</story-context>
