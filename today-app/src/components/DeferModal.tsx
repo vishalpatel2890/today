@@ -1,47 +1,74 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import { addDays, startOfDay, format, parseISO } from 'date-fns'
+import { addDays, startOfDay, format, parseISO, isToday, isTomorrow } from 'date-fns'
 import type { Task } from '../types'
 import { DatePicker } from './DatePicker'
 import { CategoryDropdown } from './CategoryDropdown'
 
-type DateOption = 'tomorrow' | 'pick-date' | 'no-date' | null
+type DateOption = 'today' | 'tomorrow' | 'pick-date' | 'no-date' | null
 
-interface DeferModalProps {
+interface UpdateModalProps {
   task: Task
   categories: string[]
   isOpen: boolean
   onClose: () => void
   onCreateCategory: (name: string) => void
-  onDefer: (deferredTo: string | null, category: string) => void
+  onUpdate: (text: string, deferredTo: string | null, category: string | null) => void
 }
 
-export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory, onDefer }: DeferModalProps) => {
+export const UpdateModal = ({ task, categories, isOpen, onClose, onCreateCategory, onUpdate }: UpdateModalProps) => {
+  const [taskText, setTaskText] = useState(task.text)
   const [dateOption, setDateOption] = useState<DateOption>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const textInputRef = useRef<HTMLInputElement>(null)
 
-  // Reset state when modal closes
+  // Initialize state from task when modal opens
   useEffect(() => {
-    if (!isOpen) {
-      setDateOption(null)
-      setSelectedDate(null)
-      setSelectedCategory(null)
+    if (isOpen) {
+      setTaskText(task.text)
+      // Initialize date option based on task's current deferredTo
+      if (task.deferredTo) {
+        const taskDate = parseISO(task.deferredTo)
+        if (isToday(taskDate)) {
+          setDateOption('today')
+          setSelectedDate(startOfDay(new Date()).toISOString())
+        } else if (isTomorrow(taskDate)) {
+          setDateOption('tomorrow')
+          setSelectedDate(addDays(startOfDay(new Date()), 1).toISOString())
+        } else {
+          setDateOption('pick-date')
+          setSelectedDate(task.deferredTo)
+        }
+      } else {
+        setDateOption('no-date')
+        setSelectedDate(null)
+      }
+      // Initialize category
+      setSelectedCategory(task.category)
+      // Focus text input
+      setTimeout(() => textInputRef.current?.focus(), 100)
     }
-  }, [isOpen])
+  }, [isOpen, task])
 
-  // AC-3.3.7: Defer button enabled only when both date AND category selected
-  const canDefer = dateOption !== null && selectedCategory !== null
+  // Update button enabled when text is not empty
+  const canUpdate = taskText.trim().length > 0
 
-  // Handle defer action - AC-3.4.1: Close modal after defer
-  const handleDefer = () => {
-    if (!canDefer || !selectedCategory) return
-    onDefer(selectedDate, selectedCategory)
+  // Handle update action
+  const handleUpdate = () => {
+    if (!canUpdate) return
+    onUpdate(taskText.trim(), selectedDate, selectedCategory)
     onClose()
   }
 
-  const tomorrow = addDays(startOfDay(new Date()), 1)
+  const today = startOfDay(new Date())
+  const tomorrow = addDays(today, 1)
+
+  const handleTodayClick = () => {
+    setDateOption('today')
+    setSelectedDate(today.toISOString())
+  }
 
   const handleTomorrowClick = () => {
     setDateOption('tomorrow')
@@ -67,14 +94,17 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
 
   // Format display date for showing selection
   const getDisplayDate = (): string => {
+    if (dateOption === 'today') {
+      return 'Today'
+    }
     if (dateOption === 'tomorrow') {
-      return format(tomorrow, 'MMM d')
+      return 'Tomorrow'
     }
     if (dateOption === 'pick-date' && selectedDate) {
       return format(parseISO(selectedDate), 'MMM d')
     }
     if (dateOption === 'no-date') {
-      return 'Someday'
+      return 'No date'
     }
     return ''
   }
@@ -92,7 +122,7 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
         >
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="font-display text-lg font-semibold text-foreground">
-              Defer Task
+              Update Task
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
@@ -106,10 +136,20 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
           </div>
 
           <div>
-            {/* Task Preview */}
-            <p className="mb-4 text-sm text-muted-foreground">
-              Task: <span className="text-foreground">{task.text}</span>
-            </p>
+            {/* Task Name Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Task
+              </label>
+              <input
+                ref={textInputRef}
+                type="text"
+                value={taskText}
+                onChange={(e) => setTaskText(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground focus:border-primary focus:outline-none"
+                placeholder="Task name"
+              />
+            </div>
 
             {/* Date Selection Section */}
             <div className="mb-4">
@@ -117,6 +157,13 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
                 When?
               </label>
               <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleTodayClick}
+                  className={`${buttonBaseClass} ${dateOption === 'today' ? buttonSelectedClass : buttonDefaultClass}`}
+                >
+                  Today
+                </button>
                 <button
                   type="button"
                   onClick={handleTomorrowClick}
@@ -146,14 +193,14 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
               <DatePicker
                 selectedDate={selectedDate}
                 onSelect={handleDateSelect}
-                minDate={tomorrow}
+                minDate={today}
               />
             )}
 
             {/* Category Section */}
             <div className="mt-4 pt-4 border-t border-border">
               <label className="block text-sm font-medium text-foreground mb-2">
-                Category
+                Category (optional)
               </label>
               <CategoryDropdown
                 categories={categories}
@@ -168,7 +215,7 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
               <div className="mt-4 p-3 bg-surface-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   {dateOption && (
-                    <>Deferring to: <span className="text-foreground font-medium">{getDisplayDate()}</span></>
+                    <><span className="text-foreground font-medium">{getDisplayDate()}</span></>
                   )}
                   {dateOption && selectedCategory && ' / '}
                   {selectedCategory && (
@@ -189,16 +236,16 @@ export const DeferModal = ({ task, categories, isOpen, onClose, onCreateCategory
               </button>
               <button
                 type="button"
-                onClick={handleDefer}
-                disabled={!canDefer}
+                onClick={handleUpdate}
+                disabled={!canUpdate}
                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-md bg-primary text-white transition-colors ${
-                  canDefer
+                  canUpdate
                     ? 'hover:bg-primary/90 cursor-pointer'
                     : 'opacity-50 cursor-not-allowed'
                 }`}
-                title={canDefer ? 'Defer task' : 'Select date and category to defer'}
+                title={canUpdate ? 'Update task' : 'Enter task name'}
               >
-                Defer
+                Update
               </button>
             </div>
           </div>

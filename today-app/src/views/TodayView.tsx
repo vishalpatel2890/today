@@ -1,64 +1,52 @@
-import { isToday, parseISO } from 'date-fns'
 import type { Task } from '../types'
 import { TaskList } from '../components/TaskList'
 import { AddTaskInput } from '../components/AddTaskInput'
+import { EmptyState } from '../components/EmptyState'
 
 interface TodayViewProps {
-  tasks: Task[]
+  tasks: Task[]  // Pre-filtered by useAutoSurface hook
   categories: string[]
   onAddTask?: (text: string) => void
   onCompleteTask: (id: string) => void
   onDeleteTask: (id: string) => void
-  onDeferTask: (id: string, deferredTo: string | null, category: string) => void
+  onUpdateTask: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
-  onShowToast: (message: string) => void
   newTaskIds?: Set<string>
 }
 
 /**
  * TodayView - displays tasks for today
- * AC-3.4.2: Filters out deferred tasks (except those deferred to today)
+ * AC-4.2.1: Shows tasks deferred to today's date
+ * AC-4.2.5: Tasks are pre-filtered by useAutoSurface hook in App.tsx
+ * AC-4.2.6: Completed tasks already filtered out by hook
  */
-export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onDeferTask, onCreateCategory, onShowToast, newTaskIds }: TodayViewProps) => {
-  // Filter for today's tasks - AC-3.4.2
-  // Show tasks that: are not completed AND (have no deferredTo AND no category, OR are deferred to today)
-  // Tasks with category but no deferredTo are "Someday" tasks - they go to Deferred view
-  const todayTasks = tasks.filter(task => {
-    if (task.completedAt) return false
-    // "Someday" tasks (no date but has category) go to Deferred view, not Today
-    if (!task.deferredTo && task.category) return false
-    // Tasks deferred to a specific date only show if that date is today
-    if (task.deferredTo && !isToday(parseISO(task.deferredTo))) return false
-    return true
-  })
+export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onUpdateTask, onCreateCategory, newTaskIds }: TodayViewProps) => {
+  // Tasks are now pre-filtered by useAutoSurface hook in App.tsx
+  // No internal filtering needed - AC-4.2.5
 
-  if (todayTasks.length === 0) {
+  // AC-4.4.1: Empty state with two messages and Add input
+  // AC-4.4.6: Add task input visible below empty state
+  if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-foreground">Nothing for today.</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Add a task to get started.
-        </p>
-        {onAddTask && (
-          <div className="mt-6 w-full">
-            <AddTaskInput onAddTask={onAddTask} />
-          </div>
-        )}
-      </div>
+      <EmptyState
+        title="Nothing for today."
+        subtitle="Add a task to get started."
+      >
+        {onAddTask && <AddTaskInput onAddTask={onAddTask} />}
+      </EmptyState>
     )
   }
 
   return (
     <div className="flex flex-col gap-3">
       <TaskList
-        tasks={todayTasks}
+        tasks={tasks}
         categories={categories}
         newTaskIds={newTaskIds}
         onComplete={onCompleteTask}
         onDelete={onDeleteTask}
-        onDefer={onDeferTask}
+        onUpdate={onUpdateTask}
         onCreateCategory={onCreateCategory}
-        onShowToast={onShowToast}
       />
       {onAddTask && <AddTaskInput onAddTask={onAddTask} />}
     </div>

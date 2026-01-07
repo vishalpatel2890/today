@@ -10,10 +10,9 @@ interface CategorySectionProps {
   onToggle: () => void
   onComplete: (id: string) => void
   onDelete: (id: string) => void
-  onDefer: (id: string, deferredTo: string | null, category: string) => void
+  onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   categories: string[]
   onCreateCategory: (name: string) => void
-  onShowToast: (message: string) => void
 }
 
 /**
@@ -37,10 +36,9 @@ export const CategorySection = ({
   onToggle,
   onComplete,
   onDelete,
-  onDefer,
+  onUpdate,
   categories,
   onCreateCategory,
-  onShowToast,
 }: CategorySectionProps) => {
   const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
 
@@ -79,12 +77,11 @@ export const CategorySection = ({
                     categories={categories}
                     onComplete={onComplete}
                     onDelete={onDelete}
-                    onDefer={onDefer}
+                    onUpdate={onUpdate}
                     onCreateCategory={onCreateCategory}
-                    onShowToast={onShowToast}
                   />
-                  {/* Date badge - AC-3.5.5 */}
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded bg-surface-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {/* Date badge - AC-3.5.5 - positioned to left of edit/delete buttons */}
+                  <span className="absolute right-24 top-1/2 -translate-y-1/2 rounded bg-surface-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {formatDeferredDate(task.deferredTo)}
                   </span>
                 </div>

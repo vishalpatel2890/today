@@ -61,8 +61,14 @@ development_status:
 
   # Epic 4: Persistence & Polish
   epic-4: contexted
-  4-1-localstorage-persistence: backlog
-  4-2-auto-surfacing: backlog
-  4-3-toast-notifications: backlog
-  4-4-empty-states-polish: backlog
+  4-1-localstorage-persistence: done
+  4-2-auto-surfacing: done
+  4-3-toast-notifications: done
+  4-4-empty-states-polish: done
   epic-4-retrospective: optional
+
+  # Epic 5: Email Linking for Cross-Device Sync
+  epic-5: contexted
+  5-1-link-email-ui-send-magic-link: in-progress
+  5-2-first-task-prompt-verification-handling: backlog
+  epic-5-retrospective: optional

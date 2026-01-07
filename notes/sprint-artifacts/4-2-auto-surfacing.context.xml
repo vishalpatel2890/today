@@ -1,0 +1,160 @@
+<story-context id="4-2-auto-surfacing" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Auto-Surfacing</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-2-auto-surfacing.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>deferred tasks to automatically appear in Today when their date arrives</iWant>
+    <soThat>I don't have to manually move them</soThat>
+    <tasks>
+      <task id="1" ac="1,2,3,4,6">Create useAutoSurface hook with date-based filtering</task>
+      <task id="2" ac="1,2,3,4">Implement date comparison helpers in utils/dates.ts</task>
+      <task id="3" ac="5">Integrate useAutoSurface into App.tsx</task>
+      <task id="4" ac="1,2,3,4">Update view components to accept pre-filtered tasks</task>
+      <task id="5" ac="1,2,3,4,6">Handle edge cases (invalid dates, completed tasks)</task>
+      <task id="6" ac="all">Build verification and testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.2.1">Tasks deferred to today's date appear in the Today view</criterion>
+    <criterion id="AC-4.2.2">Tasks deferred to tomorrow's date appear in the Tomorrow view</criterion>
+    <criterion id="AC-4.2.3">Tasks deferred to dates beyond tomorrow appear in the Deferred view</criterion>
+    <criterion id="AC-4.2.4">Tasks with no date (someday) appear in the Deferred view (grouped by category)</criterion>
+    <criterion id="AC-4.2.5">Date-based surfacing occurs automatically on app load</criterion>
+    <criterion id="AC-4.2.6">Completed tasks do not appear in any view (filtered out)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/architecture.md" title="Architecture" section="Date Handling Patterns">
+        Use date-fns for all date comparisons. Dates stored as ISO 8601 strings. Use isToday(), isTomorrow() from date-fns.
+      </doc>
+      <doc path="notes/architecture.md" title="Architecture" section="FR Category to Architecture Mapping">
+        Auto-Surfacing (FR11-13): N/A for components, useAutoSurface hook.
+      </doc>
+      <doc path="notes/architecture.md" title="Architecture" section="Project Structure">
+        Hook location: src/hooks/useAutoSurface.ts. Utils: src/utils/dates.ts.
+      </doc>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-4.md" title="Epic 4 Tech Spec" section="APIs and Interfaces">
+        useAutoSurface hook signature: function useAutoSurface(tasks: Task[]): { todayTasks, tomorrowTasks, deferredTasks }
+      </doc>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-4.md" title="Epic 4 Tech Spec" section="Workflows and Sequencing">
+        Auto-surfacing logic with date-fns filters for today, tomorrow, and deferred views.
+      </doc>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-4.md" title="Epic 4 Tech Spec" section="Performance">
+        Auto-surface calculation target: less than 5ms. Use useMemo for performance.
+      </doc>
+      <doc path="notes/epics.md" title="Epics" section="Story 4.2: Auto-Surfacing">
+        FR11, FR12, FR13 coverage. Tasks auto-surface on app load based on deferred date.
+      </doc>
+      <doc path="notes/prd.md" title="PRD" section="Auto-Surfacing">
+        FR11: Tasks with deferred date matching today appear in Today view. FR12: Tomorrow view. FR13: Surfacing on load.
+      </doc>
+    </docs>
+
+    <code>
+      <file path="today-app/src/App.tsx" kind="component" symbol="App" lines="1-86" reason="Main component where useAutoSurface will be integrated. Currently passes full tasks array to views.">
+        Integration point for useAutoSurface hook. Will call hook and pass filtered arrays to each view.
+      </file>
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="1-184" reason="Provides tasks array and state. useAutoSurface will consume tasks from this hook.">
+        Returns tasks, categories, and CRUD methods. Has LOAD_STATE for hydration. Auto-surfacing will filter these tasks.
+      </file>
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task, AppState" lines="1-22" reason="Task interface with deferredTo, category, completedAt fields used for filtering.">
+        Task.deferredTo: string | null (ISO date). Task.category: string | null. Task.completedAt: string | null.
+      </file>
+      <file path="today-app/src/views/TodayView.tsx" kind="view" symbol="TodayView" lines="22-66" reason="Currently has inline filtering logic (lines 26-33). Will be simplified to accept pre-filtered tasks.">
+        Existing filter: not completed AND (no deferredTo AND no category, OR isToday). Uses date-fns isToday, parseISO.
+      </file>
+      <file path="today-app/src/views/TomorrowView.tsx" kind="view" symbol="TomorrowView" lines="20-60" reason="Currently has inline filtering logic (lines 30-34). Will accept pre-filtered tasks.">
+        Existing filter: deferredTo AND isTomorrow AND not completed. Uses date-fns isTomorrow, parseISO.
+      </file>
+      <file path="today-app/src/views/DeferredView.tsx" kind="view" symbol="DeferredView" lines="22-128" reason="Currently has inline filtering logic (lines 43-55). Already groups by category.">
+        Existing filter: not completed AND has category AND (null OR not today/tomorrow). Uses date-fns isToday, isTomorrow, parseISO.
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="date-fns" version="^4.1.0" purpose="Date comparison: isToday, isTomorrow, parseISO" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+      </node>
+      <devDependencies>
+        <package name="typescript" version="~5.9.3" />
+        <package name="vite" version="^7.2.4" />
+        <package name="tailwindcss" version="^4.1.18" />
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Hooks use camelCase with 'use' prefix: useAutoSurface</constraint>
+    <constraint type="pattern">Named exports only (not default exports)</constraint>
+    <constraint type="pattern">Arrow function components with destructured props</constraint>
+    <constraint type="pattern">Use useMemo for expensive computations (filtering)</constraint>
+    <constraint type="pattern">Dates stored as ISO 8601 strings, compared with date-fns</constraint>
+    <constraint type="pattern">Dev logging: if (import.meta.env.DEV) console.log('[Today]', ...)</constraint>
+    <constraint type="performance">Auto-surface calculation must complete in less than 5ms</constraint>
+    <constraint type="dependency">Requires Story 4.1 (localStorage persistence) to be complete for full testing</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="useAutoSurface" kind="hook">
+      <signature>function useAutoSurface(tasks: Task[]): { todayTasks: Task[]; tomorrowTasks: Task[]; deferredTasks: Task[] }</signature>
+      <path>today-app/src/hooks/useAutoSurface.ts</path>
+      <note>New hook to create. Centralizes date-based filtering from view components.</note>
+    </interface>
+    <interface name="Task" kind="type">
+      <signature>interface Task { id: string; text: string; createdAt: string; deferredTo: string | null; category: string | null; completedAt: string | null; }</signature>
+      <path>today-app/src/types/index.ts</path>
+    </interface>
+    <interface name="isToday" kind="function">
+      <signature>isToday(date: Date | number): boolean</signature>
+      <path>date-fns</path>
+      <note>Returns true if given date is today</note>
+    </interface>
+    <interface name="isTomorrow" kind="function">
+      <signature>isTomorrow(date: Date | number): boolean</signature>
+      <path>date-fns</path>
+      <note>Returns true if given date is tomorrow</note>
+    </interface>
+    <interface name="parseISO" kind="function">
+      <signature>parseISO(argument: string): Date</signature>
+      <path>date-fns</path>
+      <note>Parses ISO 8601 string to Date object</note>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit and integration tests. Testing Library for component tests. Follow existing patterns in tests/ directory. Test date comparison logic in isolation. Mock date-fns functions for deterministic testing.
+    </standards>
+    <locations>
+      <location>today-app/tests/hooks/</location>
+      <location>today-app/tests/components/</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.2.1">Test task with deferredTo=today appears in todayTasks array</idea>
+      <idea ac="AC-4.2.2">Test task with deferredTo=tomorrow appears in tomorrowTasks array</idea>
+      <idea ac="AC-4.2.3">Test task with deferredTo=next week appears in deferredTasks array</idea>
+      <idea ac="AC-4.2.4">Test task with deferredTo=null and category set appears in deferredTasks</idea>
+      <idea ac="AC-4.2.5">Test that filtering runs on initial hook call (useMemo dependency is tasks)</idea>
+      <idea ac="AC-4.2.6">Test completed task (completedAt set) does not appear in any array</idea>
+      <idea ac="edge">Test invalid date string is treated as deferred (no date)</idea>
+      <idea ac="edge">Test task with deferredTo but no category stays in Today</idea>
+      <idea ac="perf">Test filtering 100+ tasks completes in less than 5ms</idea>
+    </ideas>
+  </tests>
+</story-context>

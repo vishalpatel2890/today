@@ -197,26 +197,26 @@ body {
   animation: deferSlideOut 300ms ease-out forwards;
 }
 
-/* Toast animations - AC-3.4.3, AC-3.4.4 */
+/* Toast animations - AC-4.3.6: Slide in from below, slide out to below */
 @keyframes toastSlideIn {
   from {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
 @keyframes toastSlideOut {
   from {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translateY(20px);
   }
 }
 

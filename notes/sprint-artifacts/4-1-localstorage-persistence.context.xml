@@ -1,0 +1,255 @@
+<story-context id="4-1-localstorage-persistence" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>localStorage Persistence</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-1-localstorage-persistence.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>my tasks to be saved automatically and persist across browser sessions</iWant>
+    <soThat>I never lose my data</soThat>
+    <tasks>
+      <task id="1" ac="3">
+        <title>Create storage utility module</title>
+        <subtasks>
+          <subtask>Create today-app/src/utils/storage.ts</subtask>
+          <subtask>Define STORAGE_KEY constant: 'today-app-state'</subtask>
+          <subtask>Implement saveState(state: AppState): { success: boolean; error?: Error }</subtask>
+          <subtask>Implement loadState(): AppState | null</subtask>
+          <subtask>Implement clearState(): void for development/testing</subtask>
+          <subtask>Add dev-mode logging: if (import.meta.env.DEV) console.log('[Today] Storage:', action)</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="1,2,5">
+        <title>Create useLocalStorage hook</title>
+        <subtasks>
+          <subtask>Create today-app/src/hooks/useLocalStorage.ts</subtask>
+          <subtask>Implement generic hook: useLocalStorage&lt;T&gt;(key, initialValue): [T, setValue, error]</subtask>
+          <subtask>Handle initial load from localStorage</subtask>
+          <subtask>Handle serialization errors gracefully</subtask>
+          <subtask>Return error state for storage failures</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="1,2,4,5">
+        <title>Extend useTasks hook with persistence</title>
+        <subtasks>
+          <subtask>Open today-app/src/hooks/useTasks.ts</subtask>
+          <subtask>Add LOAD_STATE action to TaskAction type</subtask>
+          <subtask>Handle LOAD_STATE in reducer: replace entire state</subtask>
+          <subtask>On mount: call loadState(), dispatch LOAD_STATE if data found</subtask>
+          <subtask>After every dispatch: call saveState() with current state</subtask>
+          <subtask>If QuotaExceededError: set error state for toast</subtask>
+          <subtask>Return error state from hook</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="4">
+        <title>Integrate persistence into App</title>
+        <subtasks>
+          <subtask>Open today-app/src/App.tsx</subtask>
+          <subtask>Get error state from useTasks</subtask>
+          <subtask>When storage error occurs: showToast("Storage full. Some data may not save.")</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="2,5">
+        <title>Handle corrupt/invalid localStorage gracefully</title>
+        <subtasks>
+          <subtask>Wrap JSON.parse in try/catch in loadState()</subtask>
+          <subtask>If parse fails: log warning, return null, continue with empty state</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="all">
+        <title>Build verification and testing</title>
+        <subtasks>
+          <subtask>Run npm run build to verify no TypeScript errors</subtask>
+          <subtask>Test add/complete/delete/defer persistence in browser</subtask>
+          <subtask>Verify localStorage key 'today-app-state' in DevTools</subtask>
+          <subtask>Test page refresh and browser close/reopen</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="4.1.1">Given I add, complete, defer, or delete a task, the entire app state is saved to localStorage immediately after the action completes</ac>
+    <ac id="4.1.2">Given I close the browser and reopen the app, all my tasks and categories are restored exactly as I left them</ac>
+    <ac id="4.1.3">Given I inspect browser DevTools, data is stored under the key 'today-app-state' as a JSON string</ac>
+    <ac id="4.1.4">Given localStorage quota is exceeded during a save operation, a toast warning appears: "Storage full. Some data may not save."</ac>
+    <ac id="4.1.5">Given localStorage write fails for any reason, the app continues to function normally (graceful degradation - state remains in memory)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification: Persistence &amp; Polish</title>
+        <section>Story 4.1: localStorage Persistence</section>
+        <snippet>AC-4.1.1 through AC-4.1.5 define persistence requirements. Storage key is 'today-app-state', uses JSON serialization, handles quota errors gracefully.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Data Architecture, Storage Schema</section>
+        <snippet>AppState interface with tasks and categories arrays. localStorage key 'today-app-state' with JSON.stringify. Error handling pattern for quota exceeded.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>Dev logging: if (import.meta.env.DEV) console.log('[Today]', ...). Error handling: show toast, don't crash. Constants: SCREAMING_SNAKE_CASE.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today Epic Breakdown</title>
+        <section>Story 4.1: localStorage Persistence</section>
+        <snippet>User wants tasks saved automatically and persisting across browser sessions. Data under 'today-app-state' key. Toast on quota exceeded.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks, taskReducer, TaskAction</symbol>
+        <lines>1-123</lines>
+        <reason>Core hook to extend with LOAD_STATE action and persistence integration. Currently manages tasks with useReducer, need to add localStorage save/load.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task, AppState</symbol>
+        <lines>1-22</lines>
+        <reason>Defines Task and AppState interfaces that will be serialized to localStorage. AppState = { tasks: Task[], categories: string[] }.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>App, showToast</symbol>
+        <lines>1-80</lines>
+        <reason>Root component that calls useTasks hook. Need to handle storage error state and display toast for quota exceeded.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/Toast.tsx</path>
+        <kind>component</kind>
+        <symbol>Toast</symbol>
+        <lines>1-47</lines>
+        <reason>Existing toast component for displaying notifications. Will be used to show "Storage full" error message.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+      </node>
+      <node>
+        <package>react-dom</package>
+        <version>^19.2.0</version>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>^0.562.0</version>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>~5.9.3</version>
+      </node>
+      <node>
+        <package>vite</package>
+        <version>^7.2.4</version>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^4.1.18</version>
+      </node>
+      <browserApi>
+        <api>localStorage</api>
+        <purpose>State persistence</purpose>
+        <fallback>In-memory only (session)</fallback>
+      </browserApi>
+      <browserApi>
+        <api>JSON.parse/stringify</api>
+        <purpose>Serialization</purpose>
+        <fallback>N/A (required)</fallback>
+      </browserApi>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">All hooks use camelCase with 'use' prefix (useLocalStorage, useTasks)</constraint>
+    <constraint source="architecture.md">Constants use SCREAMING_SNAKE_CASE (STORAGE_KEY)</constraint>
+    <constraint source="architecture.md">Error handling: show toast, don't crash - graceful degradation</constraint>
+    <constraint source="architecture.md">Dev logging: if (import.meta.env.DEV) console.log('[Today]', ...)</constraint>
+    <constraint source="architecture.md">All state updates via reducer pattern, no direct mutation</constraint>
+    <constraint source="tech-spec-epic-4.md">localStorage read &lt; 10ms, write &lt; 10ms</constraint>
+    <constraint source="tech-spec-epic-4.md">State hydration before first render (prevent flash of empty state)</constraint>
+    <constraint source="tech-spec-epic-4.md">Single localStorage key for entire app state (atomic read/write)</constraint>
+    <constraint source="tech-spec-epic-4.md">All localStorage operations are synchronous</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useLocalStorage&lt;T&gt;</name>
+      <kind>React hook</kind>
+      <signature>function useLocalStorage&lt;T&gt;(key: string, initialValue: T): [T, (value: T) =&gt; void, Error | null]</signature>
+      <path>today-app/src/hooks/useLocalStorage.ts (NEW)</path>
+    </interface>
+    <interface>
+      <name>saveState</name>
+      <kind>function</kind>
+      <signature>function saveState(state: AppState): { success: boolean; error?: Error }</signature>
+      <path>today-app/src/utils/storage.ts (NEW)</path>
+    </interface>
+    <interface>
+      <name>loadState</name>
+      <kind>function</kind>
+      <signature>function loadState(): AppState | null</signature>
+      <path>today-app/src/utils/storage.ts (NEW)</path>
+    </interface>
+    <interface>
+      <name>clearState</name>
+      <kind>function</kind>
+      <signature>function clearState(): void</signature>
+      <path>today-app/src/utils/storage.ts (NEW)</path>
+    </interface>
+    <interface>
+      <name>LOAD_STATE action</name>
+      <kind>reducer action</kind>
+      <signature>{ type: 'LOAD_STATE'; state: AppState }</signature>
+      <path>today-app/src/hooks/useTasks.ts (EXTEND TaskAction)</path>
+    </interface>
+    <interface>
+      <name>AppState</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface AppState { tasks: Task[]; categories: string[]; }</signature>
+      <path>today-app/src/types/index.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Per architecture.md and tech-spec-epic-4.md: Use Vitest + Testing Library for unit and component tests.
+      Unit tests for storage.ts utilities and useLocalStorage hook. Integration tests for useTasks persistence.
+      Manual testing for browser close/reopen scenarios. Dev logging enabled in DEV mode for debugging.
+    </standards>
+    <locations>
+      <location>today-app/tests/hooks/</location>
+      <location>today-app/tests/utils/</location>
+    </locations>
+    <ideas>
+      <idea ac="4.1.1">Unit test: Mock localStorage, call addTask, verify setItem called with correct JSON</idea>
+      <idea ac="4.1.2">Integration test: Set localStorage with mock state, mount useTasks, verify state restored</idea>
+      <idea ac="4.1.3">Unit test: Verify STORAGE_KEY constant is 'today-app-state'</idea>
+      <idea ac="4.1.4">Integration test: Mock localStorage.setItem to throw QuotaExceededError, verify error returned</idea>
+      <idea ac="4.1.5">Integration test: Mock localStorage.setItem failure, verify app state still works in memory</idea>
+      <idea ac="4.1.2">Manual test: Add tasks, close browser, reopen, verify persistence</idea>
+      <idea ac="all">Manual test: Clear localStorage, add/defer/complete tasks, check DevTools localStorage</idea>
+    </ideas>
+  </tests>
+</story-context>

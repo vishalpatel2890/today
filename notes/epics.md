@@ -736,3 +736,98 @@ All stories are designed for single-session completion by one developer. Each st
 ---
 
 _For implementation: Use the `/bmad:bmm:workflows:dev-story` workflow to generate individual story implementation plans from this epic breakdown._
+
+---
+
+## Epic 5: Production Deployment
+
+**Goal:** Deploy the Today app to production at `productivity.pitchsmith.ai` using Cloudflare Pages (free tier).
+
+**User Value:** Users can access the app on the web from any device.
+
+**FRs Covered:** Infrastructure/Deployment (non-functional)
+
+---
+
+### Story 5.1: Initial Cloudflare Pages Deployment
+
+As a **developer**,
+I want **the app deployed to Cloudflare Pages**,
+So that **it's accessible via a `.pages.dev` URL**.
+
+**Acceptance Criteria:**
+
+**Given** Wrangler CLI is installed and authenticated
+**When** I run `npm run build && npx wrangler pages deploy dist`
+**Then** the app is deployed to Cloudflare Pages
+**And** I receive a `*.pages.dev` URL
+**And** the app loads correctly at that URL
+
+**Prerequisites:** Working local build
+
+**Technical Notes:**
+- Install: `npm install -g wrangler`
+- Auth: `wrangler login`
+- Deploy: `npx wrangler pages deploy dist --project-name=today-productivity`
+
+**Full Story:** [story-deploy-1.md](./sprint-artifacts/story-deploy-1.md)
+
+---
+
+### Story 5.2: Configure Custom Domain
+
+As a **product owner**,
+I want **the app accessible at productivity.pitchsmith.ai**,
+So that **users have a branded, memorable URL**.
+
+**Acceptance Criteria:**
+
+**Given** the app is deployed to Cloudflare Pages
+**When** I configure the custom domain in Cloudflare dashboard
+**Then** `productivity.pitchsmith.ai` points to the deployment
+**And** SSL certificate is automatically provisioned
+**And** HTTPS is enforced
+
+**Prerequisites:** Story 5.1
+
+**Technical Notes:**
+- Cloudflare Dashboard → Pages → Custom Domains
+- DNS is automatic (domain already on Cloudflare)
+
+**Full Story:** [story-deploy-2.md](./sprint-artifacts/story-deploy-2.md)
+
+---
+
+### Story 5.3: Configure Environment Variables
+
+As a **user**,
+I want **full app functionality in production**,
+So that **I can create and manage my tasks**.
+
+**Acceptance Criteria:**
+
+**Given** environment variables are configured in Cloudflare Pages
+**When** I use the app at productivity.pitchsmith.ai
+**Then** Supabase connection works
+**And** I can create, complete, defer, and delete tasks
+**And** data persists across sessions
+
+**Prerequisites:** Story 5.2
+
+**Technical Notes:**
+- Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Cloudflare dashboard
+- Redeploy after adding variables
+
+**Full Story:** [story-deploy-3.md](./sprint-artifacts/story-deploy-3.md)
+
+---
+
+### Epic 5 Summary
+
+| # | Story | Description | Status |
+|---|-------|-------------|--------|
+| 5.1 | Initial Deployment | Deploy to Cloudflare Pages | TODO |
+| 5.2 | Custom Domain | Configure productivity.pitchsmith.ai | TODO |
+| 5.3 | Environment Variables | Configure Supabase credentials | TODO |
+
+**Total Cost:** $0/month (Cloudflare Pages free tier)

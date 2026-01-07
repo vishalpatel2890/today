@@ -1,65 +1,81 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Header } from './components/Header'
 import { TabBar, type TabId } from './components/TabBar'
 import { TodayView } from './views/TodayView'
 import { TomorrowView } from './views/TomorrowView'
 import { DeferredView } from './views/DeferredView'
-import { Toast } from './components/Toast'
+import { ToastContainer } from './components/Toast'
+import { ToastProvider, useToast } from './contexts/ToastContext'
 import { useTasks } from './hooks/useTasks'
+import { useAuth } from './hooks/useAuth'
+import { useAutoSurface } from './hooks/useAutoSurface'
+import { LinkEmailModal } from './components/LinkEmailModal'
 
-export const App = () => {
+/**
+ * Inner App component that uses toast context
+ * Separated to allow useToast hook to work within ToastProvider
+ */
+const AppContent = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
-  const { tasks, categories, addTask, completeTask, deleteTask, deferTask, addCategory, newTaskIds } = useTasks()
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
+  const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus } = useAuth()
+  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, addCategory, newTaskIds, storageError, isSyncing } = useTasks(user?.id ?? null)
+  const { addToast } = useToast()
 
-  // Toast state - AC-3.4.3, AC-3.4.4
-  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false })
+  // AC-4.2.5: Auto-surface tasks based on date on app load
+  const { todayTasks, tomorrowTasks, deferredTasks } = useAutoSurface(tasks)
 
-  const showToast = useCallback((message: string) => {
-    setToast({ message, visible: true })
-  }, [])
+  // AC-4.3.3: Show toast when localStorage quota is exceeded
+  useEffect(() => {
+    if (storageError) {
+      addToast('Storage full. Some data may not save.', { type: 'error' })
+    }
+  }, [storageError, addToast])
 
-  const hideToast = useCallback(() => {
-    setToast(prev => ({ ...prev, visible: false }))
-  }, [])
+  // Show loading state while auth initializes
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   const renderView = () => {
     switch (activeTab) {
       case 'today':
         return (
           <TodayView
-            tasks={tasks}
+            tasks={todayTasks}
             categories={categories}
             onAddTask={addTask}
             onCompleteTask={completeTask}
             onDeleteTask={deleteTask}
-            onDeferTask={deferTask}
+            onUpdateTask={updateTask}
             onCreateCategory={addCategory}
-            onShowToast={showToast}
             newTaskIds={newTaskIds}
           />
         )
       case 'tomorrow':
         return (
           <TomorrowView
-            tasks={tasks}
+            tasks={tomorrowTasks}
             categories={categories}
             onCompleteTask={completeTask}
             onDeleteTask={deleteTask}
-            onDeferTask={deferTask}
+            onUpdateTask={updateTask}
             onCreateCategory={addCategory}
-            onShowToast={showToast}
           />
         )
       case 'deferred':
         return (
           <DeferredView
-            tasks={tasks}
+            tasks={deferredTasks}
             categories={categories}
             onComplete={completeTask}
             onDelete={deleteTask}
-            onDefer={deferTask}
+            onUpdate={updateTask}
             onCreateCategory={addCategory}
-            onShowToast={showToast}
           />
         )
     }
@@ -68,12 +84,42 @@ export const App = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-[600px] px-4 sm:px-6">
-        <Header />
+        <Header
+          isLinked={isLinked}
+          email={user?.email}
+          onSyncClick={() => setIsLinkModalOpen(true)}
+        />
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* Sync indicator */}
+        {isSyncing && (
+          <div className="text-center text-xs text-muted-foreground py-1">
+            Syncing...
+          </div>
+        )}
         <main className="py-6">{renderView()}</main>
       </div>
-      {/* Toast notification - rendered at App level for consistent positioning */}
-      <Toast message={toast.message} isVisible={toast.visible} onDismiss={hideToast} />
+      {/* Toast notifications - AC-4.3.4: bottom-center, AC-4.3.7: stacked */}
+      <ToastContainer />
+      {/* Link email modal - AC-5.1.7 */}
+      <LinkEmailModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        onSubmit={linkEmail}
+        status={linkingStatus}
+        error={linkingError}
+        onReset={resetLinkingStatus}
+      />
     </div>
+  )
+}
+
+/**
+ * Main App component with ToastProvider wrapper
+ */
+export const App = () => {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   )
 }

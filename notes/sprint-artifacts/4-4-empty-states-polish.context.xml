@@ -1,0 +1,209 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Empty States Polish</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-4-empty-states-polish.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>friendly empty state messages throughout the app</iWant>
+    <soThat>I know what to do when views are empty and feel guided rather than confused</soThat>
+    <tasks>
+      <task id="1" ac="4,5">Create EmptyState component
+        - Create today-app/src/components/EmptyState.tsx
+        - Define EmptyStateProps interface (title, subtitle?, children?)
+        - Style: flex, items-center, justify-center, flex-col, py-12, text-center
+        - Title: text-muted-foreground, text-base
+        - Subtitle: text-muted-foreground, text-sm, mt-2
+        - Children wrapper: mt-6, w-full, max-w-md
+        - Export as named export
+      </task>
+      <task id="2" ac="1,6">Update TodayView with empty state
+        - Import EmptyState component
+        - Replace inline empty state with EmptyState component
+        - Props: title="Nothing for today." subtitle="Add a task to get started."
+        - Children: AddTaskInput component
+        - Ensure backward compatibility with existing logic
+      </task>
+      <task id="3" ac="2">Update TomorrowView with empty state
+        - Import EmptyState component
+        - Replace inline empty state with EmptyState component
+        - Props: title="Nothing planned for tomorrow."
+        - Remove subtitle text (was "Defer tasks from Today...")
+      </task>
+      <task id="4" ac="3">Update DeferredView with empty state
+        - Import EmptyState component
+        - Replace inline empty state with EmptyState component
+        - Props: title="No deferred tasks. Everything is in Today or Tomorrow!"
+        - Single line message per UX spec
+      </task>
+      <task id="5" ac="4,5">Verify styling consistency
+        - Confirm text color is #64748b (text-muted-foreground)
+        - Confirm text is centered (text-center)
+        - Test on mobile, tablet, desktop viewports
+        - Verify spacing looks balanced
+      </task>
+      <task id="6" ac="all">Build verification and testing
+        - Run npm run build to verify no TypeScript errors
+        - Manual browser testing per Frontend Test Gate
+        - Test empty state appearance/disappearance
+        - Verify no console errors
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.4.1">Given I am on the Today tab with no tasks, the empty state shows: "Nothing for today." and "Add a task to get started."</criterion>
+    <criterion id="AC-4.4.2">Given I am on the Tomorrow tab with no tasks, the empty state shows: "Nothing planned for tomorrow."</criterion>
+    <criterion id="AC-4.4.3">Given I am on the Deferred tab with no tasks, the empty state shows: "No deferred tasks. Everything is in Today or Tomorrow!"</criterion>
+    <criterion id="AC-4.4.4">All empty state text uses muted-foreground color (#64748b)</criterion>
+    <criterion id="AC-4.4.5">Empty state text is centered in the content area</criterion>
+    <criterion id="AC-4.4.6">The Add task input is visible below the Today empty state</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/epics.md</path>
+        <title>Today - Epic Breakdown</title>
+        <section>Story 4.4: Empty States Polish</section>
+        <snippet>Friendly empty state messages for Today, Tomorrow, and Deferred views with muted-foreground color and centered text.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>Story 4.4: Empty States Polish</section>
+        <snippet>AC-4.4.1 through AC-4.4.6 define empty state messages, styling (#64748b), centering, and Add input visibility.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-specification.md</path>
+        <title>Today UX Design Specification</title>
+        <section>Section 7.2 Empty States</section>
+        <snippet>Empty state messages: Today shows "Nothing for today." with subtitle; Tomorrow/Deferred show single-line messages. Muted color, centered.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>All components MUST be functional with TypeScript, arrow function syntax, destructure props, named exports, Tailwind CSS.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/views/TodayView.tsx</path>
+        <kind>view</kind>
+        <symbol>TodayView</symbol>
+        <lines>26-40</lines>
+        <reason>Contains inline empty state to be refactored to use EmptyState component. Shows pattern with AddTaskInput child.</reason>
+      </file>
+      <file>
+        <path>today-app/src/views/TomorrowView.tsx</path>
+        <kind>view</kind>
+        <symbol>TomorrowView</symbol>
+        <lines>30-39</lines>
+        <reason>Contains inline empty state to be refactored. Currently has subtitle that should be removed per UX spec.</reason>
+      </file>
+      <file>
+        <path>today-app/src/views/DeferredView.tsx</path>
+        <kind>view</kind>
+        <symbol>DeferredView</symbol>
+        <lines>81-90</lines>
+        <reason>Contains inline empty state to be refactored. Message should be combined into single line per UX spec.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/AddTaskInput.tsx</path>
+        <kind>component</kind>
+        <symbol>AddTaskInput</symbol>
+        <lines>all</lines>
+        <reason>Reused as child of EmptyState in TodayView. No changes needed - just import and use.</reason>
+      </file>
+      <file>
+        <path>today-app/src/index.css</path>
+        <kind>styles</kind>
+        <symbol>CSS variables</symbol>
+        <lines>19-21</lines>
+        <reason>Contains --muted-foreground: #64748b token. Tailwind maps to text-muted-foreground class.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task, AppState</symbol>
+        <lines>all</lines>
+        <reason>Type definitions used by views. EmptyState doesn't need these directly.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+      </node>
+      <node>
+        <package>react-dom</package>
+        <version>^19.2.0</version>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^4.1.18</version>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>~5.9.3</version>
+      </node>
+      <node>
+        <package>vite</package>
+        <version>^7.2.4</version>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">Functional components with TypeScript only</constraint>
+    <constraint source="architecture.md">Named exports (not default)</constraint>
+    <constraint source="architecture.md">Arrow function syntax for components</constraint>
+    <constraint source="architecture.md">Destructure props in function signature</constraint>
+    <constraint source="architecture.md">Tailwind CSS for all styling</constraint>
+    <constraint source="ux-spec">Empty state text color: #64748b (--muted-foreground)</constraint>
+    <constraint source="ux-spec">Empty state text must be centered horizontally</constraint>
+    <constraint source="ux-spec">Font: DM Sans (--font-body)</constraint>
+    <constraint source="tech-spec">Empty states only show when view has 0 tasks</constraint>
+    <constraint source="tech-spec">Add input must be visible below Today empty state</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EmptyStateProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface EmptyStateProps { title: string; subtitle?: string; children?: React.ReactNode; }</signature>
+      <path>today-app/src/components/EmptyState.tsx</path>
+    </interface>
+    <interface>
+      <name>AddTaskInput</name>
+      <kind>React component</kind>
+      <signature>({ onAddTask }: AddTaskInputProps) => JSX.Element</signature>
+      <path>today-app/src/components/AddTaskInput.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual browser testing is the primary test method for this story per the Frontend Test Gate. The project does not currently have a test framework configured in package.json. All acceptance criteria should be verified through visual inspection and interaction testing across viewport sizes.</standards>
+    <locations>
+      <location>Manual testing via npm run dev at localhost:5173</location>
+      <location>Browser DevTools for inspecting colors and layout</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.4.1">Clear localStorage, reload app, verify Today shows "Nothing for today." with subtitle and Add input</idea>
+      <idea ac="AC-4.4.2">Click Tomorrow tab with no tasks, verify shows "Nothing planned for tomorrow."</idea>
+      <idea ac="AC-4.4.3">Click Deferred tab with no deferred tasks, verify shows single-line message</idea>
+      <idea ac="AC-4.4.4">Use DevTools to inspect text color, confirm computed value is #64748b</idea>
+      <idea ac="AC-4.4.5">Verify text is horizontally centered in content area on all views</idea>
+      <idea ac="AC-4.4.6">Confirm Add task input is visible and functional below Today empty state</idea>
+      <idea ac="all">Add a task, verify empty state disappears. Delete all tasks, verify empty state reappears.</idea>
+      <idea ac="all">Test on mobile viewport (< 768px), tablet (768-1023px), desktop (1024px+)</idea>
+    </ideas>
+  </tests>
+</story-context>

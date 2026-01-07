@@ -1,0 +1,153 @@
+<story-context id="4-3-toast-notifications" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>Toast Notifications</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-3-toast-notifications.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>subtle feedback when actions complete</iWant>
+    <soThat>I know my actions were successful without being interrupted</soThat>
+    <tasks>
+      <task id="1" acs="4,5,7">Create Toast context and provider - ToastContext.tsx with addToast/removeToast, queue state, auto-dismiss logic</task>
+      <task id="2" acs="4,5,6,7">Create Toast component with animations - fixed bottom-center, slide in/out, stacking, max 3 visible</task>
+      <task id="3" acs="all">Integrate ToastProvider into App - wrap app content, render ToastContainer</task>
+      <task id="4" acs="1">Add toast to defer action - call addToast with formatted date/category message</task>
+      <task id="5" acs="2">Add toast to delete action - call addToast('Task deleted')</task>
+      <task id="6" acs="3">Add toast for storage errors - show error toast on localStorage quota exceeded</task>
+      <task id="7" acs="3">Style toast for success vs error types - success (default), error (red styling)</task>
+      <task id="8" acs="all">Build verification and testing - npm run build, manual browser testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="4.3.1">Given I defer a task, a toast appears: "Deferred to [Tomorrow/Jan 15/Someday] / [Category]"</ac>
+    <ac id="4.3.2">Given I delete a task, a toast appears: "Task deleted"</ac>
+    <ac id="4.3.3">Given localStorage is full and a save fails, a toast appears: "Storage full. Some data may not save."</ac>
+    <ac id="4.3.4">Toasts appear at the bottom-center of the screen</ac>
+    <ac id="4.3.5">Toasts auto-dismiss after 3 seconds</ac>
+    <ac id="4.3.6">Toasts slide in from below and slide out to below (animated)</ac>
+    <ac id="4.3.7">Multiple toasts stack vertically (most recent at bottom)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-4.md" title="Epic 4 Technical Specification" section="Story 4.3: Toast Notifications" snippet="Defines ToastMessage interface, ToastContextValue API, toast lifecycle, animation specs (300ms slide), stacking behavior (max 3 toasts)." />
+      <doc path="notes/architecture.md" title="Architecture" section="Error Handling" snippet="Pattern for localStorage quota exceeded: try/catch with showToast fallback, graceful degradation." />
+      <doc path="notes/architecture.md" title="Architecture" section="Implementation Patterns" snippet="Component patterns: functional components, arrow functions, named exports, Tailwind CSS styling." />
+      <doc path="notes/ux-design-specification.md" title="UX Design Specification" section="Toast Notification" snippet="Appears bottom-center, auto-dismisses after 3 seconds, stacks if multiple (rare)." />
+    </docs>
+    <code>
+      <file path="today-app/src/components/Toast.tsx" kind="component" symbol="Toast" lines="1-46" reason="EXISTING basic toast component. Needs enhancement: convert to Context-based, add stacking, add error styling, improve animations." />
+      <file path="today-app/src/components/TaskCard.tsx" kind="component" symbol="TaskCard" lines="17-140" reason="Already has onShowToast prop and formatToastMessage function. Needs: add toast on delete action (handleDelete function, line 41-44)." />
+      <file path="today-app/src/components/DeferModal.tsx" kind="component" symbol="DeferModal" lines="1-210" reason="Defer flow handled. Toast triggered from TaskCard via onShowToast callback." />
+      <file path="today-app/src/App.tsx" kind="component" symbol="App" lines="1-90" reason="Currently manages toast state with useState (lines 18-27). Needs: wrap with ToastProvider, replace state with useToast hook." />
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="68-184" reason="Already exposes storageError (line 72, 181) for toast display. Storage error handling complete (lines 100-109)." />
+      <file path="today-app/src/utils/storage.ts" kind="utility" symbol="saveState, loadState" lines="1-73" reason="Storage utilities with error handling. Returns {success, error} on save failure." />
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task, AppState" lines="1-22" reason="Existing type definitions. May need ToastMessage interface added here or in new context file." />
+    </code>
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="tailwindcss" version="^4.1.18" />
+      </node>
+      <browser>
+        <api name="crypto.randomUUID" purpose="Generate unique toast IDs" />
+        <api name="setTimeout" purpose="Auto-dismiss timer" />
+      </browser>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">Use React Context for global toast state management</constraint>
+    <constraint source="architecture.md">Functional components with TypeScript, arrow function syntax, named exports</constraint>
+    <constraint source="architecture.md">Tailwind CSS for styling, no CSS-in-JS</constraint>
+    <constraint source="tech-spec-epic-4.md">Toast auto-dismiss after 3000ms (3 seconds)</constraint>
+    <constraint source="tech-spec-epic-4.md">Maximum 3 visible toasts, oldest dismissed early if exceeded</constraint>
+    <constraint source="tech-spec-epic-4.md">Slide-in: translateY(100%) to translateY(0) over 300ms</constraint>
+    <constraint source="tech-spec-epic-4.md">Slide-out: opacity 1 to 0 + translateY(0) to translateY(20px) over 300ms</constraint>
+    <constraint source="tech-spec-epic-4.md">CSS transitions for 60fps, GPU-accelerated (transform, opacity)</constraint>
+    <constraint source="ux-design-specification.md">Toasts appear bottom-center of screen</constraint>
+    <constraint source="ux-design-specification.md">Calm feedback - no sounds, no confetti</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="ToastMessage" kind="type" path="today-app/src/contexts/ToastContext.tsx">
+      <signature>
+interface ToastMessage {
+  id: string;                    // Unique ID (crypto.randomUUID)
+  message: string;               // Display text
+  type?: 'success' | 'error';    // Visual style (default: success)
+  duration?: number;             // Auto-dismiss time (default: 3000ms)
+}
+      </signature>
+    </interface>
+    <interface name="ToastContextValue" kind="context-api" path="today-app/src/contexts/ToastContext.tsx">
+      <signature>
+interface ToastContextValue {
+  addToast: (message: string, options?: { type?: 'success' | 'error'; duration?: number }) => void;
+  removeToast: (id: string) => void;
+}
+      </signature>
+    </interface>
+    <interface name="useToast" kind="hook" path="today-app/src/contexts/ToastContext.tsx">
+      <signature>
+const useToast = (): ToastContextValue
+// Usage: const { addToast } = useToast();
+      </signature>
+    </interface>
+    <interface name="formatDeferDate" kind="utility" path="today-app/src/components/TaskCard.tsx">
+      <signature>
+// Already exists in TaskCard.tsx lines 68-89
+function formatDeferDate(deferredTo: string | null): string
+// Returns: "Someday" | "Tomorrow" | "Jan 15" format
+      </signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+This project uses Vitest + Testing Library for testing. Tests should follow React Testing Library patterns with user-centric queries. Component tests verify rendering and interactions. Integration tests verify hook behavior. Manual browser testing required for animations and visual verification.
+    </standards>
+    <locations>
+      <location>today-app/tests/components/</location>
+      <location>today-app/tests/hooks/</location>
+    </locations>
+    <ideas>
+      <idea ac="4.3.1">Test defer action triggers toast with correct message format</idea>
+      <idea ac="4.3.2">Test delete action triggers "Task deleted" toast</idea>
+      <idea ac="4.3.3">Test storage error displays error toast (mock localStorage.setItem to throw)</idea>
+      <idea ac="4.3.4">Verify toast has fixed positioning at bottom-center (visual/integration test)</idea>
+      <idea ac="4.3.5">Test auto-dismiss after 3 seconds (use fake timers)</idea>
+      <idea ac="4.3.6">Manual test: verify slide animations are smooth</idea>
+      <idea ac="4.3.7">Test multiple toasts stack correctly, max 3 visible</idea>
+    </ideas>
+  </tests>
+
+  <implementation-notes>
+    <note priority="high">Toast.tsx ALREADY EXISTS at src/components/Toast.tsx with basic functionality. This story ENHANCES it - do not create from scratch. Current implementation is a single-toast controlled component. Needs conversion to context-based multi-toast system.</note>
+    <note priority="high">TaskCard.tsx ALREADY HAS onShowToast prop and formatToastMessage function (lines 68-89). The defer toast is partially implemented. Need to add toast call in handleDelete function (lines 41-44).</note>
+    <note priority="high">App.tsx ALREADY manages toast state with useState (lines 18-27) and handles storageError toast (lines 29-34). Needs refactoring to use ToastProvider/useToast instead of prop drilling.</note>
+    <note priority="medium">Storage error handling is COMPLETE in useTasks.ts - storageError is exposed (line 181) and App.tsx shows toast when it changes (lines 29-34). Verify this still works after Context refactor.</note>
+    <note priority="medium">Create new file: src/contexts/ToastContext.tsx for ToastProvider and useToast hook.</note>
+    <note priority="low">Consider extracting formatDeferDate to src/utils/dates.ts for reuse (currently in TaskCard).</note>
+  </implementation-notes>
+
+  <files-to-create>
+    <file path="today-app/src/contexts/ToastContext.tsx" reason="New context for global toast state management" />
+  </files-to-create>
+
+  <files-to-modify>
+    <file path="today-app/src/components/Toast.tsx" reason="Enhance with stacking, error styling, improved animations" />
+    <file path="today-app/src/components/TaskCard.tsx" reason="Add toast on delete action" />
+    <file path="today-app/src/App.tsx" reason="Wrap with ToastProvider, use useToast hook" />
+  </files-to-modify>
+</story-context>

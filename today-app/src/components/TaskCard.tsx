@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Circle, CheckCircle2, Clock, Trash2 } from 'lucide-react'
+import { Circle, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
 import type { Task } from '../types'
-import { DeferModal } from './DeferModal'
+import { UpdateModal } from './DeferModal'
+import { useToast } from '../contexts/ToastContext'
 
 interface TaskCardProps {
   task: Task
@@ -9,16 +10,20 @@ interface TaskCardProps {
   isNew?: boolean
   onComplete: (id: string) => void
   onDelete: (id: string) => void
-  onDefer: (id: string, deferredTo: string | null, category: string) => void
+  onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
-  onShowToast?: (message: string) => void
 }
 
-export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onDefer, onCreateCategory, onShowToast }: TaskCardProps) => {
+/**
+ * TaskCard component
+ * AC-4.3.2: Toast on delete
+ * Update button opens modal to edit task name, date, category
+ */
+export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onUpdate, onCreateCategory }: TaskCardProps) => {
   const [showCheck, setShowCheck] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
-  const [isDeferModalOpen, setIsDeferModalOpen] = useState(false)
-  const [isSliding, setIsSliding] = useState(false)
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const { addToast } = useToast()
 
   const handleComplete = () => {
     // Prevent double-clicks
@@ -38,60 +43,29 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
     }, 300)
   }
 
+  // AC-4.3.2: Show toast on delete
   const handleDelete = () => {
     if (window.confirm('Delete this task?')) {
       onDelete(task.id)
+      addToast('Task deleted')
     }
   }
 
-  const handleDeferClick = () => {
-    setIsDeferModalOpen(true)
+  const handleUpdateClick = () => {
+    setIsUpdateModalOpen(true)
   }
 
-  // Handle defer from modal - AC-3.4.2: Slide out animation before defer
-  const handleDeferFromModal = (deferredTo: string | null, category: string) => {
-    // Close modal first
-    setIsDeferModalOpen(false)
-
-    // Start slide-out animation
-    setIsSliding(true)
-
-    // After animation completes (300ms), execute the defer action
-    setTimeout(() => {
-      onDefer(task.id, deferredTo, category)
-      // Show toast if handler provided
-      onShowToast?.(formatToastMessage(deferredTo, category))
-    }, 300)
-  }
-
-  // Format toast message based on deferredTo value - AC-3.4.3
-  const formatToastMessage = (deferredTo: string | null, category: string): string => {
-    if (deferredTo === null) {
-      return `Deferred to Someday / ${category}`
-    }
-
-    const deferDate = new Date(deferredTo)
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    tomorrow.setHours(0, 0, 0, 0)
-
-    const deferDateNormalized = new Date(deferDate)
-    deferDateNormalized.setHours(0, 0, 0, 0)
-
-    if (deferDateNormalized.getTime() === tomorrow.getTime()) {
-      return `Deferred to Tomorrow / ${category}`
-    }
-
-    // Format as "Jan 15" style
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const formattedDate = `${monthNames[deferDate.getMonth()]} ${deferDate.getDate()}`
-    return `Deferred to ${formattedDate} / ${category}`
+  // Handle update from modal
+  const handleUpdateFromModal = (text: string, deferredTo: string | null, category: string | null) => {
+    setIsUpdateModalOpen(false)
+    onUpdate(task.id, text, deferredTo, category)
+    addToast('Task updated')
   }
 
   return (
     <>
       <div
-        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''} ${isSliding ? 'animate-defer-slide-out' : ''}`}
+        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''}`}
       >
         <button
           type="button"
@@ -106,15 +80,17 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
             <Circle className="h-5 w-5" strokeWidth={2} />
           )}
         </button>
-        <span className="flex-1 font-body text-base text-foreground">{task.text}</span>
+        <span className="flex-1 font-body text-base text-foreground">
+          {task.text}
+        </span>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleDeferClick}
+            onClick={handleUpdateClick}
             className="flex-shrink-0 cursor-pointer text-muted-foreground opacity-100 transition-opacity hover:text-primary md:opacity-0 md:group-hover:opacity-100"
-            aria-label="Defer task"
+            aria-label="Update task"
           >
-            <Clock className="h-[18px] w-[18px]" strokeWidth={2} />
+            <Pencil className="h-[18px] w-[18px]" strokeWidth={2} />
           </button>
           <button
             type="button"
@@ -127,13 +103,13 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
         </div>
       </div>
 
-      <DeferModal
+      <UpdateModal
         task={task}
         categories={categories}
-        isOpen={isDeferModalOpen}
-        onClose={() => setIsDeferModalOpen(false)}
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
         onCreateCategory={onCreateCategory}
-        onDefer={handleDeferFromModal}
+        onUpdate={handleUpdateFromModal}
       />
     </>
   )
