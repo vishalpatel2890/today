@@ -68,7 +68,7 @@ export function useAuth() {
   const isLinked = !isAnonymous && !!user?.email
 
   // Link email to anonymous account via magic link
-  // If email already exists, sign in with that account instead
+  // If email already exists or no session, sign in with that account instead
   const linkEmail = useCallback(async (email: string) => {
     setLinkingStatus('sending')
     setLinkingError(null)
@@ -82,7 +82,40 @@ export function useAuth() {
       console.log('[Today] Auth: linking email', email, 'redirect:', redirectUrl)
     }
 
-    // First try to update the anonymous user with this email
+    // Check if we have an active session
+    const { data: { session } } = await supabase.auth.getSession()
+
+    // If no session or user isn't anonymous, use signInWithOtp directly
+    if (!session || !session.user.is_anonymous) {
+      if (import.meta.env.DEV) {
+        console.log('[Today] Auth: no anonymous session, using signInWithOtp')
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectUrl,
+        }
+      })
+
+      if (signInError) {
+        setLinkingStatus('error')
+        if (signInError.message.includes('rate limit')) {
+          setLinkingError('Too many attempts. Please wait a moment.')
+        } else {
+          setLinkingError(signInError.message)
+        }
+        return
+      }
+
+      setLinkingStatus('sent')
+      if (import.meta.env.DEV) {
+        console.log('[Today] Auth: sign-in magic link sent to', email)
+      }
+      return
+    }
+
+    // We have an anonymous session, try to link the email
     const { error: updateError } = await supabase.auth.updateUser(
       { email },
       { emailRedirectTo: redirectUrl }
@@ -113,11 +146,34 @@ export function useAuth() {
           return
         }
 
-        // Success - magic link sent for existing account
         setLinkingStatus('sent')
         if (import.meta.env.DEV) {
           console.log('[Today] Auth: sign-in magic link sent to', email)
         }
+        return
+      }
+
+      // Handle session missing error by falling back to signInWithOtp
+      if (updateError.message.includes('session missing') ||
+          updateError.message.includes('Auth session missing')) {
+        if (import.meta.env.DEV) {
+          console.log('[Today] Auth: session missing, falling back to signInWithOtp')
+        }
+
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: redirectUrl,
+          }
+        })
+
+        if (signInError) {
+          setLinkingStatus('error')
+          setLinkingError(signInError.message)
+          return
+        }
+
+        setLinkingStatus('sent')
         return
       }
 
