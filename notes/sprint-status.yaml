@@ -79,3 +79,11 @@ development_status:
   6-2-notes-modal-and-editor-ui: done
   6-3-link-chips-and-polish: done
   epic-6-retrospective: optional
+
+  # Epic 7: Offline-First PWA
+  epic-7: contexted
+  7-1-pwa-foundation: review
+  7-2-indexeddb-dexie-setup: backlog
+  7-3-sync-queue-implementation: backlog
+  7-4-offline-ui-conflict-resolution: backlog
+  epic-7-retrospective: optional
