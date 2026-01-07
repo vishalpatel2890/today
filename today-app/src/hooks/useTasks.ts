@@ -1,5 +1,5 @@
 import { useReducer, useState, useCallback, useRef, useEffect } from 'react'
-import type { Task, AppState } from '../types'
+import type { Task, AppState, TaskNotes } from '../types'
 import { loadState, saveState } from '../utils/storage'
 import { supabase } from '../lib/supabase'
 import type { TaskRow, CategoryRow } from '../types/database'
@@ -14,6 +14,7 @@ type TaskAction =
   | { type: 'DELETE_TASK'; id: string }
   | { type: 'DEFER_TASK'; id: string; deferredTo: string | null; category: string }
   | { type: 'UPDATE_TASK'; id: string; text: string; deferredTo: string | null; category: string | null }
+  | { type: 'UPDATE_NOTES'; id: string; notes: TaskNotes | null }
   | { type: 'LOAD_STATE'; tasks: Task[] }
   | { type: 'SYNC_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; id: string }
@@ -32,6 +33,7 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
           deferredTo: null,
           category: null,
           completedAt: null,
+          notes: null,
         },
       ]
     case 'COMPLETE_TASK':
@@ -53,6 +55,12 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
       return state.map(task =>
         task.id === action.id
           ? { ...task, text: action.text.trim(), deferredTo: action.deferredTo, category: action.category }
+          : task
+      )
+    case 'UPDATE_NOTES':
+      return state.map(task =>
+        task.id === action.id
+          ? { ...task, notes: action.notes }
           : task
       )
     case 'LOAD_STATE':
@@ -79,6 +87,7 @@ const rowToTask = (row: TaskRow): Task => ({
   deferredTo: row.deferred_to,
   category: row.category,
   completedAt: row.completed_at,
+  notes: row.notes,
 })
 
 /**
@@ -326,6 +335,21 @@ export const useTasks = (userId: string | null) => {
     }
   }, [userId])
 
+  const updateNotes = useCallback(async (id: string, notes: TaskNotes | null) => {
+    dispatch({ type: 'UPDATE_NOTES', id, notes })
+
+    if (userId) {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ notes })
+        .eq('id', id)
+        .eq('user_id', userId)
+      if (error) {
+        console.error('[Today] Failed to sync update notes:', error)
+      }
+    }
+  }, [userId])
+
   const addCategory = useCallback(async (name: string) => {
     const trimmedName = name.trim()
     if (!trimmedName) return
@@ -356,6 +380,7 @@ export const useTasks = (userId: string | null) => {
     deleteTask,
     deferTask,
     updateTask,
+    updateNotes,
     addCategory,
     newTaskIds,
     dispatch,

@@ -2,6 +2,8 @@
  * Supabase database types for the Today app
  * Matches the schema created in migration: create_tasks_and_categories
  */
+import type { TaskNotes } from './index'
+
 export type Json =
   | string
   | number
@@ -23,6 +25,7 @@ export interface Database {
           category: string | null
           completed_at: string | null
           updated_at: string
+          notes: TaskNotes | null
         }
         Insert: {
           id?: string
@@ -33,6 +36,7 @@ export interface Database {
           category?: string | null
           completed_at?: string | null
           updated_at?: string
+          notes?: TaskNotes | null
         }
         Update: {
           id?: string
@@ -43,6 +47,7 @@ export interface Database {
           category?: string | null
           completed_at?: string | null
           updated_at?: string
+          notes?: TaskNotes | null
         }
         Relationships: []
       }

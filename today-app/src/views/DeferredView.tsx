@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { CategorySection } from '../components/CategorySection'
 import { EmptyState } from '../components/EmptyState'
 
@@ -10,6 +10,7 @@ interface DeferredViewProps {
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
 }
 
 /**
@@ -29,6 +30,7 @@ export const DeferredView = ({
   onDelete,
   onUpdate,
   onCreateCategory,
+  onNotesUpdate,
 }: DeferredViewProps) => {
   // AC-3.5.4: Track which categories are expanded (first one by default)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
@@ -97,6 +99,7 @@ export const DeferredView = ({
           onUpdate={onUpdate}
           categories={categories}
           onCreateCategory={onCreateCategory}
+          onNotesUpdate={onNotesUpdate}
         />
       ))}
     </div>

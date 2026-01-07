@@ -19,7 +19,7 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus } = useAuth()
-  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, addCategory, newTaskIds, storageError, isSyncing } = useTasks(user?.id ?? null)
+  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError, isSyncing } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
   // AC-4.2.5: Auto-surface tasks based on date on app load
@@ -53,6 +53,7 @@ const AppContent = () => {
             onDeleteTask={deleteTask}
             onUpdateTask={updateTask}
             onCreateCategory={addCategory}
+            onNotesUpdate={updateNotes}
             newTaskIds={newTaskIds}
           />
         )
@@ -65,6 +66,7 @@ const AppContent = () => {
             onDeleteTask={deleteTask}
             onUpdateTask={updateTask}
             onCreateCategory={addCategory}
+            onNotesUpdate={updateNotes}
           />
         )
       case 'deferred':
@@ -76,6 +78,7 @@ const AppContent = () => {
             onDelete={deleteTask}
             onUpdate={updateTask}
             onCreateCategory={addCategory}
+            onNotesUpdate={updateNotes}
           />
         )
     }

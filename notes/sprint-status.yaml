@@ -72,3 +72,10 @@ development_status:
   5-1-link-email-ui-send-magic-link: in-progress
   5-2-first-task-prompt-verification-handling: backlog
   epic-5-retrospective: optional
+
+  # Epic 6: Task Notes
+  epic-6: contexted
+  6-1-core-notes-infrastructure: done
+  6-2-notes-modal-and-editor-ui: done
+  6-3-link-chips-and-polish: done
+  epic-6-retrospective: optional

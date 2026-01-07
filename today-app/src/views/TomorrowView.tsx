@@ -1,4 +1,4 @@
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { TaskList } from '../components/TaskList'
 import { EmptyState } from '../components/EmptyState'
 
@@ -9,6 +9,7 @@ interface TomorrowViewProps {
   onDeleteTask: (id: string) => void
   onUpdateTask: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
 }
 
 /**
@@ -24,6 +25,7 @@ export const TomorrowView = ({
   onDeleteTask,
   onUpdateTask,
   onCreateCategory,
+  onNotesUpdate,
 }: TomorrowViewProps) => {
   // Tasks are now pre-filtered by useAutoSurface hook in App.tsx
   // No internal filtering needed - AC-4.2.5
@@ -42,6 +44,7 @@ export const TomorrowView = ({
         onDelete={onDeleteTask}
         onUpdate={onUpdateTask}
         onCreateCategory={onCreateCategory}
+        onNotesUpdate={onNotesUpdate}
       />
     </div>
   )

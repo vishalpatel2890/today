@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { TaskList } from './TaskList'
 
 interface CategorySectionProps {
@@ -13,6 +13,7 @@ interface CategorySectionProps {
   onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   categories: string[]
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
 }
 
 /**
@@ -39,6 +40,7 @@ export const CategorySection = ({
   onUpdate,
   categories,
   onCreateCategory,
+  onNotesUpdate,
 }: CategorySectionProps) => {
   const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
 
@@ -79,6 +81,7 @@ export const CategorySection = ({
                     onDelete={onDelete}
                     onUpdate={onUpdate}
                     onCreateCategory={onCreateCategory}
+                    onNotesUpdate={onNotesUpdate}
                   />
                   {/* Date badge - AC-3.5.5 - positioned to left of edit/delete buttons */}
                   <span className="absolute right-24 top-1/2 -translate-y-1/2 rounded bg-surface-muted px-2 py-0.5 text-xs text-muted-foreground">

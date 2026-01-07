@@ -1,4 +1,4 @@
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { TaskCard } from './TaskCard'
 
 interface TaskListProps {
@@ -9,9 +9,10 @@ interface TaskListProps {
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
 }
 
-export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, onUpdate, onCreateCategory }: TaskListProps) => {
+export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, onUpdate, onCreateCategory, onNotesUpdate }: TaskListProps) => {
   return (
     <div className="flex flex-col gap-3">
       {tasks.map((task) => (
@@ -24,6 +25,7 @@ export const TaskList = ({ tasks, categories, newTaskIds, onComplete, onDelete, 
           onDelete={onDelete}
           onUpdate={onUpdate}
           onCreateCategory={onCreateCategory}
+          onNotesUpdate={onNotesUpdate}
         />
       ))}
     </div>

@@ -1,4 +1,4 @@
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { TaskList } from '../components/TaskList'
 import { AddTaskInput } from '../components/AddTaskInput'
 import { EmptyState } from '../components/EmptyState'
@@ -11,6 +11,7 @@ interface TodayViewProps {
   onDeleteTask: (id: string) => void
   onUpdateTask: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
   newTaskIds?: Set<string>
 }
 
@@ -20,7 +21,7 @@ interface TodayViewProps {
  * AC-4.2.5: Tasks are pre-filtered by useAutoSurface hook in App.tsx
  * AC-4.2.6: Completed tasks already filtered out by hook
  */
-export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onUpdateTask, onCreateCategory, newTaskIds }: TodayViewProps) => {
+export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onUpdateTask, onCreateCategory, onNotesUpdate, newTaskIds }: TodayViewProps) => {
   // Tasks are now pre-filtered by useAutoSurface hook in App.tsx
   // No internal filtering needed - AC-4.2.5
 
@@ -47,6 +48,7 @@ export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDele
         onDelete={onDeleteTask}
         onUpdate={onUpdateTask}
         onCreateCategory={onCreateCategory}
+        onNotesUpdate={onNotesUpdate}
       />
       {onAddTask && <AddTaskInput onAddTask={onAddTask} />}
     </div>

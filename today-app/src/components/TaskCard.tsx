@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Circle, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
-import type { Task } from '../types'
+import type { Task, TaskNotes } from '../types'
 import { UpdateModal } from './DeferModal'
+import { NotesModal } from './NotesModal'
 import { useToast } from '../contexts/ToastContext'
 
 interface TaskCardProps {
@@ -12,6 +13,7 @@ interface TaskCardProps {
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
+  onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
 }
 
 /**
@@ -19,10 +21,11 @@ interface TaskCardProps {
  * AC-4.3.2: Toast on delete
  * Update button opens modal to edit task name, date, category
  */
-export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onUpdate, onCreateCategory }: TaskCardProps) => {
+export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onUpdate, onCreateCategory, onNotesUpdate }: TaskCardProps) => {
   const [showCheck, setShowCheck] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false)
   const { addToast } = useToast()
 
   const handleComplete = () => {
@@ -62,10 +65,36 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
     addToast('Task updated')
   }
 
+  /**
+   * Handle double-click to open notes modal
+   * AC-1.2.1: Double-click opens NotesModal
+   * AC-1.2.2: Single-click still completes task (handled by button)
+   * AC-1.2.3: Button clicks don't trigger modal
+   */
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    // AC-1.2.2: Prevent if completing task
+    if (showCheck || isCompleting) return
+
+    // AC-1.2.3: Prevent if clicking on a button
+    if ((e.target as HTMLElement).closest('button')) return
+
+    // Open notes modal
+    setIsNotesModalOpen(true)
+  }
+
+  // Handle notes save from modal
+  const handleNotesSave = (notes: TaskNotes | null) => {
+    if (onNotesUpdate) {
+      onNotesUpdate(task.id, notes)
+      addToast(notes ? 'Notes saved' : 'Notes cleared')
+    }
+  }
+
   return (
     <>
       <div
-        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''}`}
+        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm cursor-pointer ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''}`}
+        onDoubleClick={handleDoubleClick}
       >
         <button
           type="button"
@@ -111,6 +140,15 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
         onCreateCategory={onCreateCategory}
         onUpdate={handleUpdateFromModal}
       />
+
+      {onNotesUpdate && (
+        <NotesModal
+          task={task}
+          isOpen={isNotesModalOpen}
+          onClose={() => setIsNotesModalOpen(false)}
+          onSave={handleNotesSave}
+        />
+      )}
     </>
   )
 }

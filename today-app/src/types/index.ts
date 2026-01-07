@@ -1,4 +1,28 @@
 /**
+ * Note item types for task notes
+ */
+export type NoteItemType = 'text' | 'bullet' | 'checklist' | 'link'
+
+/**
+ * Individual note item (text, bullet, checklist, or link)
+ */
+export interface NoteItem {
+  id: string
+  type: NoteItemType
+  value: string
+  checked?: boolean  // Only for checklist type
+  label?: string     // Only for link type (website name)
+}
+
+/**
+ * Task notes structure
+ */
+export interface TaskNotes {
+  items: NoteItem[]
+  updatedAt: string
+}
+
+/**
  * Task data model for the Today app
  * Source: notes/architecture.md Data Architecture section
  */
@@ -9,6 +33,7 @@ export interface Task {
   deferredTo: string | null
   category: string | null
   completedAt: string | null
+  notes: TaskNotes | null
 }
 
 /**
