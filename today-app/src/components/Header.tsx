@@ -1,13 +1,21 @@
 import { format } from 'date-fns'
 import { SyncStatusIcon } from './SyncStatusIcon'
+import { SyncStatusBadge } from './SyncStatusBadge'
 
 interface HeaderProps {
   isLinked?: boolean
   email?: string | null
   onSyncClick?: () => void
+  userId?: string | null
 }
 
-export const Header = ({ isLinked = false, email, onSyncClick }: HeaderProps) => {
+/**
+ * Header Component
+ *
+ * Displays app title, sync status badge, link status icon, and date.
+ * AC-7.4.1, AC-7.4.2, AC-7.4.3: Offline/sync status indicator
+ */
+export const Header = ({ isLinked = false, email, onSyncClick, userId = null }: HeaderProps) => {
   const formattedDate = format(new Date(), 'MMMM d')
 
   return (
@@ -16,6 +24,8 @@ export const Header = ({ isLinked = false, email, onSyncClick }: HeaderProps) =>
         Today
       </h1>
       <div className="flex items-center gap-3">
+        {/* Sync status badge - shows offline/syncing/pending state */}
+        <SyncStatusBadge userId={userId} />
         {onSyncClick && (
           <SyncStatusIcon
             isLinked={isLinked}

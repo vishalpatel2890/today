@@ -1,6 +1,6 @@
 # Story 7.3: Sync Queue Implementation
 
-**Status:** Draft
+**Status:** Review
 
 ---
 
@@ -53,18 +53,18 @@ So that **I never lose data and my tasks are consistent across devices**.
 
 ### Tasks / Subtasks
 
-- [ ] Create `src/lib/syncQueue.ts` with queue management functions
-- [ ] Create `src/hooks/useSyncQueue.ts` React hook
-- [ ] Add queue operation function: `queueOperation(type, entityId, payload)`
-- [ ] Add queue processor function: `processQueue(userId)`
-- [ ] Implement retry logic with exponential backoff
-- [ ] Implement operation coalescing (latest wins for same entity)
-- [ ] Add online event listener to trigger queue processing
-- [ ] Update `useTasks.ts` to use queue when offline
-- [ ] Test offline add → online sync
-- [ ] Test offline edit → online sync
-- [ ] Test offline delete → online sync
-- [ ] Test multiple offline edits → single sync
+- [x] Create `src/lib/syncQueue.ts` with queue management functions
+- [x] Create `src/hooks/useSyncQueue.ts` React hook
+- [x] Add queue operation function: `queueOperation(type, entityId, payload)`
+- [x] Add queue processor function: `processQueue(userId)`
+- [x] Implement retry logic with exponential backoff
+- [x] Implement operation coalescing (latest wins for same entity)
+- [x] Add online event listener to trigger queue processing
+- [x] Update `useTasks.ts` to use queue when offline
+- [x] Test offline add → online sync
+- [x] Test offline edit → online sync
+- [x] Test offline delete → online sync
+- [x] Test multiple offline edits → single sync
 
 ### Technical Summary
 
@@ -268,16 +268,82 @@ const addTask = useCallback(async (text: string) => {
 ## Dev Agent Record
 
 ### Agent Model Used
-<!-- Will be populated during dev-story execution -->
+Claude Opus 4.5 (claude-opus-4-5-20251101)
+
+### Debug Log
+**2026-01-07 - Implementation Plan:**
+1. Create `src/lib/syncQueue.ts` with:
+   - SyncOperation interface matching db.ts SyncQueueItem
+   - queueOperation() function to add operations to queue
+   - processQueue() function with FIFO ordering and retry logic
+   - coalesceOperations() for merging duplicate entity operations
+   - processSyncItem() for executing individual sync operations
+   - Exponential backoff: 1s, 5s, 15s delays, max 3 retries
+
+2. Create `src/hooks/useSyncQueue.ts` with:
+   - pendingCount state tracking queue size
+   - isSyncing state for UI feedback
+   - Online event listener to trigger queue processing
+   - Mount-time processing if already online
+
+3. Modify `src/hooks/useTasks.ts` to:
+   - Check navigator.onLine before Supabase calls
+   - Queue operations when offline instead of calling Supabase
+   - Handle failed online sync by queueing for retry
+
+4. Key edge cases:
+   - Delete operations discard pending updates for same entity
+   - Operation coalescing: latest wins for same entity
+   - Network failures trigger retry with backoff
 
 ### Completion Notes
-<!-- Will be populated during dev-story execution -->
+**2026-01-07 - Implementation Complete:**
+- Created `src/lib/syncQueue.ts` with full queue management:
+  - `queueOperation()` - Add operations to sync queue
+  - `processQueue()` - Process queue with FIFO order and coalescing
+  - `coalesceOperations()` - Merge duplicate operations for efficiency
+  - Retry logic with exponential backoff (1s, 5s, 15s delays, max 3 retries)
+  - DELETE wins over UPDATEs, INSERT+DELETE = no-op
+- Created `src/hooks/useSyncQueue.ts` React hook with:
+  - `pendingCount` - Number of pending sync operations
+  - `isSyncing` - Whether queue is being processed
+  - `triggerSync()` - Manually trigger queue processing
+  - Automatic processing on online event and mount
+- Modified `src/hooks/useTasks.ts` to:
+  - Check `navigator.onLine` before all Supabase API calls
+  - Queue operations when offline
+  - Queue failed operations for retry
+  - All CRUD operations updated: addTask, completeTask, deleteTask, deferTask, updateTask, updateNotes, addCategory
+- Added `SyncTable` type to `src/lib/db.ts` for type safety
+- Added Vitest test infrastructure with 16 passing tests
 
 ### Files Modified
-<!-- Will be populated during dev-story execution -->
+- `src/lib/syncQueue.ts` (created)
+- `src/hooks/useSyncQueue.ts` (created)
+- `src/lib/syncQueue.test.ts` (created)
+- `src/test/setup.ts` (created)
+- `src/lib/db.ts` (modified - added SyncTable type)
+- `src/hooks/useTasks.ts` (modified - offline queue integration)
+- `vite.config.ts` (modified - added vitest config)
+- `package.json` (modified - added test scripts and dependencies)
 
 ### Test Results
-<!-- Will be populated during dev-story execution -->
+```
+ ✓ src/lib/syncQueue.test.ts (16 tests) 32ms
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+```
+- queueOperation tests: INSERT, UPDATE, DELETE, categories
+- coalesceOperations tests: UPDATE merging, DELETE wins, INSERT+DELETE cancellation, INSERT+UPDATE merging
+- getPendingCount and clearQueue tests
+- processQueue integration tests
+
+**2026-01-07 - Frontend Test Gate PASSED:**
+- ✅ Test Gate PASSED by Vishal (2026-01-07)
+- Browser testing confirmed IndexedDB persistence working
+- Task add/edit operations work correctly
+- No console errors during testing
+- Sync queue infrastructure verified (activates for authenticated users only)
 
 ---
 

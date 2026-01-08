@@ -1,6 +1,6 @@
 # Story 7.2: IndexedDB + Dexie Setup
 
-**Status:** Draft
+**Status:** Review
 
 ---
 
@@ -51,16 +51,16 @@ So that **my data persists reliably even with large task lists and survives brow
 
 ### Tasks / Subtasks
 
-- [ ] Install Dexie: `npm install dexie dexie-react-hooks`
-- [ ] Create `src/lib/db.ts` with Dexie schema (tasks, syncQueue tables)
-- [ ] Add sync-related fields to local task type (`_syncStatus`, `_localUpdatedAt`)
-- [ ] Create migration utility to move localStorage data to IndexedDB
-- [ ] Update `useTasks.ts` to read/write from IndexedDB
-- [ ] Keep localStorage writes as backup (graceful degradation)
-- [ ] Add migration flag to prevent re-migration
-- [ ] Test with existing localStorage data
-- [ ] Test fresh install (no migration needed)
-- [ ] Verify DevTools > Application > IndexedDB shows data
+- [x] Install Dexie: `npm install dexie dexie-react-hooks`
+- [x] Create `src/lib/db.ts` with Dexie schema (tasks, syncQueue tables)
+- [x] Add sync-related fields to local task type (`_syncStatus`, `_localUpdatedAt`)
+- [x] Create migration utility to move localStorage data to IndexedDB
+- [x] Update `useTasks.ts` to read/write from IndexedDB
+- [x] Keep localStorage writes as backup (graceful degradation)
+- [x] Add migration flag to prevent re-migration
+- [x] Test with existing localStorage data
+- [x] Test fresh install (no migration needed)
+- [x] Verify DevTools > Application > IndexedDB shows data
 
 ### Technical Summary
 
@@ -212,16 +212,72 @@ useEffect(() => {
 ## Dev Agent Record
 
 ### Agent Model Used
-<!-- Will be populated during dev-story execution -->
+Claude Opus 4.5 (claude-opus-4-5-20251101)
+
+### Debug Log
+- Installed dexie 4.0.10 and dexie-react-hooks 1.1.7
+- Created `src/lib/db.ts` with TodayDatabase class extending Dexie
+- Created `src/lib/migration.ts` with localStorage to IndexedDB migration
+- Updated `src/hooks/useTasks.ts` to:
+  - Load from IndexedDB first (with migration if needed)
+  - Fall back to localStorage if IndexedDB is empty
+  - Save to IndexedDB on every write operation
+  - Continue saving to localStorage as backup
+  - Track sync status (_syncStatus field) for offline-first pattern
 
 ### Completion Notes
-<!-- Will be populated during dev-story execution -->
+- All acceptance criteria verified via automated browser testing
+- IndexedDB `today-app` database created with `tasks` and `syncQueue` tables
+- Migration from localStorage works correctly with flag to prevent re-migration
+- Write operations update both IndexedDB and localStorage backup
+- Sync status tracking (`_syncStatus`, `_localUpdatedAt`) working correctly
+- Data persists across page refreshes
 
 ### Files Modified
-<!-- Will be populated during dev-story execution -->
+- `today-app/package.json` - Added dexie dependencies
+- `today-app/src/lib/db.ts` - NEW: Dexie database schema
+- `today-app/src/lib/migration.ts` - NEW: localStorage migration utility
+- `today-app/src/hooks/useTasks.ts` - MODIFIED: IndexedDB integration
 
 ### Test Results
-<!-- Will be populated during dev-story execution -->
+- Build: PASS (TypeScript compilation successful)
+- Lint: PASS (no new errors in modified files)
+- Browser Test: PASS (all acceptance criteria verified)
+
+---
+
+## Frontend Test Gate Results
+
+**Gate ID:** 7-2-TG-IndexedDB
+**Status:** ✅ PASSED
+**Executed:** 2026-01-08
+**Executor:** Claude Opus 4.5 (automated browser testing)
+
+### Test Execution Summary
+
+| Step | Acceptance Criteria | Status | Notes |
+|------|---------------------|--------|-------|
+| 1 | App loads with existing tasks | ✅ PASS | Task persisted from previous session |
+| 2 | AC-7.2.1: Dexie Database Schema | ✅ PASS | `today-app` DB with `tasks` and `syncQueue` tables |
+| 3 | AC-7.2.2: Migration Flag & Backup | ✅ PASS | Migration flag set, localStorage preserved |
+| 4 | AC-7.2.4: Write Operations | ✅ PASS | New task written to IndexedDB + localStorage |
+| 5 | AC-7.2.5: Sync Status Tracking | ✅ PASS | `_syncStatus` and `_localUpdatedAt` tracked |
+| 6 | Data Persistence | ✅ PASS | Tasks persist across page refreshes |
+
+### Verification Details
+
+**IndexedDB Schema:**
+- Database: `today-app` (version 10)
+- Object stores: `tasks`, `syncQueue`
+- Task fields include: `_syncStatus`, `_localUpdatedAt`
+
+**Migration:**
+- Flag: `today-app-migrated-to-idb` = `"true"`
+- localStorage backup: Maintained alongside IndexedDB
+
+**Console/Network:**
+- No errors detected
+- No failed network requests
 
 ---
 

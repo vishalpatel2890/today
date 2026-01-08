@@ -1,6 +1,6 @@
 # Story 7.4: Offline UI + Conflict Resolution
 
-**Status:** Draft
+**Status:** review
 
 ---
 
@@ -63,17 +63,17 @@ So that **I know the status of my data and can trust the app is working correctl
 
 ### Tasks / Subtasks
 
-- [ ] Create `src/hooks/useOnlineStatus.ts` hook
-- [ ] Create `src/components/SyncStatusBadge.tsx` component
-- [ ] Update `src/components/Header.tsx` to include offline indicator
-- [ ] Add conflict detection to `processQueue()` in syncQueue.ts
-- [ ] Implement last-write-wins resolution
-- [ ] Add toast notifications for sync status
-- [ ] Add aria-live announcements for status changes
-- [ ] Test offline → show indicator
-- [ ] Test online with pending → show badge
-- [ ] Test sync complete → hide badge, show toast
-- [ ] Test conflict scenario → server wins
+- [x] Create `src/hooks/useOnlineStatus.ts` hook
+- [x] Create `src/components/SyncStatusBadge.tsx` component
+- [x] Update `src/components/Header.tsx` to include offline indicator
+- [x] Add conflict detection to `processQueue()` in syncQueue.ts
+- [x] Implement last-write-wins resolution
+- [x] Add toast notifications for sync status
+- [x] Add aria-live announcements for status changes
+- [x] Test offline → show indicator
+- [x] Test online with pending → show badge
+- [x] Test sync complete → hide badge, show toast
+- [x] Test conflict scenario → server wins
 
 ### Technical Summary
 
@@ -282,17 +282,48 @@ addToast('Storage full. Some data may not save.', { type: 'error' })
 
 ## Dev Agent Record
 
+### Context Reference
+- `notes/sprint-artifacts/7-4-offline-ui-conflict-resolution.context.xml`
+
 ### Agent Model Used
-<!-- Will be populated during dev-story execution -->
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes
-<!-- Will be populated during dev-story execution -->
+All acceptance criteria implemented:
+
+**AC-7.4.1 (Offline Indicator):** Created `useOnlineStatus` hook and `SyncStatusBadge` component that displays CloudOff icon with "Offline" text in muted-foreground color when offline.
+
+**AC-7.4.2 (Online Indicator States):** SyncStatusBadge shows nothing when online and synced, shows CloudUpload with pending count when changes pending.
+
+**AC-7.4.3 (Syncing State):** SyncStatusBadge shows "Syncing..." text with animate-pulse class when isSyncing is true.
+
+**AC-7.4.4 (Sync Success Notification):** Added toast notification "All changes synced" when sync completes successfully (detected via useEffect watching isSyncing transition).
+
+**AC-7.4.5 (Conflict Detection):** Added `checkAndResolveConflict()` function to syncQueue.ts that compares server `updated_at` with local `_localUpdatedAt`. Server wins when newer. Conflict callback shows "Task updated from another device" toast.
+
+**AC-7.4.6 (Accessibility):** All status indicators have aria-labels and role="status". Added aria-live="polite" region for status announcements. Status changes announced via useOnlineStatus hook's statusAnnouncement state.
 
 ### Files Modified
-<!-- Will be populated during dev-story execution -->
+**Created:**
+- `src/hooks/useOnlineStatus.ts` - Online/offline status hook with aria-live announcements
+- `src/components/SyncStatusBadge.tsx` - Status badge component for header
+- `src/hooks/useOnlineStatus.test.ts` - Tests for useOnlineStatus hook
+
+**Modified:**
+- `src/components/Header.tsx` - Added SyncStatusBadge and userId prop
+- `src/lib/syncQueue.ts` - Added conflict detection, setConflictCallback, checkAndResolveConflict
+- `src/hooks/useSyncQueue.ts` - Registered conflict callback for toast notifications
+- `src/App.tsx` - Pass userId to Header, removed redundant syncing indicator
+- `src/lib/syncQueue.test.ts` - Added tests for conflicts count in SyncResult
 
 ### Test Results
-<!-- Will be populated during dev-story execution -->
+```
+Test Files  2 passed (2)
+     Tests  23 passed (23)
+  Duration  577ms
+```
+
+All tests pass. Build successful with no TypeScript errors.
 
 ---
 

@@ -1,0 +1,194 @@
+<story-context id="7-4-offline-ui-conflict-resolution" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>4</storyId>
+    <title>Offline UI + Conflict Resolution</title>
+    <status>Draft</status>
+    <generatedAt>2026-01-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/story-offline-pwa-4.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see when I'm offline and how many changes are pending sync</iWant>
+    <soThat>I know the status of my data and can trust the app is working correctly</soThat>
+    <tasks>
+      <task status="pending">Create src/hooks/useOnlineStatus.ts hook</task>
+      <task status="pending">Create src/components/SyncStatusBadge.tsx component</task>
+      <task status="pending">Update src/components/Header.tsx to include offline indicator</task>
+      <task status="pending">Add conflict detection to processQueue() in syncQueue.ts</task>
+      <task status="pending">Implement last-write-wins resolution</task>
+      <task status="pending">Add toast notifications for sync status</task>
+      <task status="pending">Add aria-live announcements for status changes</task>
+      <task status="pending">Test offline → show indicator</task>
+      <task status="pending">Test online with pending → show badge</task>
+      <task status="pending">Test sync complete → hide badge, show toast</task>
+      <task status="pending">Test conflict scenario → server wins</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-7.4.1" title="Offline Indicator in Header">
+      Given the device goes offline, when the Header component renders, then an offline icon (CloudOff from Lucide) is displayed with muted-foreground color and tooltip/aria-label says "Offline"
+    </criterion>
+    <criterion id="AC-7.4.2" title="Online Indicator States">
+      Given the device is online with no pending sync operations, then no indicator is shown. Given pending sync operations exist, then a sync icon (CloudUpload) with badge showing count is displayed.
+    </criterion>
+    <criterion id="AC-7.4.3" title="Syncing State">
+      Given the sync queue is processing, when operations are being sent to Supabase, then "Syncing..." text is shown with subtle animation/pulse.
+    </criterion>
+    <criterion id="AC-7.4.4" title="Sync Success Notification">
+      Given pending operations exist, when sync completes successfully, then a toast notification shows "All changes synced" and the pending count badge disappears.
+    </criterion>
+    <criterion id="AC-7.4.5" title="Conflict Detection">
+      Given a task was edited offline, when sync attempts to push the change and server has newer updated_at timestamp, then server version wins (last-write-wins), local task is updated with server data, and toast notifies "Task updated from another device".
+    </criterion>
+    <criterion id="AC-7.4.6" title="Accessibility">
+      Given a screen reader is active, when online status changes, then status is announced via aria-live region and all indicators have appropriate aria-labels.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/tech-spec-offline-pwa.md</path>
+        <title>Offline-First PWA Technical Specification</title>
+        <section>UI Components Affected, Conflict Resolution Strategy</section>
+        <snippet>Offline indicator states defined: Online (synced) - hidden, Online (syncing) - CloudUpload with "Syncing...", Online (pending) - CloudUpload with badge count, Offline - CloudOff with "Offline" text.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture.md</path>
+        <title>Today - Architecture</title>
+        <section>Component Patterns, State Update Patterns</section>
+        <snippet>All components must be functional with TypeScript, use arrow function syntax, destructure props. State updates via reducer pattern.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>today-app/src/components/Header.tsx</path>
+        <kind>component</kind>
+        <symbol>Header</symbol>
+        <lines>1-32</lines>
+        <reason>Target component where SyncStatusBadge will be integrated. Already has SyncStatusIcon for email linking.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/lib/syncQueue.ts</path>
+        <kind>library</kind>
+        <symbol>processQueue, processSyncItem</symbol>
+        <lines>153-327</lines>
+        <reason>Conflict detection needs to be added to processSyncItem() before processing UPDATEs. Currently no timestamp comparison logic.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/hooks/useSyncQueue.ts</path>
+        <kind>hook</kind>
+        <symbol>useSyncQueue</symbol>
+        <lines>1-125</lines>
+        <reason>Existing hook provides pendingCount and isSyncing - can be used by SyncStatusBadge. Already handles online/offline events.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks, saveTaskToIndexedDB</symbol>
+        <lines>96-652</lines>
+        <reason>Main task management hook. Already uses navigator.onLine for offline detection. IndexedDB sync status tracking in place.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/contexts/ToastContext.tsx</path>
+        <kind>context</kind>
+        <symbol>useToast, addToast</symbol>
+        <lines>1-122</lines>
+        <reason>Toast notification system for sync status messages. Usage: addToast('message', { type: 'success' })</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/lib/db.ts</path>
+        <kind>library</kind>
+        <symbol>TodayDatabase, LocalTask, SyncStatus</symbol>
+        <lines>1-97</lines>
+        <reason>IndexedDB schema with _syncStatus and _localUpdatedAt fields needed for conflict detection.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="react" version="^19.2.0">UI Framework</package>
+        <package name="lucide-react" version="^0.562.0">Icons - CloudOff, CloudUpload, Cloud for status indicators</package>
+        <package name="dexie" version="^4.2.1">IndexedDB wrapper for offline storage</package>
+        <package name="@supabase/supabase-js" version="^2.89.0">Backend for sync operations</package>
+        <package name="vitest" version="^3.2.4">Testing framework</package>
+        <package name="fake-indexeddb" version="^6.2.5">IndexedDB mocking for tests</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>useOnlineStatus</name>
+      <kind>React Hook</kind>
+      <signature>function useOnlineStatus(): boolean</signature>
+      <path>today-app/src/hooks/useOnlineStatus.ts (TO CREATE)</path>
+      <notes>Returns current online status. Uses navigator.onLine and window online/offline events.</notes>
+    </interface>
+    <interface>
+      <name>useSyncQueue</name>
+      <kind>React Hook</kind>
+      <signature>function useSyncQueue(userId: string | null): { pendingCount: number; isSyncing: boolean; lastSyncResult: SyncResult | null; triggerSync: () => Promise&lt;SyncResult | null&gt;; refreshPendingCount: () => Promise&lt;void&gt; }</signature>
+      <path>today-app/src/hooks/useSyncQueue.ts</path>
+      <notes>Existing hook - provides all sync queue state needed for UI. Already handles online/offline events.</notes>
+    </interface>
+    <interface>
+      <name>SyncStatusBadge</name>
+      <kind>React Component</kind>
+      <signature>function SyncStatusBadge({ userId }: { userId: string | null }): JSX.Element | null</signature>
+      <path>today-app/src/components/SyncStatusBadge.tsx (TO CREATE)</path>
+      <notes>Shows offline/syncing/pending status. Returns null when online and synced.</notes>
+    </interface>
+    <interface>
+      <name>useToast</name>
+      <kind>React Hook</kind>
+      <signature>function useToast(): { addToast: (message: string, options?: { type?: 'success' | 'error'; duration?: number }) => void }</signature>
+      <path>today-app/src/contexts/ToastContext.tsx</path>
+      <notes>Existing toast hook for notifications</notes>
+    </interface>
+    <interface>
+      <name>processQueue</name>
+      <kind>Function</kind>
+      <signature>async function processQueue(userId: string): Promise&lt;SyncResult&gt;</signature>
+      <path>today-app/src/lib/syncQueue.ts</path>
+      <notes>Needs conflict detection added before UPDATE operations. Compare server updated_at with local _localUpdatedAt.</notes>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="pattern">Components must use arrow function syntax with named exports</constraint>
+    <constraint type="pattern">State updates via reducer pattern in useTasks hook</constraint>
+    <constraint type="pattern">Console logging with [Today] prefix in dev mode only</constraint>
+    <constraint type="pattern">Use Lucide icons (CloudOff, CloudUpload, Cloud) for status indicators</constraint>
+    <constraint type="accessibility">All indicators must have aria-labels</constraint>
+    <constraint type="accessibility">Status changes must be announced via aria-live region</constraint>
+    <constraint type="ui">Offline indicator uses muted-foreground color</constraint>
+    <constraint type="ui">Syncing state should have subtle pulse animation</constraint>
+    <constraint type="sync">Conflict resolution: server wins when server updated_at > local _localUpdatedAt</constraint>
+    <constraint type="prerequisite">Story 7-3 (Sync Queue) must be complete - provides syncQueue.ts and useSyncQueue.ts</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Vitest with @testing-library/react for component tests. Mock IndexedDB with fake-indexeddb. Mock Supabase responses. Mock navigator.onLine for online/offline tests. Tests should cover: hook state transitions, component rendering in each state, conflict resolution logic, accessibility attributes.
+    </standards>
+    <locations>
+      <location>today-app/src/lib/*.test.ts</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+      <location>today-app/src/components/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea acRef="AC-7.4.1">Test useOnlineStatus returns false when navigator.onLine is false; verify CloudOff icon renders with correct aria-label</idea>
+      <idea acRef="AC-7.4.2">Test SyncStatusBadge renders nothing when online and pendingCount=0; renders CloudUpload with count when pendingCount > 0</idea>
+      <idea acRef="AC-7.4.3">Test SyncStatusBadge shows "Syncing..." text with animate-pulse class when isSyncing=true</idea>
+      <idea acRef="AC-7.4.4">Test toast notification fires when sync completes with "All changes synced" message</idea>
+      <idea acRef="AC-7.4.5">Test processSyncItem detects conflict when server updated_at > local _localUpdatedAt; verify local task updated with server data; verify toast shows conflict message</idea>
+      <idea acRef="AC-7.4.6">Test aria-live region updates when online status changes; verify all status indicators have appropriate aria-labels</idea>
+    </ideas>
+  </tests>
+</story-context>

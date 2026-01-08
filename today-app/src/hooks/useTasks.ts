@@ -2,6 +2,9 @@ import { useReducer, useState, useCallback, useRef, useEffect } from 'react'
 import type { Task, AppState, TaskNotes } from '../types'
 import { loadState, saveState } from '../utils/storage'
 import { supabase } from '../lib/supabase'
+import { db, type LocalTask, type SyncStatus } from '../lib/db'
+import { migrateFromLocalStorage, localTaskToTask } from '../lib/migration'
+import { queueOperation } from '../lib/syncQueue'
 import type { TaskRow, CategoryRow } from '../types/database'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
@@ -65,13 +68,14 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
       )
     case 'LOAD_STATE':
       return action.tasks
-    case 'SYNC_TASK':
+    case 'SYNC_TASK': {
       // Update or add task from remote
       const exists = state.find(t => t.id === action.task.id)
       if (exists) {
         return state.map(t => t.id === action.task.id ? action.task : t)
       }
       return [...state, action.task]
+    }
     default:
       return state
   }
@@ -91,7 +95,87 @@ const rowToTask = (row: TaskRow): Task => ({
 })
 
 /**
- * Custom hook for managing task state with Supabase sync and localStorage fallback
+ * Convert Task to LocalTask for IndexedDB storage
+ */
+const taskToLocalTask = (
+  task: Task,
+  userId: string,
+  syncStatus: SyncStatus = 'pending'
+): LocalTask => ({
+  id: task.id,
+  user_id: userId,
+  text: task.text,
+  created_at: task.createdAt,
+  deferred_to: task.deferredTo,
+  category: task.category,
+  completed_at: task.completedAt,
+  updated_at: new Date().toISOString(),
+  notes: task.notes,
+  _syncStatus: syncStatus,
+  _localUpdatedAt: new Date().toISOString(),
+})
+
+/**
+ * Save a task to IndexedDB with sync status tracking
+ */
+const saveTaskToIndexedDB = async (
+  task: Task,
+  userId: string,
+  syncStatus: SyncStatus = 'pending'
+): Promise<void> => {
+  try {
+    const localTask = taskToLocalTask(task, userId, syncStatus)
+    await db.tasks.put(localTask)
+    if (import.meta.env.DEV) {
+      console.log('[Today] IndexedDB: saved task', { id: task.id, syncStatus })
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[Today] IndexedDB: failed to save task', error)
+    }
+  }
+}
+
+/**
+ * Delete a task from IndexedDB
+ */
+const deleteTaskFromIndexedDB = async (taskId: string): Promise<void> => {
+  try {
+    await db.tasks.delete(taskId)
+    if (import.meta.env.DEV) {
+      console.log('[Today] IndexedDB: deleted task', { id: taskId })
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[Today] IndexedDB: failed to delete task', error)
+    }
+  }
+}
+
+/**
+ * Load all tasks from IndexedDB
+ */
+const loadTasksFromIndexedDB = async (userId: string): Promise<Task[]> => {
+  try {
+    let localTasks: LocalTask[]
+    if (userId) {
+      localTasks = await db.tasks.where('user_id').equals(userId).toArray()
+    } else {
+      // For anonymous users, get all tasks (including those with empty user_id)
+      localTasks = await db.tasks.toArray()
+    }
+    return localTasks.map(localTaskToTask)
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[Today] IndexedDB: failed to load tasks', error)
+    }
+    return []
+  }
+}
+
+/**
+ * Custom hook for managing task state with IndexedDB storage,
+ * Supabase sync, and localStorage backup
  */
 export const useTasks = (userId: string | null) => {
   const [tasks, dispatch] = useReducer(taskReducer, initialState)
@@ -122,6 +206,11 @@ export const useTasks = (userId: string | null) => {
       dispatch({ type: 'LOAD_STATE', tasks: remoteTasks })
       setCategories(remoteCategories)
 
+      // Save remote tasks to IndexedDB with 'synced' status
+      for (const task of remoteTasks) {
+        await saveTaskToIndexedDB(task, uid, 'synced')
+      }
+
       if (import.meta.env.DEV) {
         console.log('[Today] Synced from Supabase', {
           tasks: remoteTasks.length,
@@ -138,23 +227,40 @@ export const useTasks = (userId: string | null) => {
     }
   }, [])
 
-  // Initial data load
+  // Initial data load - now uses IndexedDB with migration
   useEffect(() => {
     const initData = async () => {
-      // First, try localStorage for immediate display
-      const savedState = loadState()
-      if (savedState) {
-        dispatch({ type: 'LOAD_STATE', tasks: savedState.tasks })
-        setCategories(savedState.categories)
+      const effectiveUserId = userId || ''
+
+      // Step 1: Run migration from localStorage to IndexedDB (if needed)
+      const migrationResult = await migrateFromLocalStorage(effectiveUserId)
+      if (import.meta.env.DEV && migrationResult.taskCount > 0) {
+        console.log('[Today] Migrated tasks from localStorage to IndexedDB:', migrationResult.taskCount)
+      }
+
+      // Step 2: Load from IndexedDB for immediate display
+      const idbTasks = await loadTasksFromIndexedDB(effectiveUserId)
+      if (idbTasks.length > 0) {
+        dispatch({ type: 'LOAD_STATE', tasks: idbTasks })
         if (import.meta.env.DEV) {
-          console.log('[Today] Hydrated from localStorage', {
-            tasks: savedState.tasks.length,
-            categories: savedState.categories.length
-          })
+          console.log('[Today] Hydrated from IndexedDB', { tasks: idbTasks.length })
+        }
+      } else {
+        // Fallback: Try localStorage if IndexedDB is empty (graceful degradation)
+        const savedState = loadState()
+        if (savedState && savedState.tasks.length > 0) {
+          dispatch({ type: 'LOAD_STATE', tasks: savedState.tasks })
+          setCategories(savedState.categories)
+          if (import.meta.env.DEV) {
+            console.log('[Today] Fallback: Hydrated from localStorage', {
+              tasks: savedState.tasks.length,
+              categories: savedState.categories.length
+            })
+          }
         }
       }
 
-      // Then fetch from Supabase if authenticated
+      // Step 3: Fetch from Supabase if authenticated (source of truth when online)
       if (userId) {
         await fetchFromSupabase(userId)
       }
@@ -179,7 +285,7 @@ export const useTasks = (userId: string | null) => {
           table: 'tasks',
           filter: `user_id=eq.${userId}`,
         },
-        (payload: RealtimePostgresChangesPayload<TaskRow>) => {
+        async (payload: RealtimePostgresChangesPayload<TaskRow>) => {
           if (import.meta.env.DEV) {
             console.log('[Today] Realtime task change:', payload.eventType)
           }
@@ -187,10 +293,14 @@ export const useTasks = (userId: string | null) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const task = rowToTask(payload.new as TaskRow)
             dispatch({ type: 'SYNC_TASK', task })
+            // Update IndexedDB with synced status
+            await saveTaskToIndexedDB(task, userId, 'synced')
           } else if (payload.eventType === 'DELETE') {
             const old = payload.old as { id?: string }
             if (old.id) {
               dispatch({ type: 'REMOVE_TASK', id: old.id })
+              // Remove from IndexedDB
+              await deleteTaskFromIndexedDB(old.id)
             }
           }
         }
@@ -229,7 +339,7 @@ export const useTasks = (userId: string | null) => {
     }
   }, [userId])
 
-  // Save to localStorage after every change (offline backup)
+  // Save to localStorage after every change (backup for graceful degradation)
   useEffect(() => {
     if (!isHydrated) return
 
@@ -246,6 +356,8 @@ export const useTasks = (userId: string | null) => {
   const addTask = useCallback(async (text: string) => {
     const id = crypto.randomUUID()
     const trimmedText = text.trim()
+    const effectiveUserId = userId || ''
+    const now = new Date().toISOString()
 
     // Optimistic local update
     setNewTaskIds(prev => new Set(prev).add(id))
@@ -261,94 +373,229 @@ export const useTasks = (userId: string | null) => {
 
     dispatch({ type: 'ADD_TASK', id, text: trimmedText })
 
-    // Sync to Supabase
+    // Create the task object for storage
+    const newTask: Task = {
+      id,
+      text: trimmedText,
+      createdAt: now,
+      deferredTo: null,
+      category: null,
+      completedAt: null,
+      notes: null,
+    }
+
+    // Save to IndexedDB immediately with 'pending' sync status
+    await saveTaskToIndexedDB(newTask, effectiveUserId, userId ? 'pending' : 'synced')
+
+    // Sync to Supabase (or queue if offline)
     if (userId) {
-      const { error } = await supabase.from('tasks').insert({
+      const payload = {
         id,
         user_id: userId,
         text: trimmedText,
-      })
-      if (error) {
-        console.error('[Today] Failed to sync add task:', error)
+        created_at: now,
+      }
+
+      if (navigator.onLine) {
+        // Online: try to sync immediately
+        const { error } = await supabase.from('tasks').insert(payload)
+        if (error) {
+          console.error('[Today] Failed to sync add task:', error)
+          // Queue for retry
+          await queueOperation('INSERT', 'tasks', id, payload)
+        } else {
+          // Update sync status to 'synced'
+          await saveTaskToIndexedDB(newTask, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('INSERT', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued add task', { id })
+        }
       }
     }
   }, [userId])
 
   const completeTask = useCallback(async (id: string) => {
     const completedAt = new Date().toISOString()
+    const effectiveUserId = userId || ''
     dispatch({ type: 'COMPLETE_TASK', id })
 
+    // Find the task to update in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, completedAt }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
     if (userId) {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ completed_at: completedAt })
-        .eq('id', id)
-        .eq('user_id', userId)
-      if (error) {
-        console.error('[Today] Failed to sync complete task:', error)
+      const payload = { completed_at: completedAt }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync complete task:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          // Update sync status to 'synced'
+          await saveTaskToIndexedDB({ ...task, completedAt }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued complete task', { id })
+        }
       }
     }
-  }, [userId])
+  }, [userId, tasks])
 
   const deleteTask = useCallback(async (id: string) => {
     dispatch({ type: 'DELETE_TASK', id })
 
+    // Delete from IndexedDB
+    await deleteTaskFromIndexedDB(id)
+
     if (userId) {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId)
-      if (error) {
-        console.error('[Today] Failed to sync delete task:', error)
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync delete task:', error)
+          // Queue for retry
+          await queueOperation('DELETE', 'tasks', id, {})
+        }
+      } else {
+        // Offline: queue for later sync
+        // Note: DELETE operations discard pending UPDATEs in coalesceOperations
+        await queueOperation('DELETE', 'tasks', id, {})
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued delete task', { id })
+        }
       }
     }
   }, [userId])
 
   const deferTask = useCallback(async (id: string, deferredTo: string | null, category: string) => {
+    const effectiveUserId = userId || ''
     dispatch({ type: 'DEFER_TASK', id, deferredTo, category })
 
+    // Find and update task in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, deferredTo, category }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
     if (userId) {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ deferred_to: deferredTo, category })
-        .eq('id', id)
-        .eq('user_id', userId)
-      if (error) {
-        console.error('[Today] Failed to sync defer task:', error)
+      const payload = { deferred_to: deferredTo, category }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync defer task:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          await saveTaskToIndexedDB({ ...task, deferredTo, category }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued defer task', { id })
+        }
       }
     }
-  }, [userId])
+  }, [userId, tasks])
 
   const updateTask = useCallback(async (id: string, text: string, deferredTo: string | null, category: string | null) => {
+    const effectiveUserId = userId || ''
+    const trimmedText = text.trim()
     dispatch({ type: 'UPDATE_TASK', id, text, deferredTo, category })
 
+    // Find and update task in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, text: trimmedText, deferredTo, category }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
     if (userId) {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ text: text.trim(), deferred_to: deferredTo, category })
-        .eq('id', id)
-        .eq('user_id', userId)
-      if (error) {
-        console.error('[Today] Failed to sync update task:', error)
+      const payload = { text: trimmedText, deferred_to: deferredTo, category }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync update task:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          await saveTaskToIndexedDB({ ...task, text: trimmedText, deferredTo, category }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued update task', { id })
+        }
       }
     }
-  }, [userId])
+  }, [userId, tasks])
 
   const updateNotes = useCallback(async (id: string, notes: TaskNotes | null) => {
+    const effectiveUserId = userId || ''
     dispatch({ type: 'UPDATE_NOTES', id, notes })
 
+    // Find and update task in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, notes }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
     if (userId) {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ notes })
-        .eq('id', id)
-        .eq('user_id', userId)
-      if (error) {
-        console.error('[Today] Failed to sync update notes:', error)
+      const payload = { notes }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync update notes:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          await saveTaskToIndexedDB({ ...task, notes }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued update notes', { id })
+        }
       }
     }
-  }, [userId])
+  }, [userId, tasks])
 
   const addCategory = useCallback(async (name: string) => {
     const trimmedName = name.trim()
@@ -362,12 +609,26 @@ export const useTasks = (userId: string | null) => {
     setCategories(prev => [...prev, trimmedName])
 
     if (userId) {
-      const { error } = await supabase.from('categories').insert({
+      const categoryId = crypto.randomUUID()
+      const payload = {
+        id: categoryId,
         user_id: userId,
         name: trimmedName,
-      })
-      if (error) {
-        console.error('[Today] Failed to sync add category:', error)
+      }
+
+      if (navigator.onLine) {
+        const { error } = await supabase.from('categories').insert(payload)
+        if (error) {
+          console.error('[Today] Failed to sync add category:', error)
+          // Queue for retry
+          await queueOperation('INSERT', 'categories', categoryId, payload)
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('INSERT', 'categories', categoryId, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued add category', { name: trimmedName })
+        }
       }
     }
   }, [userId, categories])

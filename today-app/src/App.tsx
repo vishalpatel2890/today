@@ -19,7 +19,7 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus } = useAuth()
-  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError, isSyncing } = useTasks(user?.id ?? null)
+  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
   // AC-4.2.5: Auto-surface tasks based on date on app load
@@ -91,14 +91,9 @@ const AppContent = () => {
           isLinked={isLinked}
           email={user?.email}
           onSyncClick={() => setIsLinkModalOpen(true)}
+          userId={user?.id ?? null}
         />
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-        {/* Sync indicator */}
-        {isSyncing && (
-          <div className="text-center text-xs text-muted-foreground py-1">
-            Syncing...
-          </div>
-        )}
         <main className="py-6">{renderView()}</main>
       </div>
       {/* Toast notifications - AC-4.3.4: bottom-center, AC-4.3.7: stacked */}
