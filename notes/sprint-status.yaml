@@ -85,5 +85,5 @@ development_status:
   7-1-pwa-foundation: done
   7-2-indexeddb-dexie-setup: done
   7-3-sync-queue-implementation: done
-  7-4-offline-ui-conflict-resolution: review
+  7-4-offline-ui-conflict-resolution: done
   epic-7-retrospective: optional
