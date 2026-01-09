@@ -87,3 +87,10 @@ development_status:
   7-3-sync-queue-implementation: done
   7-4-offline-ui-conflict-resolution: done
   epic-7-retrospective: optional
+
+  # Epic 8: Email OTP Authentication
+  epic-8: contexted
+  8-1-otp-input-component: done
+  8-2-extend-useauth-with-verifyotp: done
+  8-3-update-linkemailmodal-with-otp-entry: review
+  epic-8-retrospective: optional

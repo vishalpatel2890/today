@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { OtpInput } from './OtpInput'
+
 /**
  * TokenShowcase - Temporary component for visual verification of design tokens
  * This component displays all design tokens from the Slate Sophisticated theme
@@ -56,6 +59,12 @@ const SpacingSample = ({ name, size, pixels }: SpacingSampleProps) => (
 )
 
 export const TokenShowcase = () => {
+  // OtpInput demo state
+  const [otpValue, setOtpValue] = useState('')
+  const [otpComplete, setOtpComplete] = useState<string | null>(null)
+  const [showError, setShowError] = useState(false)
+  const [showDisabled, setShowDisabled] = useState(false)
+
   return (
     <div className="p-8 bg-background min-h-screen">
       <h1 className="font-display text-3xl font-semibold text-foreground mb-8">
@@ -64,6 +73,77 @@ export const TokenShowcase = () => {
       <p className="font-body text-muted-foreground mb-8">
         Slate Sophisticated Theme - Visual verification for Story 1.2
       </p>
+
+      {/* OTP Input Demo Section - Story 8.1 */}
+      <section className="mb-12">
+        <h2 className="font-display text-xl font-medium text-foreground mb-4 pb-2 border-b border-border">
+          OTP Input Component (Story 8.1)
+        </h2>
+
+        <div className="bg-surface p-6 rounded-lg shadow-sm space-y-6">
+          <div>
+            <h3 className="font-body text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+              Interactive Demo
+            </h3>
+            <OtpInput
+              value={otpValue}
+              onChange={setOtpValue}
+              onComplete={(code) => {
+                setOtpComplete(code)
+                console.log('[Today] OTP Complete:', code)
+              }}
+              error={showError}
+              disabled={showDisabled}
+            />
+            <div className="mt-4 text-center space-y-2">
+              <p className="font-mono text-sm text-muted-foreground">
+                Value: "{otpValue}" {otpComplete && `| Complete: "${otpComplete}"`}
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => { setOtpValue(''); setOtpComplete(null) }}
+                  className="px-3 py-1 text-sm bg-surface-muted rounded border border-border hover:bg-border transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowError(!showError)}
+                  className={`px-3 py-1 text-sm rounded border transition-colors ${
+                    showError ? 'bg-error text-white border-error' : 'bg-surface-muted border-border hover:bg-border'
+                  }`}
+                >
+                  Error: {showError ? 'ON' : 'OFF'}
+                </button>
+                <button
+                  onClick={() => setShowDisabled(!showDisabled)}
+                  className={`px-3 py-1 text-sm rounded border transition-colors ${
+                    showDisabled ? 'bg-primary text-white border-primary' : 'bg-surface-muted border-border hover:bg-border'
+                  }`}
+                >
+                  Disabled: {showDisabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <h3 className="font-body text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              Test Checklist
+            </h3>
+            <ul className="font-mono text-xs text-muted-foreground space-y-1">
+              <li>✓ AC1.1: 6 individual digit boxes rendered</li>
+              <li>✓ AC1.2: First box auto-focuses on mount</li>
+              <li>✓ AC1.3: Type digit → focus advances</li>
+              <li>✓ AC1.4: Paste "123456" → fills all boxes</li>
+              <li>✓ AC1.5: onComplete fires at 6 digits</li>
+              <li>✓ AC1.6: Toggle Error → red borders</li>
+              <li>✓ AC1.7: Toggle Disabled → reduced opacity</li>
+              <li>✓ AC1.8: Backspace → moves focus back</li>
+              <li>✓ AC1.9: Type "abc" → nothing happens</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
       {/* Color Tokens Section */}
       <section className="mb-12">

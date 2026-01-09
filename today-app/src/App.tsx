@@ -18,7 +18,7 @@ import { LinkEmailModal } from './components/LinkEmailModal'
 const AppContent = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
-  const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus } = useAuth()
+  const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus, otpStatus, otpError, pendingEmail, verifyOtp, resendOtp, resetOtpStatus } = useAuth()
   const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
@@ -106,6 +106,12 @@ const AppContent = () => {
         status={linkingStatus}
         error={linkingError}
         onReset={resetLinkingStatus}
+        otpStatus={otpStatus}
+        otpError={otpError}
+        pendingEmail={pendingEmail}
+        onVerifyOtp={verifyOtp}
+        onResendOtp={resendOtp}
+        onResetOtp={resetOtpStatus}
       />
     </div>
   )

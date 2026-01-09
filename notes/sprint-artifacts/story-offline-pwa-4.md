@@ -1,6 +1,6 @@
 # Story 7.4: Offline UI + Conflict Resolution
 
-**Status:** review
+**Status:** done
 
 ---
 

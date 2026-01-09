@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import type { LinkingStatus } from '../hooks/useAuth'
+import { X, Mail, CheckCircle, AlertCircle, Loader2, KeyRound } from 'lucide-react'
+import type { LinkingStatus, OtpStatus } from '../hooks/useAuth'
+import { OtpInput } from './OtpInput'
 
 interface LinkEmailModalProps {
   isOpen: boolean
@@ -10,11 +11,19 @@ interface LinkEmailModalProps {
   status: LinkingStatus
   error: string | null
   onReset: () => void
+  // OTP props
+  otpStatus: OtpStatus
+  otpError: string | null
+  pendingEmail: string | null
+  onVerifyOtp: (email: string, token: string) => void
+  onResendOtp: () => void
+  onResetOtp: () => void
 }
 
 /**
  * Modal for linking email to anonymous account
- * Shows email input → loading → success/error states
+ * Shows email input → OTP entry → success states
+ * AC3.1-AC3.10: OTP verification flow
  */
 export const LinkEmailModal = ({
   isOpen,
@@ -22,21 +31,52 @@ export const LinkEmailModal = ({
   onSubmit,
   status,
   error,
-  onReset
+  onReset,
+  otpStatus,
+  otpError,
+  pendingEmail,
+  onVerifyOtp,
+  onResendOtp,
+  onResetOtp
 }: LinkEmailModalProps) => {
   const [email, setEmail] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [otpValue, setOtpValue] = useState('')
+  const [resendTimer, setResendTimer] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const resendDisabled = resendTimer > 0
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setEmail('')
       setValidationError(null)
+      setOtpValue('')
       onReset()
+      onResetOtp()
       setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [isOpen, onReset])
+  }, [isOpen, onReset, onResetOtp])
+
+  // AC3.10: Start resend timer when status becomes 'sent'
+  useEffect(() => {
+    if (status === 'sent') {
+      setResendTimer(60) // 60 second cooldown
+
+      const interval = setInterval(() => {
+        setResendTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(interval)
+    }
+  }, [status])
 
   // Basic email validation
   const validateEmail = (value: string): boolean => {
@@ -66,18 +106,57 @@ export const LinkEmailModal = ({
     onClose()
   }
 
+  // AC3.4: Handle OTP completion - triggers verification
+  const handleOtpComplete = (code: string) => {
+    if (pendingEmail) {
+      onVerifyOtp(pendingEmail, code)
+    }
+  }
+
+  // AC3.8: Resend code handler
+  const handleResend = () => {
+    setOtpValue('')
+    onResetOtp()
+    onResendOtp()
+    setResendTimer(60)
+  }
+
+  // AC3.9: Change email handler - return to email input
+  const handleChangeEmail = () => {
+    setOtpValue('')
+    onReset()
+    onResetOtp()
+  }
+
+  // Determine modal title based on state
+  const getTitle = () => {
+    if (otpStatus === 'verified') return 'Success!'
+    if (status === 'sent') return 'Enter verification code'
+    return 'Sync across devices'
+  }
+
   // Render different content based on status
   const renderContent = () => {
-    if (status === 'sent') {
+    // AC3.5: OTP verification in progress - loading state
+    if (otpStatus === 'verifying') {
+      return (
+        <div className="text-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">Verifying code...</p>
+        </div>
+      )
+    }
+
+    // AC3.7: Success view - modal auto-closes after verification
+    if (otpStatus === 'verified') {
       return (
         <div className="text-center py-4">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">
-            Check your email
+            You're all set!
           </h3>
           <p className="text-sm text-muted-foreground mb-6">
-            We sent a magic link to <span className="font-medium text-foreground">{email}</span>.
-            Click the link in the email to sync your tasks across devices.
+            Your tasks will now sync across all your devices.
           </p>
           <button
             type="button"
@@ -90,11 +169,72 @@ export const LinkEmailModal = ({
       )
     }
 
+    // AC3.1-AC3.2: OTP entry view (after email sent)
+    if (status === 'sent') {
+      return (
+        <div className="py-4">
+          <div className="text-center mb-6">
+            <KeyRound className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
+              Enter verification code
+            </h3>
+            {/* AC3.3: Email address shown as confirmation */}
+            <p className="text-sm text-muted-foreground">
+              We sent a 6-digit code to{' '}
+              <span className="font-medium text-foreground">{pendingEmail}</span>
+            </p>
+          </div>
+
+          <div className="mb-6">
+            {/* AC3.2: OtpInput component displayed */}
+            <OtpInput
+              value={otpValue}
+              onChange={setOtpValue}
+              onComplete={handleOtpComplete}
+              error={!!otpError}
+            />
+
+            {/* AC3.6: Error displayed inline if verification fails */}
+            {otpError && (
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-sm text-red-500">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{otpError}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="text-center space-y-3">
+            {/* AC3.8 & AC3.10: Resend code link with rate limit timer */}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendDisabled}
+              className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+            >
+              {resendDisabled ? `Resend code in ${resendTimer}s` : "Didn't receive a code? Resend"}
+            </button>
+
+            {/* AC3.9: Use different email link */}
+            <div>
+              <button
+                type="button"
+                onClick={handleChangeEmail}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Use different email
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Email input form (initial state)
     return (
       <form onSubmit={handleSubmit}>
         <p className="text-sm text-muted-foreground mb-4">
           Link your email to access your tasks from any device.
-          We&apos;ll send you a magic link - no password needed.
+          We&apos;ll send you a verification code - no password needed.
         </p>
 
         <div className="mb-4">
@@ -145,7 +285,7 @@ export const LinkEmailModal = ({
                 Sending...
               </>
             ) : (
-              'Send magic link'
+              'Send code'
             )}
           </button>
         </div>
@@ -162,7 +302,7 @@ export const LinkEmailModal = ({
         >
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="font-display text-lg font-semibold text-foreground">
-              {status === 'sent' ? 'Email sent!' : 'Sync across devices'}
+              {getTitle()}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button

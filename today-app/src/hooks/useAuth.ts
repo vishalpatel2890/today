@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export type LinkingStatus = 'idle' | 'sending' | 'sent' | 'error'
+export type OtpStatus = 'idle' | 'verifying' | 'verified' | 'error'
 
 /**
  * Hook for anonymous authentication with Supabase
@@ -16,6 +17,9 @@ export function useAuth() {
   const [error, setError] = useState<Error | null>(null)
   const [linkingStatus, setLinkingStatus] = useState<LinkingStatus>('idle')
   const [linkingError, setLinkingError] = useState<string | null>(null)
+  const [otpStatus, setOtpStatus] = useState<OtpStatus>('idle')
+  const [otpError, setOtpError] = useState<string | null>(null)
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   useEffect(() => {
     // Get initial session
@@ -67,19 +71,15 @@ export function useAuth() {
   const isAnonymous = user?.is_anonymous ?? true
   const isLinked = !isAnonymous && !!user?.email
 
-  // Link email to anonymous account via magic link
-  // If email already exists or no session, sign in with that account instead
+  // Link email to anonymous account via OTP
+  // If email already exists or no session, sign in with OTP instead
   const linkEmail = useCallback(async (email: string) => {
     setLinkingStatus('sending')
     setLinkingError(null)
-
-    // Determine redirect URL based on environment
-    const redirectUrl = import.meta.env.DEV
-      ? 'http://localhost:5173'
-      : 'https://productivity.pitchsmith.ai'
+    setPendingEmail(email)  // Store for OTP verification
 
     if (import.meta.env.DEV) {
-      console.log('[Today] Auth: linking email', email, 'redirect:', redirectUrl)
+      console.log('[Today] Auth: requesting OTP for', email)
     }
 
     // Check if we have an active session
@@ -94,12 +94,14 @@ export function useAuth() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: redirectUrl,
+          shouldCreateUser: true
+          // NO emailRedirectTo → triggers OTP email instead of magic link
         }
       })
 
       if (signInError) {
         setLinkingStatus('error')
+        setPendingEmail(null)
         if (signInError.message.includes('rate limit')) {
           setLinkingError('Too many attempts. Please wait a moment.')
         } else {
@@ -110,34 +112,35 @@ export function useAuth() {
 
       setLinkingStatus('sent')
       if (import.meta.env.DEV) {
-        console.log('[Today] Auth: sign-in magic link sent to', email)
+        console.log('[Today] Auth: OTP code sent to', email)
       }
       return
     }
 
     // We have an anonymous session, try to link the email
-    const { error: updateError } = await supabase.auth.updateUser(
-      { email },
-      { emailRedirectTo: redirectUrl }
-    )
+    // Note: updateUser still requires a redirect URL for email confirmation
+    // For anonymous-to-linked flow, we use signInWithOtp instead for OTP mode
+    const { error: updateError } = await supabase.auth.updateUser({ email })
 
     if (updateError) {
-      // If email is already registered, try signing in with magic link instead
+      // If email is already registered, try signing in with OTP instead
       if (updateError.message.includes('already registered') ||
           updateError.message.includes('already been registered')) {
         if (import.meta.env.DEV) {
-          console.log('[Today] Auth: email exists, sending sign-in magic link')
+          console.log('[Today] Auth: email exists, sending OTP code')
         }
 
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: redirectUrl,
+            shouldCreateUser: true
+            // NO emailRedirectTo → triggers OTP email instead of magic link
           }
         })
 
         if (signInError) {
           setLinkingStatus('error')
+          setPendingEmail(null)
           if (signInError.message.includes('rate limit')) {
             setLinkingError('Too many attempts. Please wait a moment.')
           } else {
@@ -148,7 +151,7 @@ export function useAuth() {
 
         setLinkingStatus('sent')
         if (import.meta.env.DEV) {
-          console.log('[Today] Auth: sign-in magic link sent to', email)
+          console.log('[Today] Auth: OTP code sent to', email)
         }
         return
       }
@@ -163,22 +166,28 @@ export function useAuth() {
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: redirectUrl,
+            shouldCreateUser: true
+            // NO emailRedirectTo → triggers OTP email instead of magic link
           }
         })
 
         if (signInError) {
           setLinkingStatus('error')
+          setPendingEmail(null)
           setLinkingError(signInError.message)
           return
         }
 
         setLinkingStatus('sent')
+        if (import.meta.env.DEV) {
+          console.log('[Today] Auth: OTP code sent to', email)
+        }
         return
       }
 
       // Other errors
       setLinkingStatus('error')
+      setPendingEmail(null)
       if (updateError.message.includes('rate limit')) {
         setLinkingError('Too many attempts. Please wait a moment.')
       } else {
@@ -193,7 +202,7 @@ export function useAuth() {
 
     setLinkingStatus('sent')
     if (import.meta.env.DEV) {
-      console.log('[Today] Auth: magic link sent to', email)
+      console.log('[Today] Auth: email update initiated for', email)
     }
   }, [])
 
@@ -203,7 +212,72 @@ export function useAuth() {
     setLinkingError(null)
   }, [])
 
+  // Verify OTP code for email authentication
+  const verifyOtp = useCallback(async (email: string, token: string) => {
+    setOtpStatus('verifying')
+    setOtpError(null)
+
+    if (import.meta.env.DEV) {
+      console.log('[Today] Auth: verifying OTP for', email)
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email'
+    })
+
+    if (error) {
+      setOtpStatus('error')
+
+      // Map common error messages to user-friendly text
+      if (error.message.includes('expired')) {
+        setOtpError('Code expired. Please request a new one.')
+      } else if (error.message.includes('invalid') || error.message.includes('Token')) {
+        setOtpError('Invalid code. Please check and try again.')
+      } else if (error.message.includes('rate limit')) {
+        setOtpError('Too many attempts. Please wait a moment.')
+      } else {
+        setOtpError(error.message)
+      }
+
+      if (import.meta.env.DEV) {
+        console.error('[Today] Auth: OTP verification error', error)
+      }
+      return
+    }
+
+    setOtpStatus('verified')
+    setPendingEmail(null)
+
+    if (import.meta.env.DEV) {
+      console.log('[Today] Auth: OTP verified, session created', data.session?.user.id)
+    }
+  }, [])
+
+  // Resend OTP code to pending email
+  const resendOtp = useCallback(async () => {
+    if (!pendingEmail) {
+      if (import.meta.env.DEV) {
+        console.error('[Today] Auth: cannot resend, no pending email')
+      }
+      return
+    }
+
+    // Reuse linkEmail to send new code
+    await linkEmail(pendingEmail)
+    setOtpStatus('idle')
+    setOtpError(null)
+  }, [pendingEmail, linkEmail])
+
+  // Reset OTP status for retry flows
+  const resetOtpStatus = useCallback(() => {
+    setOtpStatus('idle')
+    setOtpError(null)
+  }, [])
+
   return {
+    // Existing
     user,
     isLoading,
     error,
@@ -212,6 +286,14 @@ export function useAuth() {
     linkEmail,
     linkingStatus,
     linkingError,
-    resetLinkingStatus
+    resetLinkingStatus,
+
+    // New for OTP
+    otpStatus,
+    otpError,
+    pendingEmail,
+    verifyOtp,
+    resendOtp,
+    resetOtpStatus
   }
 }
