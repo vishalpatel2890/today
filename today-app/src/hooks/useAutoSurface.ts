@@ -4,14 +4,14 @@ import type { Task } from '../types'
 
 /**
  * Auto-surfacing hook for date-based task filtering
- * AC-4.2.1: Tasks deferred to today appear in Today view
- * AC-4.2.2: Tasks deferred to tomorrow appear in Tomorrow view
- * AC-4.2.3: Tasks deferred beyond tomorrow appear in Deferred view
- * AC-4.2.4: Tasks with no date (someday) appear in Deferred view
- * AC-4.2.5: Surfacing occurs automatically on app load (via useMemo)
- * AC-4.2.6: Completed tasks filtered from all views
  *
- * Source: notes/sprint-artifacts/tech-spec-epic-4.md APIs and Interfaces
+ * Routing logic (category does NOT affect view placement):
+ * - Today view: Tasks with today's date OR overdue (past) dates
+ * - Tomorrow view: Tasks with tomorrow's date
+ * - Deferred view: Tasks with no date, invalid dates, or future dates (beyond tomorrow)
+ * - Completed tasks: Excluded from all views
+ *
+ * Source: notes/tech-spec.md (fix-deferred-routing)
  */
 export const useAutoSurface = (tasks: Task[]): {
   todayTasks: Task[]
@@ -43,38 +43,22 @@ export const useAutoSurface = (tasks: Task[]): {
       }
 
       // Determine which view this task belongs to
-      if (!task.deferredTo) {
-        // No deferred date
-        if (task.category) {
-          // AC-4.2.4: "Someday" task - has category but no date → Deferred
-          deferred.push(task)
-        } else {
-          // New task with no category and no date → Today
-          today.push(task)
-        }
-      } else if (!isValidDate) {
-        // Invalid date string - treat as "someday" if has category, else Today
-        if (task.category) {
-          deferred.push(task)
-        } else {
-          today.push(task)
-        }
+      // Routing is based on date only - category does not affect view placement
+      if (!task.deferredTo || !isValidDate) {
+        // No date or invalid date → Deferred view
+        deferred.push(task)
       } else if (isToday(taskDate!)) {
-        // AC-4.2.1: Task deferred to today → Today view
+        // Today's date → Today view
         today.push(task)
       } else if (isPast(startOfDay(taskDate!))) {
-        // Overdue task: past date always surfaces to Today view
+        // Overdue (past date) → Today view (surfaces for attention)
         today.push(task)
       } else if (isTomorrow(taskDate!)) {
-        // AC-4.2.2: Task deferred to tomorrow → Tomorrow view
+        // Tomorrow's date → Tomorrow view
         tomorrow.push(task)
-      } else if (task.category) {
-        // AC-4.2.3: Task deferred to future date (beyond tomorrow) with category → Deferred
-        deferred.push(task)
       } else {
-        // Edge case: Task with future date but no category
-        // Per story dev notes: should stay in Today (not yet properly deferred)
-        today.push(task)
+        // Future date (beyond tomorrow) → Deferred view
+        deferred.push(task)
       }
     }
 

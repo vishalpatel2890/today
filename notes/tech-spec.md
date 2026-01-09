@@ -1,10 +1,10 @@
 # Today - Technical Specification
 
 **Author:** Vishal
-**Date:** 2026-01-06
-**Project Level:** Quick-Flow
-**Change Type:** Deployment / Infrastructure
-**Development Context:** Brownfield (existing React app)
+**Date:** 2026-01-08
+**Project Level:** Quick Flow (Single Story)
+**Change Type:** Bug Fix
+**Development Context:** Brownfield
 
 ---
 
@@ -12,66 +12,48 @@
 
 ### Available Documents
 
-- ○ No product briefs found
-- ○ No research documents found
-- ○ No brownfield documentation index found
-- ✓ Analyzed existing codebase structure directly
+- No product briefs or research documents (focused bug fix)
+- Existing codebase documentation via code analysis
 
 ### Project Stack
 
-**Runtime & Framework:**
-- React 19.2.0
-- Vite 7.2.4 (build tool)
-- TypeScript 5.9.3
-
-**Styling:**
-- Tailwind CSS 4.1.18
-- PostCSS 8.5.6
-- Autoprefixer 10.4.23
-
-**Backend Services:**
-- Supabase JS Client 2.89.0 (auth + database)
-
-**UI Components:**
-- Radix UI Dialog 1.1.15
-- Radix UI Popover 1.1.15
-- Radix UI Select 2.2.6
-- Lucide React 0.562.0 (icons)
-
-**Utilities:**
-- date-fns 4.1.0
-
-**Dev Tools:**
-- ESLint 9.39.1
-- Vite React Plugin 5.1.1
-
-**Build Output:** Static SPA (HTML/JS/CSS) → `dist/` folder
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Runtime | Vite | 7.2.4 |
+| Framework | React | 19.2.0 |
+| Language | TypeScript | 5.9.3 |
+| Testing | Vitest | 3.2.4 |
+| Styling | TailwindCSS | 4.1.18 |
+| Date Library | date-fns | 4.1.0 |
+| Backend | Supabase | 2.89.0 |
+| Local Storage | Dexie (IndexedDB) | 4.2.1 |
+| UI Components | Radix UI, Lucide React | Latest |
 
 ### Existing Codebase Structure
 
 ```
-today-app/
-├── src/
-│   ├── components/        # UI components (Header, TabBar, TaskCard, etc.)
-│   ├── views/             # Page views (TodayView, TomorrowView, DeferredView)
-│   ├── hooks/             # Custom hooks (useTasks, useAuth, useAutoSurface)
-│   ├── contexts/          # React contexts (ToastContext)
-│   ├── lib/               # External service clients (supabase.ts)
-│   ├── types/             # TypeScript types
-│   ├── utils/             # Utility functions (storage.ts)
-│   ├── App.tsx            # Main app component
-│   └── main.tsx           # Entry point
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-└── index.html
+today-app/src/
+├── hooks/
+│   ├── useAutoSurface.ts    ← Bug location
+│   ├── useTasks.ts
+│   ├── useAuth.ts
+│   └── useOnlineStatus.ts
+├── components/
+│   ├── TaskCard.tsx
+│   ├── DatePicker.tsx
+│   ├── DeferModal.tsx
+│   └── CategoryDropdown.tsx
+├── views/
+│   ├── TodayView.tsx
+│   ├── TomorrowView.tsx
+│   └── DeferredView.tsx
+├── types/
+│   └── index.ts
+└── lib/
+    ├── db.ts
+    ├── supabase.ts
+    └── syncQueue.ts
 ```
-
-**Key Patterns:**
-- Functional components with hooks
-- Custom hooks for state management (useTasks, useAuth)
-- Context API for global state (ToastContext)
-- Environment variables via `import.meta.env.VITE_*`
 
 ---
 
@@ -79,39 +61,42 @@ today-app/
 
 ### Problem Statement
 
-The Today task management app needs to be deployed to production at `productivity.pitchsmith.ai`. The solution must be:
-1. The absolute cheapest option available ($0/month preferred)
-2. Simple to set up and maintain
-3. Compatible with the existing React/Vite static build
+When a user changes a task's date to a future date (beyond tomorrow) without assigning a category, the task incorrectly defaults to the "Today" view instead of the "Deferred" view. Additionally, tasks with no date and no category also incorrectly appear in "Today" instead of "Deferred".
+
+**Current (incorrect) behavior:**
+- Future date + category → Deferred ✓
+- Future date + no category → Today ✗ (should be Deferred)
+- No date + category → Deferred ✓
+- No date + no category → Today ✗ (should be Deferred)
+
+**Root cause:** The `useAutoSurface.ts` hook has logic that treats category as a requirement for deferred tasks, but the intended behavior is that date alone (or lack thereof) should determine placement.
 
 ### Proposed Solution
 
-Deploy to **Cloudflare Pages** (free tier) with custom subdomain configuration.
+Simplify the task categorization logic in `useAutoSurface.ts`:
 
-**Why Cloudflare Pages:**
-- **Cost:** $0/month (unlimited requests, bandwidth)
-- **Integration:** Domain already registered with Cloudflare (seamless DNS)
-- **Features:** Free SSL, global CDN, automatic builds
-- **Simplicity:** Direct CLI deployment or Git integration
+1. **Today view:** Tasks with today's date OR overdue (past) dates
+2. **Tomorrow view:** Tasks with tomorrow's date
+3. **Deferred view:** Everything else (future dates beyond tomorrow, no date, invalid dates)
+
+Remove the category-based conditional logic for determining which view a task belongs to.
 
 ### Scope
 
 **In Scope:**
 
-1. Configure Vite build for production deployment
-2. Set up Cloudflare Pages project
-3. Configure `productivity.pitchsmith.ai` subdomain DNS
-4. Set environment variables for Supabase connection
-5. Deploy the application
-6. Verify SSL and functionality
+- Fix the `useAutoSurface` hook to correctly route tasks to Deferred view
+- Tasks with future dates (beyond tomorrow) → Deferred (regardless of category)
+- Tasks with no date → Deferred (regardless of category)
+- Tasks with invalid dates → Deferred (regardless of category)
 
 **Out of Scope:**
 
-- CI/CD pipeline automation (manual deploys for now)
-- Multiple environments (staging, preview)
-- Custom error pages
-- Analytics integration
-- Performance monitoring
+- Changes to the DeferModal component
+- Changes to the DatePicker component
+- Changes to the Supabase sync logic
+- Changes to the task data model
+- UI/UX changes to the views themselves
 
 ---
 
@@ -119,45 +104,78 @@ Deploy to **Cloudflare Pages** (free tier) with custom subdomain configuration.
 
 ### Source Tree Changes
 
-| File | Action | Description |
-|------|--------|-------------|
-| `today-app/vite.config.ts` | MODIFY | Add base path configuration if needed |
-| `today-app/.env.production` | CREATE | Production environment variables template |
-| `today-app/wrangler.toml` | CREATE | Optional Cloudflare Pages configuration |
+| File | Action | Change Description |
+|------|--------|-------------------|
+| `src/hooks/useAutoSurface.ts` | MODIFY | Simplify routing logic at lines 46-78 to remove category-based conditions |
 
 ### Technical Approach
 
-**Deployment Method:** Cloudflare Wrangler CLI (direct deploy)
+**Current logic (lines 46-78 in useAutoSurface.ts):**
+```typescript
+if (!task.deferredTo) {
+  if (task.category) {
+    deferred.push(task)
+  } else {
+    today.push(task)  // BUG: should be deferred
+  }
+} else if (!isValidDate) {
+  if (task.category) {
+    deferred.push(task)
+  } else {
+    today.push(task)  // BUG: should be deferred
+  }
+} else if (isToday(taskDate!)) {
+  today.push(task)
+} else if (isPast(startOfDay(taskDate!))) {
+  today.push(task)
+} else if (isTomorrow(taskDate!)) {
+  tomorrow.push(task)
+} else if (task.category) {
+  deferred.push(task)
+} else {
+  today.push(task)  // BUG: should be deferred
+}
+```
 
-This is the simplest approach:
-1. Build the app locally: `npm run build`
-2. Deploy to Cloudflare Pages: `npx wrangler pages deploy dist`
-3. Configure custom domain in Cloudflare dashboard
-
-**Alternative:** Git integration (auto-deploy on push) - can be added later if desired.
+**Fixed logic:**
+```typescript
+if (!task.deferredTo || !isValidDate) {
+  // No date or invalid date → Deferred
+  deferred.push(task)
+} else if (isToday(taskDate!)) {
+  // Today's date → Today view
+  today.push(task)
+} else if (isPast(startOfDay(taskDate!))) {
+  // Overdue (past date) → Today view (surfaces for attention)
+  today.push(task)
+} else if (isTomorrow(taskDate!)) {
+  // Tomorrow's date → Tomorrow view
+  tomorrow.push(task)
+} else {
+  // Future date (beyond tomorrow) → Deferred
+  deferred.push(task)
+}
+```
 
 ### Existing Patterns to Follow
 
-**Environment Variables:**
-The app uses Vite's environment variable pattern:
-- `VITE_SUPABASE_URL` - Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
+**Code Style Conventions:**
+- No semicolons
+- Single quotes for strings
+- 2-space indentation
+- Functional components with hooks
+- `import.meta.env.DEV` for development logging
+- JSDoc-style comments for acceptance criteria references (e.g., `// AC-4.2.1:`)
 
-These must be configured in Cloudflare Pages dashboard under Settings → Environment Variables.
-
-**Build Process:**
-- Build command: `npm run build` (runs `tsc -b && vite build`)
-- Output directory: `dist`
-- No special configuration needed for static SPA
+**Error Handling Pattern:**
+- Use date-fns `isValid()` for date validation
+- Graceful fallback for invalid dates
 
 ### Integration Points
 
-**External Services:**
-- **Supabase:** Auth and database (already configured, just needs env vars)
-- **Cloudflare DNS:** Subdomain pointing to Pages deployment
-- **Cloudflare Pages:** Static hosting with CDN
-
-**No Backend Changes Required:** The app is a static SPA that connects directly to Supabase from the browser.
+- **Input:** `tasks: Task[]` array from `useTasks` hook
+- **Output:** `{ todayTasks, tomorrowTasks, deferredTasks }` consumed by view components
+- **No API changes:** This is internal logic only
 
 ---
 
@@ -165,54 +183,44 @@ These must be configured in Cloudflare Pages dashboard under Settings → Enviro
 
 ### Relevant Existing Code
 
-- `today-app/src/lib/supabase.ts:4-5` - Environment variable usage
-- `today-app/vite.config.ts` - Build configuration
-- `today-app/package.json:8` - Build script definition
+| File | Lines | Description |
+|------|-------|-------------|
+| `src/hooks/useAutoSurface.ts` | 1-93 | **Primary change location** - task filtering logic |
+| `src/types/index.ts` | 29-37 | Task type definition (read-only reference) |
+| `src/hooks/useTasks.ts` | 525-561 | updateTask function (read-only reference) |
 
 ### Dependencies
 
 **Framework/Libraries:**
-- Vite 7.2.4 (build tool)
-- React 19.2.0 (framework)
-- TypeScript 5.9.3 (language)
-
-**External Services:**
-- Supabase (existing, no changes needed)
-- Cloudflare Pages (new)
-- Cloudflare DNS (existing)
+- date-fns 4.1.0: `isToday`, `isTomorrow`, `isPast`, `startOfDay`, `parseISO`, `isValid`
+- React 19.2.0: `useMemo` hook
 
 **Internal Modules:**
-- No internal module changes required
+- `../types`: Task type
 
 ### Configuration Changes
 
-**Cloudflare Pages Settings:**
-```
-Build command: npm run build
-Build output directory: dist
-Root directory: today-app
-Node.js version: 20
-```
-
-**Environment Variables (Cloudflare Dashboard):**
-```
-VITE_SUPABASE_URL=<your-supabase-project-url>
-VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-```
+None required.
 
 ### Existing Conventions (Brownfield)
 
-Following existing project patterns:
-- Environment variables prefixed with `VITE_`
-- Build outputs to `dist/` directory
-- No changes to code conventions needed (deployment only)
+**Code Style:**
+- No semicolons
+- Single quotes
+- 2-space indentation
+- Functional React patterns
+
+**Test Patterns:**
+- Vitest for unit tests
+- Tests located alongside source files (`.test.ts` suffix)
+- `describe`/`it` blocks with clear descriptions
 
 ### Test Framework & Standards
 
-**No tests currently configured** - the project doesn't have a test setup. Deployment verification will be manual:
-- Verify app loads at production URL
-- Verify Supabase connection works
-- Verify all views render correctly
+- **Framework:** Vitest 3.2.4
+- **Test naming:** `*.test.ts` or `*.test.tsx`
+- **Location:** Same directory as source file
+- **Existing tests:** `src/hooks/useOnlineStatus.test.ts`, `src/lib/syncQueue.test.ts`
 
 ---
 
@@ -220,67 +228,61 @@ Following existing project patterns:
 
 | Layer | Technology | Version |
 |-------|------------|---------|
-| Hosting | Cloudflare Pages | Latest |
-| CDN | Cloudflare (included) | Latest |
-| SSL | Cloudflare (automatic) | Latest |
-| DNS | Cloudflare | Existing |
-| Build | Vite | 7.2.4 |
 | Runtime | Node.js | 20.x |
-| Deploy CLI | Wrangler | Latest |
+| Build Tool | Vite | 7.2.4 |
+| Framework | React | 19.2.0 |
+| Language | TypeScript | 5.9.3 |
+| Testing | Vitest | 3.2.4 |
+| Linting | ESLint | 9.39.1 |
+| Date Handling | date-fns | 4.1.0 |
 
 ---
 
 ## Technical Details
 
-### Cloudflare Pages Free Tier Limits
+**Algorithm Change:**
 
-- **Builds:** 500 per month
-- **Bandwidth:** Unlimited
-- **Requests:** Unlimited
-- **Sites:** Unlimited
-- **Custom domains:** Unlimited
+The current algorithm uses a nested conditional structure with category checks at multiple points. The fix simplifies this to a linear decision tree based purely on date:
 
-These limits are more than sufficient for this application.
+1. Check if date is missing or invalid → Deferred
+2. Check if date is today → Today
+3. Check if date is in the past → Today (overdue surfacing)
+4. Check if date is tomorrow → Tomorrow
+5. Otherwise (future) → Deferred
 
-### DNS Configuration
+**Performance Considerations:**
+- No performance impact - same O(n) iteration over tasks
+- Fewer conditional checks may marginally improve performance
+- Target: < 5ms per existing tech-spec requirement
 
-**Subdomain:** `productivity.pitchsmith.ai`
-**Record Type:** CNAME
-**Target:** `<project-name>.pages.dev` (provided by Cloudflare Pages)
-
-Cloudflare handles this automatically when you add a custom domain through the Pages dashboard.
-
-### SPA Routing
-
-Cloudflare Pages automatically handles SPA routing. No additional configuration needed for client-side routing.
-
-### Environment Variable Security
-
-- Supabase anon key is safe to expose (designed for client-side use)
-- RLS (Row Level Security) on Supabase handles data access control
-- No secrets need to be hidden from the client
+**Edge Cases Handled:**
+- `null` deferredTo → Deferred
+- Empty string deferredTo → Deferred (via isValid check)
+- Invalid date string → Deferred
+- Past dates → Today (overdue surfacing preserved)
 
 ---
 
 ## Development Setup
 
-**Prerequisites:**
-1. Node.js 20.x installed
-2. npm (comes with Node.js)
-3. Cloudflare account (free)
-4. Wrangler CLI: `npm install -g wrangler`
-
-**Local Development:**
 ```bash
+# Navigate to app directory
 cd today-app
-npm install
-npm run dev
-```
 
-**Production Build Test:**
-```bash
-npm run build
-npm run preview  # Test production build locally
+# Install dependencies (if not already done)
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Run tests once
+npm run test:run
+
+# Type check
+npm run build  # includes tsc -b
 ```
 
 ---
@@ -289,77 +291,56 @@ npm run preview  # Test production build locally
 
 ### Setup Steps
 
-1. ☐ Ensure Cloudflare account exists and is logged in
-2. ☐ Install Wrangler CLI globally: `npm install -g wrangler`
-3. ☐ Authenticate Wrangler: `wrangler login`
-4. ☐ Get Supabase credentials ready (URL and anon key)
+1. Create feature branch: `git checkout -b fix/deferred-task-routing`
+2. Verify dev environment: `npm run dev`
+3. Review `src/hooks/useAutoSurface.ts` (already analyzed above)
 
 ### Implementation Steps
 
-**Story 1: Initial Cloudflare Pages Deployment**
-
-1. Navigate to project directory:
-   ```bash
-   cd /Users/vishalpatel/Documents/apps/to-do/today-app
-   ```
-
-2. Build the production bundle:
-   ```bash
-   npm run build
-   ```
-
-3. Deploy to Cloudflare Pages:
-   ```bash
-   npx wrangler pages deploy dist --project-name=today-productivity
-   ```
-   - First run will create the project
-   - Note the generated `*.pages.dev` URL
-
-4. Verify deployment works at the `.pages.dev` URL
-
-**Story 2: Configure Custom Domain**
-
-1. Go to Cloudflare Dashboard → Pages → today-productivity
-2. Click "Custom domains" tab
-3. Click "Set up a custom domain"
-4. Enter: `productivity.pitchsmith.ai`
-5. Cloudflare will automatically configure DNS (since domain is on Cloudflare)
-6. Wait for SSL certificate provisioning (usually < 5 minutes)
-
-**Story 3: Configure Environment Variables**
-
-1. Go to Cloudflare Dashboard → Pages → today-productivity
-2. Click "Settings" → "Environment variables"
-3. Add production variables:
-   - `VITE_SUPABASE_URL` = your Supabase project URL
-   - `VITE_SUPABASE_ANON_KEY` = your Supabase anon key
-4. Trigger a new deployment to apply variables:
-   ```bash
-   npm run build && npx wrangler pages deploy dist --project-name=today-productivity
-   ```
+1. **Open `src/hooks/useAutoSurface.ts`**
+2. **Replace lines 46-78** with simplified logic (see Technical Approach section)
+3. **Update comments** to reflect new behavior:
+   - Remove references to category-based routing
+   - Update AC comments to match new acceptance criteria
+4. **Run tests:** `npm test`
+5. **Manual testing:**
+   - Create task with no date, no category → Should appear in Deferred
+   - Create task with future date, no category → Should appear in Deferred
+   - Verify Today/Tomorrow/Overdue behavior unchanged
 
 ### Testing Strategy
 
-**Manual Verification Checklist:**
-- [ ] App loads at `https://productivity.pitchsmith.ai`
-- [ ] SSL certificate is valid (green lock icon)
-- [ ] Today view renders correctly
-- [ ] Tomorrow view renders correctly
-- [ ] Deferred view renders correctly
-- [ ] Can create a new task
-- [ ] Can complete a task
-- [ ] Can defer a task
-- [ ] Toast notifications appear
-- [ ] Auth flow works (if applicable)
+**Unit Tests (create `src/hooks/useAutoSurface.test.ts`):**
+
+| Test Case | Input | Expected Output |
+|-----------|-------|-----------------|
+| No date, no category | `{ deferredTo: null, category: null }` | deferredTasks |
+| No date, with category | `{ deferredTo: null, category: 'Work' }` | deferredTasks |
+| Today's date | `{ deferredTo: today }` | todayTasks |
+| Tomorrow's date | `{ deferredTo: tomorrow }` | tomorrowTasks |
+| Future date, no category | `{ deferredTo: nextWeek, category: null }` | deferredTasks |
+| Future date, with category | `{ deferredTo: nextWeek, category: 'Work' }` | deferredTasks |
+| Past date (overdue) | `{ deferredTo: yesterday }` | todayTasks |
+| Invalid date string | `{ deferredTo: 'invalid' }` | deferredTasks |
+| Completed task | `{ completedAt: now }` | excluded from all |
+
+**Manual Testing:**
+1. Open app in browser
+2. Create a new task (should appear in Today initially - this is ADD behavior, not the bug)
+3. Edit task, set future date (next week), no category → Should move to Deferred
+4. Edit task, set future date, add category → Should stay in Deferred
+5. Edit task, remove date entirely → Should stay in Deferred
+6. Verify Today/Tomorrow views still work correctly
 
 ### Acceptance Criteria
 
-1. ✓ App is accessible at `https://productivity.pitchsmith.ai`
-2. ✓ SSL certificate is valid and auto-renewed
-3. ✓ All app functionality works identically to local development
-4. ✓ Supabase connection is successful
-5. ✓ Page loads in under 3 seconds globally (CDN)
-6. ✓ Total hosting cost is $0/month
+1. **AC-1:** Tasks with future dates (beyond tomorrow) appear in Deferred view regardless of category
+2. **AC-2:** Tasks with no date appear in Deferred view regardless of category
+3. **AC-3:** Tasks with invalid dates appear in Deferred view
+4. **AC-4:** Tasks with today's date appear in Today view (unchanged)
+5. **AC-5:** Tasks with tomorrow's date appear in Tomorrow view (unchanged)
+6. **AC-6:** Overdue tasks (past dates) appear in Today view (unchanged)
+7. **AC-7:** Completed tasks are excluded from all views (unchanged)
 
 ---
 
@@ -367,48 +348,55 @@ npm run preview  # Test production build locally
 
 ### File Paths Reference
 
-| Path | Purpose |
+| File | Purpose |
 |------|---------|
-| `today-app/dist/` | Production build output |
-| `today-app/vite.config.ts` | Vite configuration |
-| `today-app/package.json` | Dependencies and scripts |
-| `today-app/src/lib/supabase.ts` | Supabase client config |
+| `/today-app/src/hooks/useAutoSurface.ts` | **MODIFY** - Main bug fix location |
+| `/today-app/src/hooks/useAutoSurface.test.ts` | **CREATE** - Unit tests for the hook |
 
 ### Key Code Locations
 
-- Entry point: `today-app/src/main.tsx:1`
-- App component: `today-app/src/App.tsx:104`
-- Supabase client: `today-app/src/lib/supabase.ts:11`
-- Environment vars: `today-app/src/lib/supabase.ts:4-5`
+| Code Element | Location |
+|--------------|----------|
+| `useAutoSurface` hook | `src/hooks/useAutoSurface.ts:16` |
+| Task filtering logic | `src/hooks/useAutoSurface.ts:46-78` |
+| Task type definition | `src/types/index.ts:29` |
+| date-fns imports | `src/hooks/useAutoSurface.ts:2` |
 
 ### Testing Locations
 
-No automated tests configured. Manual testing via browser.
+- Unit tests: `src/hooks/useAutoSurface.test.ts` (to be created)
+- Existing test examples: `src/hooks/useOnlineStatus.test.ts`
 
 ### Documentation to Update
 
-- [ ] README.md - Add deployment instructions
-- [ ] Add `.env.example` file documenting required variables
+- Update inline comments in `useAutoSurface.ts` to reflect new behavior
+- No external documentation changes required
 
 ---
 
 ## UX/UI Considerations
 
-No UI/UX changes - deployment only. The app will function identically to local development.
+**No UI changes required.** This is a logic-only fix. The views (TodayView, TomorrowView, DeferredView) will automatically display the correct tasks based on the fixed filtering logic.
+
+**User Impact:**
+- Tasks that were incorrectly appearing in Today will now correctly appear in Deferred
+- Users may notice tasks "moving" to the correct view after the fix
 
 ---
 
 ## Testing Approach
 
-**Pre-deployment:**
-- Run `npm run build` and verify no errors
-- Run `npm run preview` and test locally
+**Test Framework:** Vitest 3.2.4
 
-**Post-deployment:**
-- Verify all views load
-- Test CRUD operations on tasks
-- Verify responsive design on mobile
-- Test in multiple browsers (Chrome, Safari, Firefox)
+**Unit Tests:**
+- Create `src/hooks/useAutoSurface.test.ts`
+- Test all date scenarios with and without categories
+- Verify completed tasks are filtered
+- Use `describe`/`it` blocks matching existing patterns
+
+**Coverage Target:**
+- 100% of conditional branches in the filtering logic
+- All edge cases documented above
 
 ---
 
@@ -416,26 +404,19 @@ No UI/UX changes - deployment only. The app will function identically to local d
 
 ### Deployment Steps
 
-1. Build: `npm run build`
-2. Deploy: `npx wrangler pages deploy dist --project-name=today-productivity`
-3. Verify at `.pages.dev` URL
-4. Verify at custom domain
+1. Merge PR to main branch
+2. Vite build triggered automatically (or `npm run build`)
+3. Deploy to hosting (Vercel/Netlify/etc.)
+4. Verify in production
 
 ### Rollback Plan
 
-Cloudflare Pages keeps deployment history. To rollback:
-
-1. Go to Cloudflare Dashboard → Pages → today-productivity
-2. Click "Deployments" tab
-3. Find previous working deployment
-4. Click "..." → "Rollback to this deployment"
+1. Revert the commit: `git revert <commit-hash>`
+2. Redeploy
+3. Verify tasks appear in original locations
 
 ### Monitoring
 
-**Cloudflare Analytics (Free):**
-- Request count
-- Bandwidth usage
-- Geographic distribution
-- Status codes
-
-Access via: Cloudflare Dashboard → Pages → today-productivity → Analytics
+- Check browser console for any errors in dev mode
+- Verify IndexedDB sync continues working
+- Monitor Supabase logs for any sync issues (unlikely - this is frontend-only)
