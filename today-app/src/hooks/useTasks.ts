@@ -271,6 +271,52 @@ export const useTasks = (userId: string | null) => {
     initData()
   }, [userId, fetchFromSupabase])
 
+  // Refetch data when app becomes visible (PWA reopened, tab focused, etc.)
+  // Debounced to prevent excessive API calls when switching tabs frequently
+  useEffect(() => {
+    if (!userId) return
+
+    let lastSyncTime = 0
+    const SYNC_DEBOUNCE_MS = 5000 // Only sync if 5+ seconds since last sync
+
+    const triggerSync = () => {
+      const now = Date.now()
+      if (now - lastSyncTime < SYNC_DEBOUNCE_MS) {
+        if (import.meta.env.DEV) {
+          console.log('[Today] Sync debounced - too recent')
+        }
+        return
+      }
+
+      if (navigator.onLine) {
+        lastSyncTime = now
+        if (import.meta.env.DEV) {
+          console.log('[Today] Auto-sync triggered')
+        }
+        fetchFromSupabase(userId)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        triggerSync()
+      }
+    }
+
+    // Also sync when window regains focus (for desktop browsers)
+    const handleFocus = () => {
+      triggerSync()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [userId, fetchFromSupabase])
+
   // Real-time subscription for cross-device sync
   useEffect(() => {
     if (!userId) return
