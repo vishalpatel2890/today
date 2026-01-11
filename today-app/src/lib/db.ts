@@ -30,8 +30,9 @@ export interface LocalTask {
 
 /**
  * Supported table names for sync operations
+ * Extended for time tracking sync (Epic 4)
  */
-export type SyncTable = 'tasks' | 'categories'
+export type SyncTable = 'tasks' | 'categories' | 'time_entries'
 
 /**
  * Sync queue item for offline operations

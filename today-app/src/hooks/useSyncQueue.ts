@@ -65,12 +65,20 @@ export function useSyncQueue(userId: string | null) {
       setLastSyncResult(result)
       await refreshPendingCount()
 
+      // AC-4.1.10: Show toast if any items failed to sync
+      if (result.failed > 0 || result.remaining > 0) {
+        addToastRef.current('Sync failed. Will retry automatically.', { type: 'error' })
+      }
+
       if (import.meta.env.DEV) {
         console.log('[Today] useSyncQueue: sync complete', result)
       }
 
       return result
     } catch (error) {
+      // AC-4.1.10: Show toast on sync error
+      addToastRef.current('Sync failed. Will retry automatically.', { type: 'error' })
+
       if (import.meta.env.DEV) {
         console.error('[Today] useSyncQueue: sync failed', error)
       }

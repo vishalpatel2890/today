@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { clearAllTimeEntries, clearActiveSession } from '../lib/timeTrackingDb'
 
 export type LinkingStatus = 'idle' | 'sending' | 'sent' | 'error'
 export type OtpStatus = 'idle' | 'verifying' | 'verified' | 'error'
@@ -21,6 +22,9 @@ export function useAuth() {
   const [otpError, setOtpError] = useState<string | null>(null)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
+  // Track previous user ID for detecting user changes
+  const previousUserIdRef = useRef<string | null>(null)
+
   useEffect(() => {
     // Get initial session
     const initAuth = async () => {
@@ -28,6 +32,7 @@ export function useAuth() {
         const { data: { session } } = await supabase.auth.getSession()
 
         if (session?.user) {
+          previousUserIdRef.current = session.user.id
           setUser(session.user)
           if (import.meta.env.DEV) {
             console.log('[Today] Auth: existing session', session.user.id)
@@ -40,6 +45,7 @@ export function useAuth() {
             throw signInError
           }
 
+          previousUserIdRef.current = data.user?.id ?? null
           setUser(data.user)
           if (import.meta.env.DEV) {
             console.log('[Today] Auth: signed in anonymously', data.user?.id)
@@ -57,7 +63,29 @@ export function useAuth() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (event, session) => {
+        const newUserId = session?.user?.id ?? null
+        const previousUserId = previousUserIdRef.current
+
+        // Clear time tracking data on sign out or user change to prevent data leakage
+        // Source: notes/sprint-artifacts/tech-spec-time-entries-data-isolation.md
+        if (event === 'SIGNED_OUT' || (previousUserId && previousUserId !== newUserId)) {
+          if (import.meta.env.DEV) {
+            console.log('[Today] Auth: User changed, clearing time tracking cache', {
+              event,
+              previousUserId,
+              newUserId,
+            })
+          }
+          try {
+            await clearAllTimeEntries()
+            await clearActiveSession()
+          } catch (err) {
+            console.error('[Today] Auth: Failed to clear time tracking data', err)
+          }
+        }
+
+        previousUserIdRef.current = newUserId
         setUser(session?.user ?? null)
       }
     )

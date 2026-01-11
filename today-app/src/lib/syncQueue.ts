@@ -1,5 +1,6 @@
 import { db, type SyncQueueItem, type SyncTable, type LocalTask } from './db'
 import { supabase } from './supabase'
+import { updateSyncStatus as updateTimeEntrySyncStatus } from './timeTrackingDb'
 
 /**
  * Sync operation type matching the SyncQueueItem interface
@@ -405,9 +406,14 @@ export async function processQueue(userId: string): Promise<SyncResult> {
         result.conflicts++
       }
 
-      // Update task sync status in IndexedDB (only for tasks table, if no conflict)
-      if (item.table === 'tasks' && item.operation !== 'DELETE' && !itemResult.conflict) {
-        await db.tasks.update(item.entityId, { _syncStatus: 'synced' })
+      // Update sync status in IndexedDB (if no conflict)
+      if (item.operation !== 'DELETE' && !itemResult.conflict) {
+        if (item.table === 'tasks') {
+          await db.tasks.update(item.entityId, { _syncStatus: 'synced' })
+        } else if (item.table === 'time_entries') {
+          // Epic 4: Update time entry sync status in separate IndexedDB
+          await updateTimeEntrySyncStatus(item.entityId, 'synced', new Date().toISOString())
+        }
       }
 
       result.processed++

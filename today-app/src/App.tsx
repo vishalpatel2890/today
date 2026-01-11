@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from './components/Header'
 import { TabBar, type TabId } from './components/TabBar'
 import { TodayView } from './views/TodayView'
@@ -9,7 +9,10 @@ import { ToastProvider, useToast } from './contexts/ToastContext'
 import { useTasks } from './hooks/useTasks'
 import { useAuth } from './hooks/useAuth'
 import { useAutoSurface } from './hooks/useAutoSurface'
+import { useTimeTrackingHotkeys } from './hooks/useTimeTrackingHotkeys'
 import { LinkEmailModal } from './components/LinkEmailModal'
+import { TimeTrackingModal } from './components/time-tracking/TimeTrackingModal'
+import { TimeInsightsModal } from './components/time-tracking/TimeInsightsModal'
 
 /**
  * Inner App component that uses toast context
@@ -18,12 +21,30 @@ import { LinkEmailModal } from './components/LinkEmailModal'
 const AppContent = () => {
   const [activeTab, setActiveTab] = useState<TabId>('today')
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
+  const [isTimeTrackingOpen, setIsTimeTrackingOpen] = useState(false)
+  const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
   const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus, otpStatus, otpError, pendingEmail, verifyOtp, resendOtp, resetOtpStatus } = useAuth()
   const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
   // AC-4.2.5: Auto-surface tasks based on date on app load
   const { todayTasks, tomorrowTasks, deferredTasks } = useAutoSurface(tasks)
+
+  // Time tracking hotkey handlers (Story 1.1, 2.1)
+  const handleOpenTracking = useCallback(() => {
+    // Close insights modal if open, then toggle tracking modal (AC3)
+    setIsInsightsModalOpen(false)
+    setIsTimeTrackingOpen(prev => !prev)
+  }, [])
+
+  const handleOpenInsights = useCallback(() => {
+    // Close tracking modal if open, then toggle insights modal (Story 2.1 AC3)
+    setIsTimeTrackingOpen(false)
+    setIsInsightsModalOpen(prev => !prev)
+  }, [])
+
+  // Register global hotkeys (AC1, AC2, AC4, AC5, AC6)
+  useTimeTrackingHotkeys(handleOpenTracking, handleOpenInsights)
 
   // AC-4.3.3: Show toast when localStorage quota is exceeded
   useEffect(() => {
@@ -112,6 +133,20 @@ const AppContent = () => {
         onVerifyOtp={verifyOtp}
         onResendOtp={resendOtp}
         onResetOtp={resetOtpStatus}
+      />
+      {/* Time tracking modal - Story 1.1, 1.2, Epic 4 sync */}
+      <TimeTrackingModal
+        isOpen={isTimeTrackingOpen}
+        onClose={() => setIsTimeTrackingOpen(false)}
+        tasks={tasks}
+        userId={user?.id ?? null}
+      />
+      {/* Time insights modal - Story 2.1, 3.3, data isolation fix */}
+      <TimeInsightsModal
+        isOpen={isInsightsModalOpen}
+        onClose={() => setIsInsightsModalOpen(false)}
+        userId={user?.id ?? null}
+        tasks={tasks}
       />
     </div>
   )

@@ -72,6 +72,58 @@ export interface Database {
         }
         Relationships: []
       }
+      time_entries: {
+        Row: {
+          id: string
+          user_id: string
+          task_id: string | null
+          task_name: string
+          start_time: string
+          end_time: string
+          duration: number
+          date: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          task_id?: string | null
+          task_name: string
+          start_time: string
+          end_time: string
+          duration: number
+          date: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          task_id?: string | null
+          task_name?: string
+          start_time?: string
+          end_time?: string
+          duration?: number
+          date?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'time_entries_user_id_fkey'
+            columns: ['user_id']
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'time_entries_task_id_fkey'
+            columns: ['task_id']
+            referencedRelation: 'tasks'
+            referencedColumns: ['id']
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -93,3 +145,6 @@ export type TaskRow = Database['public']['Tables']['tasks']['Row']
 export type TaskInsert = Database['public']['Tables']['tasks']['Insert']
 export type CategoryRow = Database['public']['Tables']['categories']['Row']
 export type CategoryInsert = Database['public']['Tables']['categories']['Insert']
+export type TimeEntryRow = Database['public']['Tables']['time_entries']['Row']
+export type TimeEntryInsert = Database['public']['Tables']['time_entries']['Insert']
+export type TimeEntryUpdate = Database['public']['Tables']['time_entries']['Update']
