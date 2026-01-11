@@ -15,13 +15,18 @@ import type { TimeEntryInsert } from '../types/database'
  * Error types for Supabase time entry operations
  */
 export class TimeEntryError extends Error {
+  readonly code: string
+  readonly details?: unknown
+
   constructor(
     message: string,
-    public readonly code: string,
-    public readonly details?: unknown
+    code: string,
+    details?: unknown
   ) {
     super(message)
     this.name = 'TimeEntryError'
+    this.code = code
+    this.details = details
   }
 }
 

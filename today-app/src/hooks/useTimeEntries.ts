@@ -5,7 +5,6 @@ import {
   saveTimeEntry,
   updateSyncStatus,
   getPendingEntries,
-  upsertTimeEntry as upsertTimeEntryDb,
   bulkUpsertTimeEntries as bulkUpsertTimeEntriesDb,
   deleteTimeEntry as deleteTimeEntryDb,
 } from '../lib/timeTrackingDb'
@@ -13,7 +12,6 @@ import { queueOperation } from '../lib/syncQueue'
 import {
   fetchTimeEntries as fetchTimeEntriesSupabase,
   upsertTimeEntry as upsertTimeEntrySupabase,
-  deleteTimeEntry as deleteTimeEntrySupabase,
 } from '../lib/supabaseTimeEntries'
 
 /**

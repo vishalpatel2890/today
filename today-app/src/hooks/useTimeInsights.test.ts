@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { format, startOfWeek, subDays, addDays } from 'date-fns'
+import { format, startOfWeek, subDays } from 'date-fns'
 import { useTimeInsights } from './useTimeInsights'
 import { timeTrackingDb } from '../lib/timeTrackingDb'
-import type { TimeEntry } from '../types/timeTracking'
+import type { CachedTimeEntry, DatePreset } from '../types/timeTracking'
 
-// Helper to create a TimeEntry
-const createEntry = (overrides: Partial<TimeEntry> = {}): TimeEntry => {
+// Helper to create a CachedTimeEntry for IndexedDB
+const createEntry = (overrides: Partial<CachedTimeEntry> = {}): CachedTimeEntry => {
   const now = new Date()
   return {
     id: crypto.randomUUID(),
@@ -19,6 +19,7 @@ const createEntry = (overrides: Partial<TimeEntry> = {}): TimeEntry => {
     date: format(now, 'yyyy-MM-dd'),
     created_at: now.toISOString(),
     updated_at: now.toISOString(),
+    _syncStatus: 'synced',
     ...overrides,
   }
 }
@@ -176,7 +177,6 @@ describe('useTimeInsights', () => {
     it('should calculate average based on days with entries, not calendar days', async () => {
       const today = new Date()
       const yesterday = subDays(today, 1)
-      const twoDaysAgo = subDays(today, 2)
 
       const todayStr = format(today, 'yyyy-MM-dd')
       const yesterdayStr = format(yesterday, 'yyyy-MM-dd')
@@ -321,7 +321,6 @@ describe('useTimeInsights', () => {
       // Use a day within the same week (start of current week + 1 day if possible)
       // Week starts on Sunday (weekStartsOn: 0)
       const weekStart = startOfWeek(today, { weekStartsOn: 0 })
-      const dayAfterWeekStart = addDays(weekStart, 1)
 
       // If today is Sunday, dayAfterWeekStart is tomorrow (not in week yet)
       // So we use today only in that case
@@ -621,8 +620,8 @@ describe('useTimeInsights', () => {
 
       // Start with today filter
       const { result, rerender } = renderHook(
-        ({ datePreset }) => useTimeInsights('local', { datePreset }),
-        { initialProps: { datePreset: 'today' as const } }
+        ({ datePreset }: { datePreset: DatePreset }) => useTimeInsights('local', { datePreset }),
+        { initialProps: { datePreset: 'today' as DatePreset } }
       )
 
       await waitFor(() => {
@@ -633,7 +632,7 @@ describe('useTimeInsights', () => {
       expect(result.current.insights?.recentEntries[0].task_name).toBe('Today Task')
 
       // Change to yesterday filter
-      rerender({ datePreset: 'yesterday' })
+      rerender({ datePreset: 'yesterday' as DatePreset })
 
       await waitFor(() => {
         expect(result.current.insights?.recentEntries).toHaveLength(1)

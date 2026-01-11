@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { InsightRow } from './InsightRow'
 import type { TimeEntry } from '../../types/timeTracking'
-import { format, subDays } from 'date-fns'
 
 describe('InsightRow', () => {
   // Use a fixed local date for consistent testing

@@ -128,7 +128,7 @@ describe('useTimeEntries', () => {
 
   describe('addEntry (AC-4.1.1)', () => {
     it('should generate UUID for new entry', async () => {
-      const mockUUID = 'generated-uuid-123'
+      const mockUUID = '12345678-1234-1234-1234-123456789abc'
       vi.spyOn(crypto, 'randomUUID').mockReturnValue(mockUUID)
 
       const { result } = renderHook(() => useTimeEntries())
