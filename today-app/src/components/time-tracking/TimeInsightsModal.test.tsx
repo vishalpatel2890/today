@@ -29,11 +29,11 @@ describe('TimeInsightsModal', () => {
       expect(screen.getByLabelText('Close')).toBeTruthy()
     })
 
-    it('should have correct width class (420px)', () => {
+    it('should have correct width class (550px)', () => {
       render(<TimeInsightsModal isOpen={true} onClose={onClose} userId="test-user" />)
 
       const dialog = screen.getByRole('dialog')
-      expect(dialog.className).toContain('md:max-w-[420px]')
+      expect(dialog.className).toContain('md:max-w-[550px]')
     })
 
     it('should have scrollable content (max-height 80vh)', () => {
@@ -46,6 +46,15 @@ describe('TimeInsightsModal', () => {
   })
 
   describe('Content Sections (AC6)', () => {
+    it('should render TOTAL summary card (Story 6.1)', async () => {
+      render(<TimeInsightsModal isOpen={true} onClose={onClose} userId="test-user" />)
+
+      // Total card shows weekly total
+      expect(screen.getByText('Total')).toBeTruthy()
+      // "this week" appears in both Total and Avg/Day cards
+      expect(screen.getAllByText('this week').length).toBeGreaterThanOrEqual(1)
+    })
+
     it('should render TODAY summary card', async () => {
       render(<TimeInsightsModal isOpen={true} onClose={onClose} userId="test-user" />)
 
@@ -58,7 +67,8 @@ describe('TimeInsightsModal', () => {
       render(<TimeInsightsModal isOpen={true} onClose={onClose} userId="test-user" />)
 
       expect(screen.getByText('Avg / Day')).toBeTruthy()
-      expect(screen.getByText('this week')).toBeTruthy()
+      // "this week" appears in both Total and Avg/Day cards
+      expect(screen.getAllByText('this week').length).toBeGreaterThanOrEqual(2)
     })
 
     it('should render Breakdown section with empty state', async () => {

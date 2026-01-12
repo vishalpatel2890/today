@@ -831,3 +831,54 @@ So that **I can create and manage my tasks**.
 | 5.3 | Environment Variables | Configure Supabase credentials | TODO |
 
 **Total Cost:** $0/month (Cloudflare Pages free tier)
+
+---
+
+## Epic 6: Time Insights Modal Enhancement
+
+**Goal:** Improve the Time Insights modal by widening it for better content display and adding a "Total" time card for weekly visibility.
+
+**User Value:** Users can see their total weekly tracked time at a glance alongside existing metrics, with better visual spacing.
+
+**FRs Covered:** UI Enhancement (non-functional improvement)
+
+**Slug:** `insights-modal-update`
+
+---
+
+### Story 6.1: Widen Modal and Add Total Time Card
+
+As a **user**,
+I want **the Time Insights modal to be wider with a Total time card**,
+So that **I can see my total weekly time alongside daily metrics with better visual spacing**.
+
+**Acceptance Criteria:**
+
+**AC #1:** Modal width is at least 30% wider on desktop (550px vs 420px)
+**AC #2:** "Total" card displays as first card in the 3-card row
+**AC #3:** "Total" card shows total time tracked this week (totalWeek)
+**AC #4:** All 3 cards (Total, Today, Avg/Day) have equal width in grid
+**AC #5:** Mobile layout remains unchanged (full-width bottom sheet)
+**AC #6:** Loading state shows skeleton for all 3 cards
+**AC #7:** Existing tests continue to pass
+
+**Prerequisites:** None (standalone enhancement)
+
+**Technical Notes:**
+- Change `md:max-w-[420px]` to `md:max-w-[550px]` (line 298)
+- Change `grid-cols-2 gap-4` to `grid-cols-3 gap-3` (line 399)
+- Add InsightCard with `totalWeek` from existing `useTimeInsights` hook
+- No hook changes needed - `totalWeek` already calculated
+
+**Full Story:** [story-insights-modal-update-1.md](./sprint-artifacts/story-insights-modal-update-1.md)
+
+---
+
+### Epic 6 Summary
+
+| # | Story | Description | Status |
+|---|-------|-------------|--------|
+| 6.1 | Widen Modal + Total Card | Increase width 30%, add Total time card | TODO |
+
+**Total Stories:** 1
+**Estimated Effort:** 1 story point

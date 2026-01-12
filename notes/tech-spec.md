@@ -1,10 +1,10 @@
 # Today - Technical Specification
 
 **Author:** Vishal
-**Date:** 2026-01-08
+**Date:** 2026-01-12
 **Project Level:** Quick Flow (Single Story)
-**Change Type:** Bug Fix
-**Development Context:** Brownfield
+**Change Type:** UI Enhancement
+**Development Context:** Brownfield (existing React/TypeScript PWA)
 
 ---
 
@@ -12,48 +12,38 @@
 
 ### Available Documents
 
-- No product briefs or research documents (focused bug fix)
-- Existing codebase documentation via code analysis
+- No product brief or research documents required for this change
+- Existing codebase analyzed for patterns and conventions
 
 ### Project Stack
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| Runtime | Vite | 7.2.4 |
-| Framework | React | 19.2.0 |
-| Language | TypeScript | 5.9.3 |
-| Testing | Vitest | 3.2.4 |
-| Styling | TailwindCSS | 4.1.18 |
-| Date Library | date-fns | 4.1.0 |
-| Backend | Supabase | 2.89.0 |
-| Local Storage | Dexie (IndexedDB) | 4.2.1 |
-| UI Components | Radix UI, Lucide React | Latest |
+| Component | Version | Notes |
+|-----------|---------|-------|
+| Runtime | Node.js 20.x | Via Vite dev server |
+| Framework | React 19.2.0 | Latest React with concurrent features |
+| Language | TypeScript 5.9.3 | Strict mode enabled |
+| Styling | Tailwind CSS 4.1.18 | Utility-first CSS |
+| UI Components | Radix UI | Dialog, Popover, Select primitives |
+| Testing | Vitest 3.2.4 | With Testing Library |
+| Build | Vite 7.2.4 | Electron + PWA dual-target |
 
 ### Existing Codebase Structure
 
-```
-today-app/src/
-├── hooks/
-│   ├── useAutoSurface.ts    ← Bug location
-│   ├── useTasks.ts
-│   ├── useAuth.ts
-│   └── useOnlineStatus.ts
-├── components/
-│   ├── TaskCard.tsx
-│   ├── DatePicker.tsx
-│   ├── DeferModal.tsx
-│   └── CategoryDropdown.tsx
-├── views/
-│   ├── TodayView.tsx
-│   ├── TomorrowView.tsx
-│   └── DeferredView.tsx
-├── types/
-│   └── index.ts
-└── lib/
-    ├── db.ts
-    ├── supabase.ts
-    └── syncQueue.ts
-```
+**Directory Organization:**
+- `today-app/src/components/time-tracking/` - Time tracking UI components
+- `today-app/src/hooks/` - Custom React hooks including `useTimeInsights`
+- `today-app/src/types/` - TypeScript type definitions
+- `today-app/src/lib/` - Utility functions and formatters
+
+**Key Files for This Change:**
+- `TimeInsightsModal.tsx` - Main modal component (line 298: current 420px width)
+- `InsightCard.tsx` - Reusable metric card component
+- `useTimeInsights.ts` - Hook providing `totalToday`, `totalWeek`, `avgPerDay`
+
+**Current Modal Layout:**
+- Width: 420px on desktop (`md:max-w-[420px]`)
+- 2-column card grid: "Today" and "Avg/Day" cards
+- Mobile: full-width bottom sheet
 
 ---
 
@@ -61,42 +51,26 @@ today-app/src/
 
 ### Problem Statement
 
-When a user changes a task's date to a future date (beyond tomorrow) without assigning a category, the task incorrectly defaults to the "Today" view instead of the "Deferred" view. Additionally, tasks with no date and no category also incorrectly appear in "Today" instead of "Deferred".
-
-**Current (incorrect) behavior:**
-- Future date + category → Deferred ✓
-- Future date + no category → Today ✗ (should be Deferred)
-- No date + category → Deferred ✓
-- No date + no category → Today ✗ (should be Deferred)
-
-**Root cause:** The `useAutoSurface.ts` hook has logic that treats category as a requirement for deferred tasks, but the intended behavior is that date alone (or lack thereof) should determine placement.
+The Time Insights modal is currently 420px wide on desktop, which feels cramped given the amount of information displayed (filters, summary cards, breakdown, recent entries). Additionally, users lack visibility into their total weekly time at a glance - they can only see "Today" and "Avg/Day" metrics.
 
 ### Proposed Solution
 
-Simplify the task categorization logic in `useAutoSurface.ts`:
-
-1. **Today view:** Tasks with today's date OR overdue (past) dates
-2. **Tomorrow view:** Tasks with tomorrow's date
-3. **Deferred view:** Everything else (future dates beyond tomorrow, no date, invalid dates)
-
-Remove the category-based conditional logic for determining which view a task belongs to.
+1. **Increase modal width** from 420px to 550px (~30% wider) on desktop for better content spacing
+2. **Add a "Total" card** showing total time tracked this week, displayed inline with existing cards in a 3-column layout
 
 ### Scope
 
 **In Scope:**
-
-- Fix the `useAutoSurface` hook to correctly route tasks to Deferred view
-- Tasks with future dates (beyond tomorrow) → Deferred (regardless of category)
-- Tasks with no date → Deferred (regardless of category)
-- Tasks with invalid dates → Deferred (regardless of category)
+- Increase desktop modal width from 420px to 550px
+- Add third InsightCard showing "Total" time (totalWeek)
+- Update card grid from 2-column to 3-column layout
+- Maintain responsive behavior (mobile stays full-width bottom sheet)
 
 **Out of Scope:**
-
-- Changes to the DeferModal component
-- Changes to the DatePicker component
-- Changes to the Supabase sync logic
-- Changes to the task data model
-- UI/UX changes to the views themselves
+- Changes to mobile layout behavior
+- New data calculations (totalWeek already exists in hook)
+- Changes to other sections (filters, breakdown, recent entries)
+- Changes to InsightCard component styling
 
 ---
 
@@ -104,78 +78,57 @@ Remove the category-based conditional logic for determining which view a task be
 
 ### Source Tree Changes
 
-| File | Action | Change Description |
-|------|--------|-------------------|
-| `src/hooks/useAutoSurface.ts` | MODIFY | Simplify routing logic at lines 46-78 to remove category-based conditions |
+| File | Action | Changes |
+|------|--------|---------|
+| `today-app/src/components/time-tracking/TimeInsightsModal.tsx` | MODIFY | Update max-width from 420px to 550px; Add "Total" InsightCard; Change grid from `grid-cols-2` to `grid-cols-3` |
+| `today-app/src/components/time-tracking/TimeInsightsModal.test.tsx` | MODIFY | Add test for "Total" card rendering |
 
 ### Technical Approach
 
-**Current logic (lines 46-78 in useAutoSurface.ts):**
-```typescript
-if (!task.deferredTo) {
-  if (task.category) {
-    deferred.push(task)
-  } else {
-    today.push(task)  // BUG: should be deferred
-  }
-} else if (!isValidDate) {
-  if (task.category) {
-    deferred.push(task)
-  } else {
-    today.push(task)  // BUG: should be deferred
-  }
-} else if (isToday(taskDate!)) {
-  today.push(task)
-} else if (isPast(startOfDay(taskDate!))) {
-  today.push(task)
-} else if (isTomorrow(taskDate!)) {
-  tomorrow.push(task)
-} else if (task.category) {
-  deferred.push(task)
-} else {
-  today.push(task)  // BUG: should be deferred
-}
+**Width Change (Line 298):**
+```tsx
+// Before
+md:max-w-[420px]
+
+// After
+md:max-w-[550px]
 ```
 
-**Fixed logic:**
-```typescript
-if (!task.deferredTo || !isValidDate) {
-  // No date or invalid date → Deferred
-  deferred.push(task)
-} else if (isToday(taskDate!)) {
-  // Today's date → Today view
-  today.push(task)
-} else if (isPast(startOfDay(taskDate!))) {
-  // Overdue (past date) → Today view (surfaces for attention)
-  today.push(task)
-} else if (isTomorrow(taskDate!)) {
-  // Tomorrow's date → Tomorrow view
-  tomorrow.push(task)
-} else {
-  // Future date (beyond tomorrow) → Deferred
-  deferred.push(task)
-}
+**Card Grid Change (Lines 399-414):**
+```tsx
+// Before
+<div className="grid grid-cols-2 gap-4">
+
+// After
+<div className="grid grid-cols-3 gap-3">
+```
+Note: Reduce gap from 4 to 3 to accommodate third card comfortably.
+
+**Add Total Card (Insert before Today card):**
+```tsx
+{/* TOTAL card - new */}
+<InsightCard
+  label="Total"
+  value={isLoading ? '--' : formatDisplay(insights?.totalWeek ?? 0)}
+  sublabel="this week"
+  isLoading={isLoading}
+/>
 ```
 
 ### Existing Patterns to Follow
 
-**Code Style Conventions:**
-- No semicolons
-- Single quotes for strings
-- 2-space indentation
-- Functional components with hooks
-- `import.meta.env.DEV` for development logging
-- JSDoc-style comments for acceptance criteria references (e.g., `// AC-4.2.1:`)
-
-**Error Handling Pattern:**
-- Use date-fns `isValid()` for date validation
-- Graceful fallback for invalid dates
+Follow patterns established in `TimeInsightsModal.tsx`:
+- Use `InsightCard` component for all metric cards (consistent with Today/Avg cards)
+- Use `formatDisplay()` helper for duration formatting
+- Use `insights?.totalWeek ?? 0` for null-safe access
+- Use `isLoading` state for skeleton display
+- Tailwind utility classes for layout (no custom CSS)
 
 ### Integration Points
 
-- **Input:** `tasks: Task[]` array from `useTasks` hook
-- **Output:** `{ todayTasks, tomorrowTasks, deferredTasks }` consumed by view components
-- **No API changes:** This is internal logic only
+- **useTimeInsights hook:** Already provides `totalWeek` - no changes needed
+- **InsightCard component:** Reuse as-is - no changes needed
+- **formatDisplay function:** Already handles all duration formatting
 
 ---
 
@@ -183,20 +136,40 @@ if (!task.deferredTo || !isValidDate) {
 
 ### Relevant Existing Code
 
-| File | Lines | Description |
-|------|-------|-------------|
-| `src/hooks/useAutoSurface.ts` | 1-93 | **Primary change location** - task filtering logic |
-| `src/types/index.ts` | 29-37 | Task type definition (read-only reference) |
-| `src/hooks/useTasks.ts` | 525-561 | updateTask function (read-only reference) |
+**TimeInsightsModal.tsx lines 399-414** - Current card grid:
+```tsx
+<div className="grid grid-cols-2 gap-4">
+  <InsightCard
+    label="Today"
+    value={isLoading ? '--' : formatDisplay(insights?.totalToday ?? 0)}
+    sublabel="tracked"
+    isLoading={isLoading}
+  />
+  <InsightCard
+    label="Avg / Day"
+    value={isLoading ? '--' : formatDisplay(insights?.avgPerDay ?? 0)}
+    sublabel="this week"
+    isLoading={isLoading}
+  />
+</div>
+```
+
+**useTimeInsights.ts line 225** - totalWeek calculation:
+```tsx
+const totalWeek = weekEntries.reduce((sum, e) => sum + e.duration, 0)
+```
 
 ### Dependencies
 
 **Framework/Libraries:**
-- date-fns 4.1.0: `isToday`, `isTomorrow`, `isPast`, `startOfDay`, `parseISO`, `isValid`
-- React 19.2.0: `useMemo` hook
+- React 19.2.0 (component framework)
+- Radix UI Dialog 1.1.15 (modal primitive)
+- Tailwind CSS 4.1.18 (styling)
 
 **Internal Modules:**
-- `../types`: Task type
+- `@/components/time-tracking/InsightCard` - Card component
+- `@/hooks/useTimeInsights` - Data hook (provides totalWeek)
+- `@/lib/timeFormatters` - formatDurationSummary function
 
 ### Configuration Changes
 
@@ -206,21 +179,27 @@ None required.
 
 **Code Style:**
 - No semicolons
-- Single quotes
+- Single quotes for strings
 - 2-space indentation
-- Functional React patterns
+- Tailwind classes in className strings
+
+**Component Patterns:**
+- Functional components with TypeScript
+- Props destructured in function signature
+- JSDoc comments for component documentation
 
 **Test Patterns:**
-- Vitest for unit tests
-- Tests located alongside source files (`.test.ts` suffix)
-- `describe`/`it` blocks with clear descriptions
+- Test files: `*.test.tsx` alongside source files
+- Vitest + Testing Library
+- Screen queries for assertions
 
 ### Test Framework & Standards
 
 - **Framework:** Vitest 3.2.4
-- **Test naming:** `*.test.ts` or `*.test.tsx`
+- **Assertion Library:** @testing-library/jest-dom
+- **Component Testing:** @testing-library/react
+- **File Pattern:** `ComponentName.test.tsx`
 - **Location:** Same directory as source file
-- **Existing tests:** `src/hooks/useOnlineStatus.test.ts`, `src/lib/syncQueue.test.ts`
 
 ---
 
@@ -229,37 +208,31 @@ None required.
 | Layer | Technology | Version |
 |-------|------------|---------|
 | Runtime | Node.js | 20.x |
-| Build Tool | Vite | 7.2.4 |
 | Framework | React | 19.2.0 |
 | Language | TypeScript | 5.9.3 |
+| Styling | Tailwind CSS | 4.1.18 |
+| UI Primitives | Radix UI | 1.1.15 |
 | Testing | Vitest | 3.2.4 |
-| Linting | ESLint | 9.39.1 |
-| Date Handling | date-fns | 4.1.0 |
+| Testing Utils | Testing Library | 16.3.1 |
 
 ---
 
 ## Technical Details
 
-**Algorithm Change:**
+**Width Calculation:**
+- Current: 420px
+- Target: 550px (30.95% increase, meets "at least 30% wider" requirement)
+- Mobile: Unchanged (full-width with padding)
 
-The current algorithm uses a nested conditional structure with category checks at multiple points. The fix simplifies this to a linear decision tree based purely on date:
+**Card Layout Math:**
+- 550px modal width - 48px padding (24px each side) = 502px content width
+- 3 cards with gap-3 (12px gaps) = 502px - 24px (2 gaps) = 478px for cards
+- Each card: ~159px width (auto-distributed by grid)
 
-1. Check if date is missing or invalid → Deferred
-2. Check if date is today → Today
-3. Check if date is in the past → Today (overdue surfacing)
-4. Check if date is tomorrow → Tomorrow
-5. Otherwise (future) → Deferred
-
-**Performance Considerations:**
-- No performance impact - same O(n) iteration over tasks
-- Fewer conditional checks may marginally improve performance
-- Target: < 5ms per existing tech-spec requirement
-
-**Edge Cases Handled:**
-- `null` deferredTo → Deferred
-- Empty string deferredTo → Deferred (via isValid check)
-- Invalid date string → Deferred
-- Past dates → Today (overdue surfacing preserved)
+**Data Flow:**
+- `useTimeInsights` hook returns `insights.totalWeek` (already calculated)
+- `formatDisplay()` converts milliseconds to "Xh Ym" format
+- No new calculations or data fetching required
 
 ---
 
@@ -269,7 +242,7 @@ The current algorithm uses a nested conditional structure with category checks a
 # Navigate to app directory
 cd today-app
 
-# Install dependencies (if not already done)
+# Install dependencies (if not already)
 npm install
 
 # Start development server
@@ -278,11 +251,8 @@ npm run dev
 # Run tests
 npm test
 
-# Run tests once
-npm run test:run
-
-# Type check
-npm run build  # includes tsc -b
+# Run specific test file
+npm test TimeInsightsModal
 ```
 
 ---
@@ -291,56 +261,47 @@ npm run build  # includes tsc -b
 
 ### Setup Steps
 
-1. Create feature branch: `git checkout -b fix/deferred-task-routing`
-2. Verify dev environment: `npm run dev`
-3. Review `src/hooks/useAutoSurface.ts` (already analyzed above)
+1. Ensure dev server is running (`npm run dev`)
+2. Open Time Insights modal (Cmd+Shift+T T) to see current state
+3. Have `TimeInsightsModal.tsx` open in editor
 
 ### Implementation Steps
 
-1. **Open `src/hooks/useAutoSurface.ts`**
-2. **Replace lines 46-78** with simplified logic (see Technical Approach section)
-3. **Update comments** to reflect new behavior:
-   - Remove references to category-based routing
-   - Update AC comments to match new acceptance criteria
-4. **Run tests:** `npm test`
-5. **Manual testing:**
-   - Create task with no date, no category → Should appear in Deferred
-   - Create task with future date, no category → Should appear in Deferred
-   - Verify Today/Tomorrow/Overdue behavior unchanged
+1. **Update modal width** (line 298):
+   - Change `md:max-w-[420px]` to `md:max-w-[550px]`
+
+2. **Update card grid** (line 399):
+   - Change `grid-cols-2` to `grid-cols-3`
+   - Change `gap-4` to `gap-3`
+
+3. **Add Total card** (insert at line 400, before Today card):
+   - Add new `InsightCard` with label="Total", value from `insights?.totalWeek`, sublabel="this week"
+
+4. **Update test file** to verify Total card renders
 
 ### Testing Strategy
 
-**Unit Tests (create `src/hooks/useAutoSurface.test.ts`):**
-
-| Test Case | Input | Expected Output |
-|-----------|-------|-----------------|
-| No date, no category | `{ deferredTo: null, category: null }` | deferredTasks |
-| No date, with category | `{ deferredTo: null, category: 'Work' }` | deferredTasks |
-| Today's date | `{ deferredTo: today }` | todayTasks |
-| Tomorrow's date | `{ deferredTo: tomorrow }` | tomorrowTasks |
-| Future date, no category | `{ deferredTo: nextWeek, category: null }` | deferredTasks |
-| Future date, with category | `{ deferredTo: nextWeek, category: 'Work' }` | deferredTasks |
-| Past date (overdue) | `{ deferredTo: yesterday }` | todayTasks |
-| Invalid date string | `{ deferredTo: 'invalid' }` | deferredTasks |
-| Completed task | `{ completedAt: now }` | excluded from all |
+**Unit Tests:**
+- Verify "Total" card renders with correct label
+- Verify "Total" card displays formatted totalWeek value
+- Verify 3-card layout renders correctly
 
 **Manual Testing:**
-1. Open app in browser
-2. Create a new task (should appear in Today initially - this is ADD behavior, not the bug)
-3. Edit task, set future date (next week), no category → Should move to Deferred
-4. Edit task, set future date, add category → Should stay in Deferred
-5. Edit task, remove date entirely → Should stay in Deferred
-6. Verify Today/Tomorrow views still work correctly
+- Open modal on desktop - verify wider appearance
+- Verify all 3 cards display in a row
+- Verify Total shows correct weekly total
+- Test on mobile - verify responsive behavior unchanged
+- Test loading state - verify all 3 cards show skeleton
 
 ### Acceptance Criteria
 
-1. **AC-1:** Tasks with future dates (beyond tomorrow) appear in Deferred view regardless of category
-2. **AC-2:** Tasks with no date appear in Deferred view regardless of category
-3. **AC-3:** Tasks with invalid dates appear in Deferred view
-4. **AC-4:** Tasks with today's date appear in Today view (unchanged)
-5. **AC-5:** Tasks with tomorrow's date appear in Tomorrow view (unchanged)
-6. **AC-6:** Overdue tasks (past dates) appear in Today view (unchanged)
-7. **AC-7:** Completed tasks are excluded from all views (unchanged)
+1. Modal is at least 30% wider on desktop (550px vs 420px = 31%)
+2. "Total" card displays as first card in the row
+3. "Total" card shows total time tracked this week
+4. All 3 cards have equal width in the grid
+5. Mobile layout remains unchanged (full-width bottom sheet)
+6. Loading state shows skeleton for all 3 cards
+7. Existing tests continue to pass
 
 ---
 
@@ -348,55 +309,71 @@ npm run build  # includes tsc -b
 
 ### File Paths Reference
 
-| File | Purpose |
-|------|---------|
-| `/today-app/src/hooks/useAutoSurface.ts` | **MODIFY** - Main bug fix location |
-| `/today-app/src/hooks/useAutoSurface.test.ts` | **CREATE** - Unit tests for the hook |
+- `/today-app/src/components/time-tracking/TimeInsightsModal.tsx`
+- `/today-app/src/components/time-tracking/TimeInsightsModal.test.tsx`
+- `/today-app/src/components/time-tracking/InsightCard.tsx`
+- `/today-app/src/hooks/useTimeInsights.ts`
 
 ### Key Code Locations
 
-| Code Element | Location |
-|--------------|----------|
-| `useAutoSurface` hook | `src/hooks/useAutoSurface.ts:16` |
-| Task filtering logic | `src/hooks/useAutoSurface.ts:46-78` |
-| Task type definition | `src/types/index.ts:29` |
-| date-fns imports | `src/hooks/useAutoSurface.ts:2` |
+- Modal width class: `TimeInsightsModal.tsx:298`
+- Card grid container: `TimeInsightsModal.tsx:399`
+- Today card: `TimeInsightsModal.tsx:401-406`
+- Avg/Day card: `TimeInsightsModal.tsx:408-413`
+- totalWeek calculation: `useTimeInsights.ts:225`
+- formatDisplay function: `TimeInsightsModal.tsx:224-227`
 
 ### Testing Locations
 
-- Unit tests: `src/hooks/useAutoSurface.test.ts` (to be created)
-- Existing test examples: `src/hooks/useOnlineStatus.test.ts`
+- Component tests: `today-app/src/components/time-tracking/TimeInsightsModal.test.tsx`
+- Hook tests: `today-app/src/hooks/useTimeInsights.test.ts`
 
 ### Documentation to Update
 
-- Update inline comments in `useAutoSurface.ts` to reflect new behavior
-- No external documentation changes required
+None required - this is a minor UI enhancement.
 
 ---
 
 ## UX/UI Considerations
 
-**No UI changes required.** This is a logic-only fix. The views (TodayView, TomorrowView, DeferredView) will automatically display the correct tasks based on the fixed filtering logic.
+**UI Components Affected:**
+- `TimeInsightsModal` - Width and card layout changes
 
-**User Impact:**
-- Tasks that were incorrectly appearing in Today will now correctly appear in Deferred
-- Users may notice tasks "moving" to the correct view after the fix
+**Visual Changes:**
+- Modal 30% wider on desktop (420px -> 550px)
+- 3-column card grid instead of 2-column
+- New "Total" card showing weekly time total
+
+**Responsive Design:**
+- Desktop: 550px max-width with 3-column cards
+- Mobile: Full-width bottom sheet (unchanged)
+
+**Accessibility:**
+- InsightCard already has `role="region"` and `aria-label`
+- New card inherits same accessibility patterns
 
 ---
 
 ## Testing Approach
 
-**Test Framework:** Vitest 3.2.4
+**Test Framework:** Vitest 3.2.4 + Testing Library
 
-**Unit Tests:**
-- Create `src/hooks/useAutoSurface.test.ts`
-- Test all date scenarios with and without categories
-- Verify completed tasks are filtered
-- Use `describe`/`it` blocks matching existing patterns
+**Unit Tests to Add:**
+```tsx
+it('renders Total card with weekly time', () => {
+  render(<TimeInsightsModal isOpen={true} onClose={vi.fn()} userId="test" />)
+  expect(screen.getByText('Total')).toBeInTheDocument()
+  expect(screen.getByText('this week')).toBeInTheDocument()
+})
+```
 
-**Coverage Target:**
-- 100% of conditional branches in the filtering logic
-- All edge cases documented above
+**Manual Test Checklist:**
+- [ ] Modal opens at 550px width on desktop
+- [ ] All 3 cards (Total, Today, Avg/Day) display in single row
+- [ ] Total card shows correct weekly time
+- [ ] Cards have equal widths
+- [ ] Mobile layout unchanged
+- [ ] Loading skeletons appear for all 3 cards
 
 ---
 
@@ -405,18 +382,18 @@ npm run build  # includes tsc -b
 ### Deployment Steps
 
 1. Merge PR to main branch
-2. Vite build triggered automatically (or `npm run build`)
-3. Deploy to hosting (Vercel/Netlify/etc.)
-4. Verify in production
+2. Automated build via CI
+3. Deploy to staging/preview
+4. Verify modal changes in staging
+5. Deploy to production
 
 ### Rollback Plan
 
-1. Revert the commit: `git revert <commit-hash>`
-2. Redeploy
-3. Verify tasks appear in original locations
+1. Revert the commit changing TimeInsightsModal.tsx
+2. Redeploy previous version
+3. Verify modal returns to 420px with 2 cards
 
 ### Monitoring
 
-- Check browser console for any errors in dev mode
-- Verify IndexedDB sync continues working
-- Monitor Supabase logs for any sync issues (unlikely - this is frontend-only)
+- No new monitoring needed
+- Existing error boundaries handle component failures

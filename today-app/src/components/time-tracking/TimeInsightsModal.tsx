@@ -26,16 +26,16 @@ interface TimeInsightsModalProps {
 }
 
 /**
- * Time Insights Modal - Stories 2.1, 2.2, 2.3
+ * Time Insights Modal - Stories 2.1, 2.2, 2.3, 6.1
  *
- * Larger modal (420px width) for viewing time tracking insights.
+ * Larger modal (550px width) for viewing time tracking insights.
  * Opened via double-tap Cmd+Shift+T T keyboard shortcut.
  *
  * Features:
- * - 420px width (desktop), full-width minus padding (mobile)
+ * - 550px width (desktop), full-width minus padding (mobile)
  * - Max-height 80vh with scrollable content
  * - Title "Time Insights" with close button
- * - TODAY and AVG / DAY summary cards
+ * - TOTAL, TODAY, and AVG / DAY summary cards (3-column grid)
  * - Task breakdown section for today
  * - Recent entries section with relative timestamps
  *
@@ -295,7 +295,7 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-surface p-6 shadow-lg focus:outline-none data-[state=open]:animate-slide-up bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-[420px] md:rounded-lg max-h-[80vh] overflow-y-auto"
+          className="fixed left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-surface p-6 shadow-lg focus:outline-none data-[state=open]:animate-slide-up bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-[550px] md:rounded-lg max-h-[80vh] overflow-y-auto"
           aria-describedby={undefined}
         >
           {/* Header */}
@@ -396,7 +396,14 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
             </div>
 
             {/* Summary Cards Section */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
+              {/* TOTAL card */}
+              <InsightCard
+                label="Total"
+                value={isLoading ? '--' : formatDisplay(insights?.totalWeek ?? 0)}
+                sublabel="this week"
+                isLoading={isLoading}
+              />
               {/* TODAY card */}
               <InsightCard
                 label="Today"
