@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useDeferredViewHotkeys } from '../hooks/useDeferredViewHotkeys'
 import type { Task, TaskNotes } from '../types'
 import { CategorySection } from '../components/CategorySection'
 import { EmptyState } from '../components/EmptyState'
@@ -32,10 +33,8 @@ export const DeferredView = ({
   onCreateCategory,
   onNotesUpdate,
 }: DeferredViewProps) => {
-  // AC-3.5.4: Track which categories are expanded (first one by default)
+  // All categories collapsed by default
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-  // Track if we've initialized the expanded state
-  const [hasInitialized, setHasInitialized] = useState(false)
 
   // Group pre-filtered tasks by category - memoized for performance
   // Tasks are already filtered by useAutoSurface hook in App.tsx (AC-4.2.5)
@@ -59,14 +58,6 @@ export const DeferredView = ({
     )
   }, [tasksByCategory])
 
-  // AC-3.5.4: Initialize first category as expanded on mount
-  useEffect(() => {
-    if (!hasInitialized && sortedCategories.length > 0) {
-      setExpandedCategories(new Set([sortedCategories[0]]))
-      setHasInitialized(true)
-    }
-  }, [sortedCategories, hasInitialized])
-
   // AC-3.5.3: Toggle category expand/collapse
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => {
@@ -79,6 +70,22 @@ export const DeferredView = ({
       return next
     })
   }
+
+  // Toggle all categories: if any expanded -> collapse all, if all collapsed -> expand all
+  const toggleAllCategories = useCallback(() => {
+    setExpandedCategories((prev) => {
+      if (prev.size > 0) {
+        // Some categories expanded -> collapse all
+        return new Set()
+      } else {
+        // All collapsed -> expand all
+        return new Set(sortedCategories)
+      }
+    })
+  }, [sortedCategories])
+
+  // Cmd+Opt+A / Ctrl+Alt+A hotkey to toggle all categories
+  useDeferredViewHotkeys(toggleAllCategories)
 
   // AC-4.4.3: Empty state with single combined message per UX spec
   if (sortedCategories.length === 0) {
