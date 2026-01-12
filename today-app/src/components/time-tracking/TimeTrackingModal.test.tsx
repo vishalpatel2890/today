@@ -29,6 +29,15 @@ vi.mock('../../hooks/useTimeEntries', () => ({
       created_at: '2026-01-11T10:00:00.000Z',
       updated_at: '2026-01-11T10:00:00.000Z',
     }),
+    updateEntry: vi.fn().mockResolvedValue({}),
+    deleteEntry: vi.fn().mockResolvedValue(undefined),
+    syncEntries: vi.fn().mockResolvedValue(undefined),
+    refreshEntries: vi.fn().mockResolvedValue(undefined),
+    fetchAndMerge: vi.fn().mockResolvedValue(undefined),
+    entries: [],
+    isLoading: false,
+    error: null,
+    pendingCount: 0,
   })),
 }))
 
@@ -302,6 +311,7 @@ describe('TimeTrackingModal', () => {
 
       vi.mocked(useTimeEntries).mockReturnValue({
         addEntry: mockAddEntry,
+        updateEntry: vi.fn(),
         entries: [],
         isLoading: false,
         error: null,
@@ -377,6 +387,7 @@ describe('TimeTrackingModal', () => {
 
       vi.mocked(useTimeEntries).mockReturnValue({
         addEntry: mockAddEntry,
+        updateEntry: vi.fn(),
         entries: [],
         isLoading: false,
         error: null,

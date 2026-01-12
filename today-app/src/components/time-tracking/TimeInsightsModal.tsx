@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { useTimeInsights } from '../../hooks/useTimeInsights'
+import { useTimeEntries } from '../../hooks/useTimeEntries'
 import { InsightCard } from './InsightCard'
 import { InsightRow } from './InsightRow'
 import { QuickFilterBar } from './QuickFilterBar'
@@ -9,8 +10,10 @@ import { DateRangePicker } from './DateRangePicker'
 import { FilterChip } from './FilterChip'
 import { FilterDropdown, type FilterOption } from './FilterDropdown'
 import { MultiSelectTaskFilter } from './MultiSelectTaskFilter'
+import { EditTimeEntryModal } from './EditTimeEntryModal'
+import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { formatDurationSummary, formatDateRange } from '../../lib/timeFormatters'
-import type { DatePreset, DateRange } from '../../types/timeTracking'
+import type { DatePreset, DateRange, TimeEntry } from '../../types/timeTracking'
 import type { Task } from '../../types'
 
 interface TimeInsightsModalProps {
@@ -59,6 +62,11 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
   const [category, setCategory] = useState<string | null>(null)
 
+  // Edit/Delete modal state - Swipe Actions Story 1.1
+  const [editEntry, setEditEntry] = useState<TimeEntry | null>(null)
+  const [deleteEntry, setDeleteEntry] = useState<TimeEntry | null>(null)
+  const [revealedRowId, setRevealedRowId] = useState<string | null>(null)
+
   // Build task categories lookup map (taskId -> category)
   const taskCategories = useMemo(() => {
     const map = new Map<string, string | null>()
@@ -68,10 +76,13 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
     return map
   }, [tasks])
 
+  // Time entries hook for update/delete operations
+  const { updateEntry, deleteEntry: deleteEntryFn, syncEntries } = useTimeEntries()
+
   // Pass filters to insights hook (including task/category filters)
   // Story 1.2: Use taskIds array for multi-select
   // Data isolation: userId is required to prevent seeing other users' entries
-  const { insights, isLoading, error, entries } = useTimeInsights(userId, {
+  const { insights, isLoading, error, entries, removeEntry, updateEntryLocal } = useTimeInsights(userId, {
     datePreset,
     customRange,
     taskIds: selectedTaskIds.length > 0 ? selectedTaskIds : null,
@@ -214,6 +225,70 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
     if (ms === 0) return '0m'
     return formatDurationSummary(ms)
   }
+
+  /**
+   * Handle row swipe reveal state change (AC-3: single-row-revealed)
+   * Ensures only one row can have actions revealed at a time
+   */
+  const handleRowRevealChange = useCallback((entryId: string, revealed: boolean) => {
+    if (revealed) {
+      setRevealedRowId(entryId)
+    } else if (revealedRowId === entryId) {
+      setRevealedRowId(null)
+    }
+  }, [revealedRowId])
+
+  /**
+   * Handle edit action from InsightRow (AC-4)
+   */
+  const handleEdit = useCallback((entry: TimeEntry) => {
+    setEditEntry(entry)
+    setRevealedRowId(null)
+  }, [])
+
+  /**
+   * Handle delete action from InsightRow (AC-7)
+   */
+  const handleDelete = useCallback((entry: TimeEntry) => {
+    setDeleteEntry(entry)
+    setRevealedRowId(null)
+  }, [])
+
+  /**
+   * Handle save from EditTimeEntryModal (AC-6)
+   */
+  const handleEditSave = useCallback(async (id: string, updates: Partial<TimeEntry>) => {
+    // Optimistic update: update UI immediately
+    updateEntryLocal(id, updates)
+
+    // Persist to IndexedDB and queue for sync
+    await updateEntry(id, updates)
+
+    // Sync to Supabase in background (non-blocking)
+    if (navigator.onLine) {
+      syncEntries().catch((syncError) => {
+        console.warn('[Today] TimeInsightsModal: Sync failed, will retry later', syncError)
+      })
+    }
+  }, [updateEntry, syncEntries, updateEntryLocal])
+
+  /**
+   * Handle confirm from DeleteConfirmDialog (AC-8)
+   */
+  const handleDeleteConfirm = useCallback(async (id: string) => {
+    // Optimistic update: remove from UI immediately
+    removeEntry(id)
+
+    // Persist to IndexedDB and queue for sync
+    await deleteEntryFn(id)
+
+    // Sync to Supabase in background (non-blocking)
+    if (navigator.onLine) {
+      syncEntries().catch((syncError) => {
+        console.warn('[Today] TimeInsightsModal: Sync failed, will retry later', syncError)
+      })
+    }
+  }, [deleteEntryFn, syncEntries, removeEntry])
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -403,7 +478,14 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
                   aria-label="Recent time entries"
                 >
                   {insights.recentEntries.map((entry) => (
-                    <InsightRow key={entry.id} entry={entry} />
+                    <InsightRow
+                      key={entry.id}
+                      entry={entry}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      isRevealed={revealedRowId === entry.id}
+                      onRevealChange={handleRowRevealChange}
+                    />
                   ))}
                 </div>
               ) : (
@@ -417,6 +499,23 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+
+      {/* Edit Time Entry Modal - Swipe Actions Story (AC-4, AC-5, AC-6) */}
+      <EditTimeEntryModal
+        isOpen={editEntry !== null}
+        onClose={() => setEditEntry(null)}
+        entry={editEntry}
+        tasks={tasks}
+        onSave={handleEditSave}
+      />
+
+      {/* Delete Confirmation Dialog - Swipe Actions Story (AC-7, AC-8, AC-9) */}
+      <DeleteConfirmDialog
+        isOpen={deleteEntry !== null}
+        onClose={() => setDeleteEntry(null)}
+        entry={deleteEntry}
+        onConfirm={handleDeleteConfirm}
+      />
     </Dialog.Root>
   )
 }

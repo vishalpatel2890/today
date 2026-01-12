@@ -181,32 +181,44 @@ describe('InsightRow', () => {
   })
 
   describe('styling', () => {
-    it('should have hover transition class', () => {
+    it('should have hover transition class on content div', () => {
       const entry = createEntry()
       render(<InsightRow entry={entry} />)
 
       const listitem = screen.getByRole('listitem')
-      expect(listitem.className).toContain('hover:bg-slate-50')
-      expect(listitem.className).toContain('transition-colors')
+      // Content div is the last child of the listitem
+      const contentDiv = listitem.lastElementChild as HTMLElement
+      expect(contentDiv.className).toContain('hover:bg-slate-50')
+      expect(contentDiv.className).toContain('transition-transform')
     })
 
-    it('should have appropriate padding', () => {
+    it('should have appropriate padding on content div', () => {
       const entry = createEntry()
       render(<InsightRow entry={entry} />)
 
       const listitem = screen.getByRole('listitem')
-      expect(listitem.className).toContain('px-4')
-      expect(listitem.className).toContain('py-2.5')
+      const contentDiv = listitem.lastElementChild as HTMLElement
+      expect(contentDiv.className).toContain('px-4')
+      expect(contentDiv.className).toContain('py-2.5')
     })
 
-    it('should have flex layout for proper alignment', () => {
+    it('should have flex layout for proper alignment on content div', () => {
       const entry = createEntry()
       render(<InsightRow entry={entry} />)
 
       const listitem = screen.getByRole('listitem')
-      expect(listitem.className).toContain('flex')
-      expect(listitem.className).toContain('items-center')
-      expect(listitem.className).toContain('justify-between')
+      const contentDiv = listitem.lastElementChild as HTMLElement
+      expect(contentDiv.className).toContain('flex')
+      expect(contentDiv.className).toContain('items-center')
+      expect(contentDiv.className).toContain('justify-between')
+    })
+
+    it('should have overflow hidden on listitem for swipe actions', () => {
+      const entry = createEntry()
+      render(<InsightRow entry={entry} />)
+
+      const listitem = screen.getByRole('listitem')
+      expect(listitem.className).toContain('overflow-hidden')
     })
   })
 

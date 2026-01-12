@@ -7,6 +7,7 @@ import {
   getPendingEntries,
   bulkUpsertTimeEntries as bulkUpsertTimeEntriesDb,
   deleteTimeEntry as deleteTimeEntryDb,
+  updateTimeEntry as updateTimeEntryDb,
 } from '../lib/timeTrackingDb'
 import { queueOperation } from '../lib/syncQueue'
 import {
@@ -37,6 +38,8 @@ export interface UseTimeEntriesResult {
   pendingCount: number
   /** Add a new time entry */
   addEntry: (entry: Omit<TimeEntry, 'id' | 'created_at' | 'updated_at'>) => Promise<TimeEntry>
+  /** Update an existing time entry */
+  updateEntry: (id: string, updates: Partial<Omit<TimeEntry, 'id' | 'user_id' | 'created_at'>>) => Promise<TimeEntry>
   /** Delete a time entry by ID */
   deleteEntry: (id: string) => Promise<void>
   /** Trigger sync of pending entries to Supabase */
@@ -193,6 +196,66 @@ export function useTimeEntries(): UseTimeEntriesResult {
       throw error
     }
   }, [])
+
+  /**
+   * Update an existing time entry
+   *
+   * 1. Updates in IndexedDB
+   * 2. Queues UPDATE for sync
+   * 3. Updates React state optimistically
+   *
+   * Source: notes/tech-spec-swipe-actions.md#Update Entry Logic
+   *
+   * @param id - Time entry ID to update
+   * @param updates - Partial time entry fields to update
+   * @returns The updated time entry
+   */
+  const updateEntry = useCallback(
+    async (
+      id: string,
+      updates: Partial<Omit<TimeEntry, 'id' | 'user_id' | 'created_at'>>
+    ): Promise<TimeEntry> => {
+      try {
+        // Update in IndexedDB (sets _syncStatus to 'pending')
+        const updated = await updateTimeEntryDb(id, updates)
+
+        // Queue for sync
+        await queueOperation('UPDATE', 'time_entries', id, {
+          id: updated.id,
+          user_id: updated.user_id,
+          task_id: updated.task_id,
+          task_name: updated.task_name,
+          start_time: updated.start_time,
+          end_time: updated.end_time,
+          duration: updated.duration,
+          date: updated.date,
+          created_at: updated.created_at,
+          updated_at: updated.updated_at,
+        })
+
+        // Update local state
+        setEntries(prev =>
+          prev.map(e =>
+            e.id === id
+              ? { ...updated, _syncStatus: 'pending' }
+              : e
+          )
+        )
+        setError(null)
+
+        if (import.meta.env.DEV) {
+          console.log('[Today] useTimeEntries: Updated entry', id)
+        }
+
+        return updated
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to update time entry')
+        setError(error)
+        throw error
+      }
+    },
+    []
+  )
 
   /**
    * Sync pending entries to Supabase
@@ -354,6 +417,7 @@ export function useTimeEntries(): UseTimeEntriesResult {
     error,
     pendingCount,
     addEntry,
+    updateEntry,
     deleteEntry,
     syncEntries,
     refreshEntries,

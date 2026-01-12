@@ -1,9 +1,25 @@
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import type { TimeEntry } from '../../types/timeTracking'
 import { formatRelativeTimestamp, formatDurationSummary } from '../../lib/timeFormatters'
+
+/** Width of the action buttons area (Edit + Delete) */
+const ACTION_WIDTH = 120
+
+/** If swiped past this threshold, snap open; otherwise snap closed */
+const SNAP_THRESHOLD = 60
 
 interface InsightRowProps {
   /** Time entry to display */
   entry: TimeEntry
+  /** Callback when edit action is clicked */
+  onEdit?: (entry: TimeEntry) => void
+  /** Callback when delete action is clicked */
+  onDelete?: (entry: TimeEntry) => void
+  /** Whether this row is currently revealed (controlled by parent) */
+  isRevealed?: boolean
+  /** Callback when swipe state changes (for single-row-revealed management) */
+  onRevealChange?: (entryId: string, revealed: boolean) => void
 }
 
 /**
@@ -15,37 +31,201 @@ interface InsightRowProps {
  * - Duration (right): "1h 23m" or "42m"
  *
  * Features:
+ * - Swipe-to-reveal Edit and Delete action buttons (iOS Mail-style)
+ * - Two-finger trackpad horizontal scroll detection
+ * - Snap behavior with threshold
  * - Subtle hover state (light background highlight)
  * - Accessible with role="listitem" and aria-label
  * - Typography per UX spec: 13px timestamp, 15px task name, 14px duration
  *
  * Source: notes/ux-design-time-tracking.md#6.1 InsightRow
  * Source: notes/sprint-artifacts/tech-spec-epic-2.md#AC5.2, AC5.6
+ * Source: notes/tech-spec-swipe-actions.md#Swipe Gesture Implementation
  */
-export const InsightRow = ({ entry }: InsightRowProps) => {
+export const InsightRow = ({
+  entry,
+  onEdit,
+  onDelete,
+  isRevealed = false,
+  onRevealChange,
+}: InsightRowProps) => {
   const timestamp = formatRelativeTimestamp(entry.start_time)
   const duration = formatDurationSummary(entry.duration)
 
+  // Swipe state
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const scrollEndTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Sync with controlled isRevealed prop
+  useEffect(() => {
+    if (isRevealed) {
+      setSwipeOffset(ACTION_WIDTH)
+    } else if (!isDragging) {
+      setSwipeOffset(0)
+    }
+  }, [isRevealed, isDragging])
+
+  /**
+   * Handle wheel event for trackpad swipe detection
+   * Filters for horizontal scrolls (two-finger trackpad gesture)
+   */
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      // Only handle horizontal scrolls (two-finger swipe on trackpad)
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) {
+        return
+      }
+
+      // Prevent page scrolling when swiping
+      e.preventDefault()
+
+      setIsDragging(true)
+
+      // Clear previous scroll end timeout
+      if (scrollEndTimeout.current) {
+        clearTimeout(scrollEndTimeout.current)
+      }
+
+      // Update offset based on deltaX (negative = swipe left = reveal actions)
+      setSwipeOffset((prev) => {
+        const newOffset = Math.max(0, Math.min(ACTION_WIDTH, prev + e.deltaX))
+        return newOffset
+      })
+
+      // Detect scroll end with debounce
+      scrollEndTimeout.current = setTimeout(() => {
+        setIsDragging(false)
+
+        // Snap to open or closed based on threshold
+        setSwipeOffset((prev) => {
+          const shouldSnap = prev > SNAP_THRESHOLD
+          const newOffset = shouldSnap ? ACTION_WIDTH : 0
+
+          // Notify parent of reveal state change
+          if (onRevealChange) {
+            onRevealChange(entry.id, shouldSnap)
+          }
+
+          return newOffset
+        })
+      }, 150)
+    },
+    [entry.id, onRevealChange]
+  )
+
+  // Attach wheel event listener
+  useEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+
+    row.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      row.removeEventListener('wheel', handleWheel)
+      if (scrollEndTimeout.current) {
+        clearTimeout(scrollEndTimeout.current)
+      }
+    }
+  }, [handleWheel])
+
+  /**
+   * Handle click outside to close revealed actions
+   */
+  const handleClickOutside = useCallback(() => {
+    if (swipeOffset > 0 && !isDragging) {
+      setSwipeOffset(0)
+      onRevealChange?.(entry.id, false)
+    }
+  }, [swipeOffset, isDragging, entry.id, onRevealChange])
+
+  /**
+   * Handle edit button click
+   */
+  const handleEditClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onEdit?.(entry)
+      // Close actions after clicking
+      setSwipeOffset(0)
+      onRevealChange?.(entry.id, false)
+    },
+    [entry, onEdit, onRevealChange]
+  )
+
+  /**
+   * Handle delete button click
+   */
+  const handleDeleteClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onDelete?.(entry)
+      // Close actions after clicking
+      setSwipeOffset(0)
+      onRevealChange?.(entry.id, false)
+    },
+    [entry, onDelete, onRevealChange]
+  )
+
+  const isActionVisible = swipeOffset > 0
+
   return (
     <div
+      ref={rowRef}
       role="listitem"
       aria-label={`${entry.task_name}: ${duration} on ${timestamp}`}
-      className="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors"
+      className="relative overflow-hidden"
+      onClick={handleClickOutside}
     >
-      {/* Relative timestamp (left) */}
-      <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[90px]">
-        {timestamp}
-      </span>
+      {/* Action buttons (positioned behind the sliding content) */}
+      <div
+        className="absolute right-0 top-0 bottom-0 flex items-center"
+        style={{ width: ACTION_WIDTH }}
+        aria-hidden={!isActionVisible}
+      >
+        <button
+          type="button"
+          onClick={handleEditClick}
+          className="flex-1 h-full flex items-center justify-center bg-slate-500 text-white hover:bg-slate-600 transition-colors"
+          aria-label="Edit time entry"
+          tabIndex={isActionVisible ? 0 : -1}
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleDeleteClick}
+          className="flex-1 h-full flex items-center justify-center bg-red-500 text-white hover:bg-red-600 transition-colors"
+          aria-label="Delete time entry"
+          tabIndex={isActionVisible ? 0 : -1}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
 
-      {/* Task name (center, truncated) */}
-      <span className="text-sm text-foreground truncate mx-3 flex-1 min-w-0">
-        {entry.task_name}
-      </span>
+      {/* Row content (slides left to reveal actions) */}
+      <div
+        className="flex items-center justify-between px-4 py-2.5 bg-surface-muted hover:bg-slate-50 transition-transform"
+        style={{
+          transform: `translateX(-${swipeOffset}px)`,
+          transition: isDragging ? 'none' : 'transform 200ms ease-out',
+        }}
+      >
+        {/* Relative timestamp (left) */}
+        <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[90px]">
+          {timestamp}
+        </span>
 
-      {/* Duration (right) */}
-      <span className="text-sm font-medium text-foreground tabular-nums whitespace-nowrap">
-        {duration}
-      </span>
+        {/* Task name (center, truncated) */}
+        <span className="text-sm text-foreground truncate mx-3 flex-1 min-w-0">
+          {entry.task_name}
+        </span>
+
+        {/* Duration (right) */}
+        <span className="text-sm font-medium text-foreground tabular-nums whitespace-nowrap">
+          {duration}
+        </span>
+      </div>
     </div>
   )
 }

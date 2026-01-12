@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { format, startOfWeek, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns'
 import type { TimeEntry, TimeInsights, DatePreset, DateRange } from '../types/timeTracking'
-import { getTimeEntriesByUserId } from '../lib/timeTrackingDb'
+import { getTimeEntriesByUserId, bulkUpsertTimeEntries } from '../lib/timeTrackingDb'
 import { fetchTimeEntries as fetchTimeEntriesFromSupabase } from '../lib/supabaseTimeEntries'
 import { getDateRangeForPreset } from '../lib/timeFormatters'
 
@@ -38,6 +38,10 @@ export interface UseTimeInsightsReturn {
   refetch: () => void
   /** Raw time entries for deriving filter options - Story 3.3 */
   entries: TimeEntry[]
+  /** Remove an entry from local state (optimistic update) */
+  removeEntry: (id: string) => void
+  /** Update an entry in local state (optimistic update) */
+  updateEntryLocal: (id: string, updates: Partial<TimeEntry>) => void
 }
 
 /**
@@ -102,6 +106,14 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
             if (import.meta.env.DEV) {
               console.log('[Today] TimeInsights: Fetched from Supabase', userEntries.length)
             }
+            // Cache in IndexedDB for offline use and local edits
+            if (userEntries.length > 0) {
+              const cachedEntries = userEntries.map((e) => ({
+                ...e,
+                _syncStatus: 'synced' as const,
+              }))
+              await bulkUpsertTimeEntries(cachedEntries)
+            }
           } catch (supabaseError) {
             // Supabase failed, fall back to IndexedDB
             console.warn('[Today] TimeInsights: Supabase fetch failed, using cache', supabaseError)
@@ -138,6 +150,18 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
   // Refetch function for manual refresh
   const refetch = useCallback(() => {
     setRefreshKey((k) => k + 1)
+  }, [])
+
+  // Optimistic update: remove an entry from local state immediately
+  const removeEntry = useCallback((id: string) => {
+    setEntries((prev) => prev.filter((e) => e.id !== id))
+  }, [])
+
+  // Optimistic update: update an entry in local state immediately
+  const updateEntryLocal = useCallback((id: string, updates: Partial<TimeEntry>) => {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    )
   }, [])
 
   // Calculate insights using useMemo (per ADR-TT-004)
@@ -258,5 +282,7 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
     error,
     refetch,
     entries,
+    removeEntry,
+    updateEntryLocal,
   }
 }

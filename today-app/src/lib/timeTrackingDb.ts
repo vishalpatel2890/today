@@ -277,6 +277,53 @@ export async function deleteTimeEntry(id: string): Promise<void> {
 }
 
 /**
+ * Update a time entry in IndexedDB
+ *
+ * Updates an existing time entry with new field values.
+ * Used by edit functionality to modify duration, date, task assignment, etc.
+ *
+ * Source: notes/tech-spec-swipe-actions.md#Update Entry Logic
+ *
+ * @param id - The time entry ID to update
+ * @param updates - Partial time entry fields to update (excluding id, user_id, created_at)
+ * @returns The updated cached time entry
+ * @throws Error if entry not found
+ */
+export async function updateTimeEntry(
+  id: string,
+  updates: Partial<Omit<TimeEntry, 'id' | 'user_id' | 'created_at'>>
+): Promise<CachedTimeEntry> {
+  const existing = await timeTrackingDb.timeEntries.get(id)
+
+  if (!existing) {
+    throw new Error(`Time entry not found: ${id}`)
+  }
+
+  const now = new Date().toISOString()
+
+  // Merge updates with existing entry
+  const updated: CachedTimeEntry = {
+    ...existing,
+    ...updates,
+    updated_at: now,
+    _syncStatus: 'pending', // Mark for re-sync
+  }
+
+  // Recalculate date field if start_time changed
+  if (updates.start_time) {
+    updated.date = updates.start_time.split('T')[0]
+  }
+
+  await timeTrackingDb.timeEntries.put(updated)
+
+  if (import.meta.env.DEV) {
+    console.log('[Today] TimeTracking: Updated time entry', id, updates)
+  }
+
+  return updated
+}
+
+/**
  * Get time entries from IndexedDB filtered by user_id
  *
  * Used for offline fallback when Supabase is unavailable.
