@@ -1,4 +1,5 @@
 import { useReducer, useState, useCallback, useRef, useEffect } from 'react'
+import { startOfDay } from 'date-fns'
 import type { Task, AppState, TaskNotes } from '../types'
 import { loadState, saveState } from '../utils/storage'
 import { supabase } from '../lib/supabase'
@@ -33,7 +34,7 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
           id: action.id,
           text: action.text.trim(),
           createdAt: new Date().toISOString(),
-          deferredTo: null,
+          deferredTo: startOfDay(new Date()).toISOString(),
           category: null,
           completedAt: null,
           notes: null,
@@ -420,11 +421,12 @@ export const useTasks = (userId: string | null) => {
     dispatch({ type: 'ADD_TASK', id, text: trimmedText })
 
     // Create the task object for storage
+    const todayDate = startOfDay(new Date()).toISOString()
     const newTask: Task = {
       id,
       text: trimmedText,
       createdAt: now,
-      deferredTo: null,
+      deferredTo: todayDate,
       category: null,
       completedAt: null,
       notes: null,
@@ -440,6 +442,7 @@ export const useTasks = (userId: string | null) => {
         user_id: userId,
         text: trimmedText,
         created_at: now,
+        deferred_to: todayDate,
       }
 
       if (navigator.onLine) {
