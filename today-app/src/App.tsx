@@ -10,9 +10,11 @@ import { useTasks } from './hooks/useTasks'
 import { useAuth } from './hooks/useAuth'
 import { useAutoSurface } from './hooks/useAutoSurface'
 import { useTimeTrackingHotkeys } from './hooks/useTimeTrackingHotkeys'
+import { useCompletedTasksHotkey } from './hooks/useCompletedTasksHotkey'
 import { LinkEmailModal } from './components/LinkEmailModal'
 import { TimeTrackingModal } from './components/time-tracking/TimeTrackingModal'
 import { TimeInsightsModal } from './components/time-tracking/TimeInsightsModal'
+import { CompletedTasksModal } from './components/CompletedTasksModal'
 
 /**
  * Inner App component that uses toast context
@@ -23,8 +25,9 @@ const AppContent = () => {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [isTimeTrackingOpen, setIsTimeTrackingOpen] = useState(false)
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false)
   const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus, otpStatus, otpError, pendingEmail, verifyOtp, resendOtp, resetOtpStatus } = useAuth()
-  const { tasks, categories, addTask, completeTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
+  const { tasks, categories, addTask, completeTask, uncompleteTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
   // AC-4.2.5: Auto-surface tasks based on date on app load
@@ -45,6 +48,20 @@ const AppContent = () => {
 
   // Register global hotkeys (AC1, AC2, AC4, AC5, AC6)
   useTimeTrackingHotkeys(handleOpenTracking, handleOpenInsights)
+
+  // Completed tasks modal handler (Story: Completed Tasks View)
+  const handleOpenCompleted = useCallback(() => {
+    setIsCompletedModalOpen(prev => !prev)
+  }, [])
+
+  // Register Cmd+Opt+D hotkey for completed tasks modal (AC1)
+  useCompletedTasksHotkey(handleOpenCompleted)
+
+  // Handler for uncompleting a task with toast notification (AC6)
+  const handleUncompleteTask = useCallback((id: string) => {
+    uncompleteTask(id)
+    addToast('Task restored to Today')
+  }, [uncompleteTask, addToast])
 
   // AC-4.3.3: Show toast when localStorage quota is exceeded
   useEffect(() => {
@@ -147,6 +164,14 @@ const AppContent = () => {
         onClose={() => setIsInsightsModalOpen(false)}
         userId={user?.id ?? null}
         tasks={tasks}
+      />
+      {/* Completed tasks modal - Story: Completed Tasks View (AC1-AC10) */}
+      <CompletedTasksModal
+        isOpen={isCompletedModalOpen}
+        onClose={() => setIsCompletedModalOpen(false)}
+        tasks={tasks}
+        onUncomplete={handleUncompleteTask}
+        onUpdateNotes={updateNotes}
       />
     </div>
   )

@@ -15,6 +15,7 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 type TaskAction =
   | { type: 'ADD_TASK'; id: string; text: string }
   | { type: 'COMPLETE_TASK'; id: string }
+  | { type: 'UNCOMPLETE_TASK'; id: string; deferredTo: string }
   | { type: 'DELETE_TASK'; id: string }
   | { type: 'DEFER_TASK'; id: string; deferredTo: string | null; category: string }
   | { type: 'UPDATE_TASK'; id: string; text: string; deferredTo: string | null; category: string | null }
@@ -44,6 +45,12 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
       return state.map(task =>
         task.id === action.id
           ? { ...task, completedAt: new Date().toISOString() }
+          : task
+      )
+    case 'UNCOMPLETE_TASK':
+      return state.map(task =>
+        task.id === action.id
+          ? { ...task, completedAt: null, deferredTo: action.deferredTo }
           : task
       )
     case 'DELETE_TASK':
@@ -505,6 +512,45 @@ export const useTasks = (userId: string | null) => {
     }
   }, [userId, tasks])
 
+  const uncompleteTask = useCallback(async (id: string) => {
+    const deferredTo = startOfDay(new Date()).toISOString()
+    const effectiveUserId = userId || ''
+    dispatch({ type: 'UNCOMPLETE_TASK', id, deferredTo })
+
+    // Find the task to update in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, completedAt: null, deferredTo }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
+    if (userId) {
+      const payload = { completed_at: null, deferred_to: deferredTo }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync uncomplete task:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          // Update sync status to 'synced'
+          await saveTaskToIndexedDB({ ...task, completedAt: null, deferredTo }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued uncomplete task', { id })
+        }
+      }
+    }
+  }, [userId, tasks])
+
   const deleteTask = useCallback(async (id: string) => {
     dispatch({ type: 'DELETE_TASK', id })
 
@@ -687,6 +733,7 @@ export const useTasks = (userId: string | null) => {
     categories,
     addTask,
     completeTask,
+    uncompleteTask,
     deleteTask,
     deferTask,
     updateTask,
