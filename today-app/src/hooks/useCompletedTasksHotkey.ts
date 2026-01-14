@@ -22,7 +22,9 @@ const isInputElement = (element: Element | null): boolean => {
 /**
  * Global keyboard shortcut hook for Completed Tasks modal
  *
- * Registers Cmd+Opt+D (Mac) / Ctrl+Alt+D (Windows) to open the completed tasks modal
+ * Registers Cmd+Opt+C (Mac) / Ctrl+Alt+C (Windows) to open the completed tasks modal
+ * Note: Cmd+Opt+D is reserved by macOS for showing/hiding the Dock
+ *
  * This hook is globally registered (not scoped to a specific view)
  *
  * @param onOpen - Callback when the modal should open
@@ -39,13 +41,12 @@ export const useCompletedTasksHotkey = (onOpen: () => void): void => {
   }, [onOpen])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Check for Cmd+Opt+D (Mac) or Ctrl+Alt+D (Windows)
+    // Check for Cmd+Opt+C (Mac) or Ctrl+Alt+C (Windows)
     const isMac = e.metaKey && !e.ctrlKey
     const isWindows = e.ctrlKey && !e.metaKey
     const isModifierPressed = isMac || isWindows
 
-    // Use e.code instead of e.key because Option+D on Mac produces special characters
-    if (!isModifierPressed || !e.altKey || e.code !== 'KeyD') {
+    if (!isModifierPressed || !e.altKey || e.code !== 'KeyC') {
       return
     }
 

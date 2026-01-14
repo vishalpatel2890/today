@@ -20,7 +20,7 @@ describe('useCompletedTasksHotkey', () => {
     altKey?: boolean
   }): KeyboardEvent => {
     return new KeyboardEvent('keydown', {
-      code: options.code ?? 'KeyD',
+      code: options.code ?? 'KeyC',
       metaKey: options.metaKey ?? false,
       ctrlKey: options.ctrlKey ?? false,
       altKey: options.altKey ?? false,
@@ -30,19 +30,19 @@ describe('useCompletedTasksHotkey', () => {
   }
 
   describe('Hotkey Detection (AC1)', () => {
-    it('should trigger onOpen when Cmd+Opt+D is pressed on Mac', () => {
+    it('should trigger onOpen when Cmd+Opt+C is pressed on Mac', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).toHaveBeenCalledTimes(1)
     })
 
-    it('should trigger onOpen when Ctrl+Alt+D is pressed on Windows', () => {
+    it('should trigger onOpen when Ctrl+Alt+C is pressed on Windows', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ ctrlKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ ctrlKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).toHaveBeenCalledTimes(1)
@@ -51,7 +51,7 @@ describe('useCompletedTasksHotkey', () => {
     it('should not trigger without Alt/Option key', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: false, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: false, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).not.toHaveBeenCalled()
@@ -60,7 +60,7 @@ describe('useCompletedTasksHotkey', () => {
     it('should not trigger without Cmd/Ctrl key', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ metaKey: false, ctrlKey: false, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: false, ctrlKey: false, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).not.toHaveBeenCalled()
@@ -79,7 +79,7 @@ describe('useCompletedTasksHotkey', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
       const event = new KeyboardEvent('keydown', {
-        code: 'KeyD',
+        code: 'KeyC',
         metaKey: true,
         ctrlKey: true,
         altKey: true,
@@ -96,7 +96,7 @@ describe('useCompletedTasksHotkey', () => {
     it('should call preventDefault when hotkey is detected', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
       const stopPropagationSpy = vi.spyOn(event, 'stopPropagation')
 
@@ -109,7 +109,7 @@ describe('useCompletedTasksHotkey', () => {
     it('should not call preventDefault for non-matching keystrokes', () => {
       renderHook(() => useCompletedTasksHotkey(onOpen))
 
-      const event = createKeyboardEvent({ metaKey: false, altKey: false, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: false, altKey: false, code: 'KeyC' })
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
 
       document.dispatchEvent(event)
@@ -126,7 +126,7 @@ describe('useCompletedTasksHotkey', () => {
       document.body.appendChild(input)
       input.focus()
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).not.toHaveBeenCalled()
@@ -141,7 +141,7 @@ describe('useCompletedTasksHotkey', () => {
       document.body.appendChild(textarea)
       textarea.focus()
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).not.toHaveBeenCalled()
@@ -157,7 +157,7 @@ describe('useCompletedTasksHotkey', () => {
       document.body.appendChild(div)
       div.focus()
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).not.toHaveBeenCalled()
@@ -172,7 +172,7 @@ describe('useCompletedTasksHotkey', () => {
       document.body.appendChild(button)
       button.focus()
 
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(onOpen).toHaveBeenCalledTimes(1)
@@ -206,7 +206,7 @@ describe('useCompletedTasksHotkey', () => {
       rerender({ callback: secondCallback })
 
       // Trigger hotkey
-      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyD' })
+      const event = createKeyboardEvent({ metaKey: true, altKey: true, code: 'KeyC' })
       document.dispatchEvent(event)
 
       expect(firstCallback).not.toHaveBeenCalled()
