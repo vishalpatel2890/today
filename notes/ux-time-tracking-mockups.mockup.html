@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Tracking UX Mockups - Today App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <style>
+    /* Design Tokens - Slate Sophisticated Theme */
+    :root {
+      --background: #f8fafc;
+      --surface: #ffffff;
+      --surface-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --foreground: #0f172a;
+      --muted-foreground: #64748b;
+      --tertiary: #94a3b8;
+      --primary: #475569;
+      --primary-hover: #334155;
+      --accent: #0f172a;
+
+      /* Calmer semantic colors - muted slate tones */
+      --success: #64748b;
+      --success-bg: #f1f5f9;
+      --stop: #78716c;
+      --stop-hover: #57534e;
+      --stop-bg: #f5f5f4;
+
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+
+      --radius: 6px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: #1e293b;
+      color: var(--foreground);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .mockup-header {
+      text-align: center;
+      margin-bottom: 48px;
+      color: white;
+    }
+
+    .mockup-header h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .mockup-header p {
+      color: #94a3b8;
+      font-size: 16px;
+    }
+
+    .mockup-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .mockup-nav button {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: 1px solid #475569;
+      border-radius: var(--radius);
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mockup-nav button:hover {
+      border-color: #64748b;
+      color: white;
+    }
+
+    .mockup-nav button.active {
+      background: #475569;
+      border-color: #475569;
+      color: white;
+    }
+
+    .mockup-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .mockup-section {
+      display: none;
+    }
+
+    .mockup-section.active {
+      display: block;
+    }
+
+    .section-label {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* Modal Container - simulates app backdrop */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 16px;
+      padding: 60px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+    }
+
+    .modal-backdrop.tall {
+      min-height: 600px;
+      align-items: flex-start;
+      padding-top: 40px;
+    }
+
+    /* Tracking Modal */
+    .tracking-modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 320px;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: var(--surface-muted);
+      color: var(--foreground);
+    }
+
+    /* Task Selector */
+    .task-selector {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--foreground);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .task-selector:hover {
+      border-color: var(--primary);
+    }
+
+    .task-selector .placeholder {
+      color: var(--muted-foreground);
+    }
+
+    .task-selector .chevron {
+      color: var(--muted-foreground);
+    }
+
+    /* Dropdown */
+    .dropdown {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--foreground);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: var(--surface-muted);
+    }
+
+    .dropdown-item.selected {
+      background: var(--surface-muted);
+      font-weight: 500;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:disabled {
+      background: var(--primary);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Calm stop button - muted stone color */
+    .btn-stop {
+      background: var(--stop);
+      color: white;
+    }
+
+    .btn-stop:hover {
+      background: var(--stop-hover);
+    }
+
+    /* Active Tracking State */
+    .tracking-active {
+      text-align: center;
+    }
+
+    .tracking-label {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      margin-bottom: 4px;
+    }
+
+    .tracking-task-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--foreground);
+      margin-bottom: 20px;
+    }
+
+    .time-display {
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--foreground);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .time-display-small {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--foreground);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Success State - calm, subtle */
+    .success-message {
+      text-align: center;
+      padding: 16px;
+      background: var(--success-bg);
+      border-radius: var(--radius);
+    }
+
+    .success-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--success);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .success-text {
+      font-size: 14px;
+      color: var(--foreground);
+    }
+
+    .success-text strong {
+      font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+    }
+
+    /* Insights Modal */
+    .insights-modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 480px;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .insights-header {
+      padding: 24px 24px 0 24px;
+    }
+
+    .insights-body {
+      padding: 20px 24px 24px 24px;
+      overflow-y: auto;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-dropdown {
+      flex: 1;
+      min-width: 140px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--foreground);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-dropdown:hover {
+      border-color: var(--primary);
+    }
+
+    .filter-dropdown .filter-label {
+      color: var(--muted-foreground);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .filter-dropdown .filter-value {
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 12px;
+      color: var(--foreground);
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .filter-chip .remove {
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .filter-chip .remove:hover {
+      opacity: 1;
+    }
+
+    /* Quick date filters */
+    .quick-filters {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .quick-filter-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--foreground);
+    }
+
+    .quick-filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Summary Cards */
+    .summary-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      flex: 1;
+      background: var(--surface-muted);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      margin-bottom: 4px;
+    }
+
+    .summary-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 2px;
+    }
+
+    .summary-sublabel {
+      font-size: 12px;
+      color: var(--tertiary);
+    }
+
+    /* Section Headers */
+    .section-header {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-header .count {
+      font-weight: 400;
+      color: var(--tertiary);
+    }
+
+    /* Breakdown List */
+    .breakdown-list {
+      margin-bottom: 20px;
+    }
+
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .breakdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .breakdown-task {
+      font-size: 14px;
+      color: var(--foreground);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 16px;
+    }
+
+    .breakdown-duration {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--foreground);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Recent Entries */
+    .entry-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
+    }
+
+    .entry-item:last-child {
+      border-bottom: none;
+    }
+
+    .entry-time {
+      font-size: 12px;
+      color: var(--tertiary);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .entry-task {
+      font-size: 14px;
+      color: var(--foreground);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .entry-duration {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--foreground);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* State Indicators */
+    .state-indicator {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 12px;
+    }
+
+    .state-idle {
+      background: var(--surface-muted);
+      color: var(--muted-foreground);
+    }
+
+    .state-active {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .state-success {
+      background: var(--success-bg);
+      color: var(--muted-foreground);
+    }
+
+    /* Annotations */
+    .annotation {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-top: 24px;
+      line-height: 1.5;
+    }
+
+    .annotation strong {
+      font-weight: 600;
+    }
+
+    /* Mobile Preview Container */
+    .mobile-preview {
+      background: #1e293b;
+      border-radius: 40px;
+      padding: 12px;
+      width: 320px;
+      margin: 0 auto;
+    }
+
+    .mobile-screen {
+      background: var(--background);
+      border-radius: 32px;
+      overflow: hidden;
+      min-height: 600px;
+      position: relative;
+    }
+
+    .mobile-notch {
+      background: #1e293b;
+      width: 120px;
+      height: 28px;
+      border-radius: 0 0 16px 16px;
+      margin: 0 auto;
+    }
+
+    .mobile-modal-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.5);
+      top: 0;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .mobile-modal {
+      background: var(--surface);
+      border-radius: 16px 16px 0 0;
+      width: 100%;
+      padding: 24px;
+    }
+
+    /* Comparison Grid */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .comparison-item {
+      background: var(--background);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .comparison-label {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* Keyboard hint */
+    .kbd {
+      display: inline-block;
+      padding: 4px 8px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .hotkey-hint {
+      text-align: center;
+      margin-top: 20px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* Active filters display */
+    .active-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    /* Filter dropdown expanded state */
+    .filter-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      z-index: 10;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .filter-option {
+      padding: 10px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .filter-option:last-child {
+      border-bottom: none;
+    }
+
+    .filter-option:hover {
+      background: var(--surface-muted);
+    }
+
+    .filter-option.selected {
+      background: var(--surface-muted);
+      font-weight: 500;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="mockup-header">
+    <h1>Time Tracking UX Mockups</h1>
+    <p>Today App - Hidden Power User Feature</p>
+  </header>
+
+  <nav class="mockup-nav">
+    <button class="active" onclick="showSection('tracking-idle')">Tracking: Idle</button>
+    <button onclick="showSection('tracking-dropdown')">Tracking: Dropdown</button>
+    <button onclick="showSection('tracking-active')">Tracking: Active</button>
+    <button onclick="showSection('tracking-success')">Tracking: Success</button>
+    <button onclick="showSection('insights')">Insights View</button>
+    <button onclick="showSection('insights-filtered')">Insights: Filtered</button>
+    <button onclick="showSection('empty')">Empty States</button>
+    <button onclick="showSection('mobile')">Mobile View</button>
+  </nav>
+
+  <div class="mockup-container">
+
+    <!-- Tracking: Idle State -->
+    <section id="tracking-idle" class="mockup-section active">
+      <p class="section-label">Tracking Modal - Idle State <span class="state-indicator state-idle">Idle</span></p>
+      <div class="modal-backdrop">
+        <div class="tracking-modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Time Tracking</h2>
+            <button class="close-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="task-selector">
+            <span class="placeholder">Select a task...</span>
+            <span class="chevron">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+          <button class="btn btn-primary" disabled>Track</button>
+        </div>
+      </div>
+      <p class="hotkey-hint">Triggered by <span class="kbd">Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">T</span></p>
+      <div class="annotation">
+        <strong>Idle State:</strong> When no tracking is active, user sees task dropdown and disabled Track button. Task must be selected before tracking can begin. Dropdown auto-focuses on modal open.
+      </div>
+    </section>
+
+    <!-- Tracking: Dropdown Open -->
+    <section id="tracking-dropdown" class="mockup-section">
+      <p class="section-label">Tracking Modal - Task Selection</p>
+      <div class="modal-backdrop">
+        <div class="tracking-modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Time Tracking</h2>
+            <button class="close-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="task-selector" style="border-color: var(--primary);">
+            <span class="placeholder">Select a task...</span>
+            <span class="chevron">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+          <div class="dropdown">
+            <div class="dropdown-item">Review client proposal</div>
+            <div class="dropdown-item selected">Write documentation</div>
+            <div class="dropdown-item">Fix login bug</div>
+            <div class="dropdown-item">Team sync meeting</div>
+          </div>
+          <button class="btn btn-primary">Track</button>
+        </div>
+      </div>
+      <div class="annotation">
+        <strong>Task Selection:</strong> Dropdown shows today's tasks. User navigates with arrow keys, selects with Enter. Type-ahead filtering available. Selected task highlights with background color.
+      </div>
+    </section>
+
+    <!-- Tracking: Active State -->
+    <section id="tracking-active" class="mockup-section">
+      <p class="section-label">Tracking Modal - Active Tracking <span class="state-indicator state-active">Tracking</span></p>
+      <div class="modal-backdrop">
+        <div class="tracking-modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Time Tracking</h2>
+            <button class="close-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="tracking-active">
+            <p class="tracking-label">Currently tracking</p>
+            <p class="tracking-task-name">Review client proposal</p>
+            <div class="time-display">01:23:45</div>
+            <button class="btn btn-stop">Stop</button>
+          </div>
+        </div>
+      </div>
+      <p class="hotkey-hint">Press <span class="kbd">Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">T</span> while tracking to see this view</p>
+      <div class="annotation">
+        <strong>Active Tracking:</strong> Shows current task name and live elapsed time. Timer updates every second. Muted "Stop" button is visible but calm. User can close modal and tracking continues in background.
+      </div>
+    </section>
+
+    <!-- Tracking: Success State -->
+    <section id="tracking-success" class="mockup-section">
+      <p class="section-label">Tracking Modal - Success Feedback <span class="state-indicator state-success">Saved</span></p>
+      <div class="modal-backdrop">
+        <div class="tracking-modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Time Tracking</h2>
+            <button class="close-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="success-message">
+            <div class="success-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <p class="success-text"><strong>1h 23m</strong> saved for "Review client proposal"</p>
+          </div>
+        </div>
+      </div>
+      <div class="annotation">
+        <strong>Success Feedback:</strong> Brief confirmation (1.5 seconds) shows duration saved and task name. Auto-dismisses and resets to idle state. Subtle slate background provides calm confirmation without harsh colors.
+      </div>
+    </section>
+
+    <!-- Insights View -->
+    <section id="insights" class="mockup-section">
+      <p class="section-label">Time Insights Modal - With Filters</p>
+      <div class="modal-backdrop tall">
+        <div class="insights-modal">
+          <div class="insights-header">
+            <div class="modal-header">
+              <h2 class="modal-title">Time Insights</h2>
+              <button class="close-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quick Date Filters -->
+            <div class="quick-filters">
+              <button class="quick-filter-btn active">Today</button>
+              <button class="quick-filter-btn">Yesterday</button>
+              <button class="quick-filter-btn">This Week</button>
+              <button class="quick-filter-btn">This Month</button>
+              <button class="quick-filter-btn">Custom</button>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+              <div class="filter-dropdown">
+                <div>
+                  <span class="filter-label">Tasks</span>
+                  <span class="filter-value">All tasks</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="filter-dropdown">
+                <div>
+                  <span class="filter-label">Category</span>
+                  <span class="filter-value">All</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="insights-body">
+            <div class="summary-row">
+              <div class="summary-card">
+                <p class="summary-label">Today</p>
+                <p class="summary-value">3h 42m</p>
+                <p class="summary-sublabel">tracked</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Avg / Day</p>
+                <p class="summary-value">4h 12m</p>
+                <p class="summary-sublabel">this week</p>
+              </div>
+            </div>
+
+            <p class="section-header">
+              <span>Breakdown</span>
+              <span class="count">4 tasks</span>
+            </p>
+            <div class="breakdown-list">
+              <div class="breakdown-item">
+                <span class="breakdown-task">Review client proposal</span>
+                <span class="breakdown-duration">1h 23m</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-task">Write documentation</span>
+                <span class="breakdown-duration">1h 05m</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-task">Fix login bug</span>
+                <span class="breakdown-duration">0h 42m</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-task">Team sync meeting</span>
+                <span class="breakdown-duration">0h 32m</span>
+              </div>
+            </div>
+
+            <p class="section-header">
+              <span>Recent Entries</span>
+              <span class="count">4 entries</span>
+            </p>
+            <div class="entries-list">
+              <div class="entry-item">
+                <span class="entry-time">Today 2:30pm</span>
+                <span class="entry-task">Review client proposal</span>
+                <span class="entry-duration">1h 23m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Today 11:00am</span>
+                <span class="entry-task">Write documentation</span>
+                <span class="entry-duration">1h 05m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Today 9:15am</span>
+                <span class="entry-task">Fix login bug</span>
+                <span class="entry-duration">0h 42m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Today 8:30am</span>
+                <span class="entry-task">Team sync meeting</span>
+                <span class="entry-duration">0h 32m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="hotkey-hint">Triggered by <span class="kbd">Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">T</span> <span class="kbd">T</span> (double-tap T)</p>
+      <div class="annotation">
+        <strong>Time Insights with Filters:</strong> Quick date filters at top (Today, Yesterday, This Week, This Month, Custom). Task and Category dropdowns for filtering to specific subsets. Summary updates based on active filters. Entry counts shown in section headers.
+      </div>
+    </section>
+
+    <!-- Insights View - Filtered -->
+    <section id="insights-filtered" class="mockup-section">
+      <p class="section-label">Time Insights - Filtered View</p>
+      <div class="modal-backdrop tall">
+        <div class="insights-modal">
+          <div class="insights-header">
+            <div class="modal-header">
+              <h2 class="modal-title">Time Insights</h2>
+              <button class="close-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quick Date Filters -->
+            <div class="quick-filters">
+              <button class="quick-filter-btn">Today</button>
+              <button class="quick-filter-btn">Yesterday</button>
+              <button class="quick-filter-btn active">This Week</button>
+              <button class="quick-filter-btn">This Month</button>
+              <button class="quick-filter-btn">Custom</button>
+            </div>
+
+            <!-- Active Filters -->
+            <div class="active-filters">
+              <span class="filter-chip active">
+                This Week
+                <span class="remove">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </span>
+              </span>
+              <span class="filter-chip active">
+                Client Work
+                <span class="remove">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </span>
+              </span>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+              <div class="filter-dropdown">
+                <div>
+                  <span class="filter-label">Tasks</span>
+                  <span class="filter-value">All tasks</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="filter-dropdown" style="border-color: var(--primary);">
+                <div>
+                  <span class="filter-label">Category</span>
+                  <span class="filter-value" style="color: var(--primary);">Client Work</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="insights-body">
+            <div class="summary-row">
+              <div class="summary-card">
+                <p class="summary-label">This Week</p>
+                <p class="summary-value">12h 45m</p>
+                <p class="summary-sublabel">Client Work</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Avg / Day</p>
+                <p class="summary-value">2h 33m</p>
+                <p class="summary-sublabel">5 days tracked</p>
+              </div>
+            </div>
+
+            <p class="section-header">
+              <span>Breakdown</span>
+              <span class="count">3 tasks</span>
+            </p>
+            <div class="breakdown-list">
+              <div class="breakdown-item">
+                <span class="breakdown-task">Review client proposal</span>
+                <span class="breakdown-duration">5h 12m</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-task">Client meeting prep</span>
+                <span class="breakdown-duration">4h 18m</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-task">Invoice review</span>
+                <span class="breakdown-duration">3h 15m</span>
+              </div>
+            </div>
+
+            <p class="section-header">
+              <span>Entries</span>
+              <span class="count">8 entries</span>
+            </p>
+            <div class="entries-list">
+              <div class="entry-item">
+                <span class="entry-time">Today 2:30pm</span>
+                <span class="entry-task">Review client proposal</span>
+                <span class="entry-duration">1h 23m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Yesterday</span>
+                <span class="entry-task">Client meeting prep</span>
+                <span class="entry-duration">2h 05m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Wed</span>
+                <span class="entry-task">Review client proposal</span>
+                <span class="entry-duration">1h 45m</span>
+              </div>
+              <div class="entry-item">
+                <span class="entry-time">Tue</span>
+                <span class="entry-task">Invoice review</span>
+                <span class="entry-duration">1h 30m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="annotation">
+        <strong>Filtered View:</strong> Shows "This Week" + "Client Work" category filter applied. Active filters displayed as removable chips. Summary cards update to show filtered totals. Task breakdown and entries are scoped to the filter. Great for billing reports and category analysis.
+      </div>
+    </section>
+
+    <!-- Empty States -->
+    <section id="empty" class="mockup-section">
+      <p class="section-label">Empty States</p>
+      <div class="comparison-grid">
+        <div class="comparison-item">
+          <p class="comparison-label">No Tasks Today</p>
+          <div class="tracking-modal" style="width: 100%;">
+            <div class="modal-header">
+              <h2 class="modal-title">Time Tracking</h2>
+              <button class="close-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="empty-state">
+              <p>No tasks for today.<br>Add a task first to start tracking.</p>
+            </div>
+          </div>
+        </div>
+        <div class="comparison-item">
+          <p class="comparison-label">No Time Tracked</p>
+          <div class="tracking-modal" style="width: 100%;">
+            <div class="modal-header">
+              <h2 class="modal-title">Time Insights</h2>
+              <button class="close-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="summary-row" style="padding: 0 16px;">
+              <div class="summary-card">
+                <p class="summary-label">Today</p>
+                <p class="summary-value">0h 0m</p>
+                <p class="summary-sublabel">tracked</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">This Week</p>
+                <p class="summary-value">0h 0m</p>
+                <p class="summary-sublabel">tracked</p>
+              </div>
+            </div>
+            <div class="empty-state">
+              <p>No time tracked yet.<br>Press <span class="kbd">Cmd</span>+<span class="kbd">Shift</span>+<span class="kbd">T</span> to start.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="annotation">
+        <strong>Empty States:</strong> Clear, helpful messages guide users to next action. No guilt-inducing language. Simple call-to-action embedded in message.
+      </div>
+    </section>
+
+    <!-- Mobile View -->
+    <section id="mobile" class="mockup-section">
+      <p class="section-label">Mobile - Bottom Sheet</p>
+      <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
+        <div>
+          <p class="comparison-label" style="text-align: center; margin-bottom: 16px; color: #64748b;">Tracking Active</p>
+          <div class="mobile-preview">
+            <div class="mobile-screen">
+              <div class="mobile-notch"></div>
+              <div class="mobile-modal-overlay">
+                <div class="mobile-modal">
+                  <div class="modal-header">
+                    <h2 class="modal-title">Time Tracking</h2>
+                    <button class="close-btn">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="tracking-active">
+                    <p class="tracking-label">Currently tracking</p>
+                    <p class="tracking-task-name">Review client proposal</p>
+                    <div class="time-display">01:23:45</div>
+                    <button class="btn btn-stop">Stop</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="comparison-label" style="text-align: center; margin-bottom: 16px; color: #64748b;">Insights View</p>
+          <div class="mobile-preview">
+            <div class="mobile-screen">
+              <div class="mobile-notch"></div>
+              <div class="mobile-modal-overlay">
+                <div class="mobile-modal" style="max-height: 70vh; overflow-y: auto;">
+                  <div class="modal-header">
+                    <h2 class="modal-title">Time Insights</h2>
+                    <button class="close-btn">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Mobile Quick Filters - horizontal scroll -->
+                  <div class="quick-filters" style="overflow-x: auto; padding-bottom: 8px;">
+                    <button class="quick-filter-btn active">Today</button>
+                    <button class="quick-filter-btn">Week</button>
+                    <button class="quick-filter-btn">Month</button>
+                  </div>
+                  <div class="summary-row">
+                    <div class="summary-card">
+                      <p class="summary-label">Today</p>
+                      <p class="summary-value" style="font-size: 20px;">3h 42m</p>
+                    </div>
+                    <div class="summary-card">
+                      <p class="summary-label">Avg</p>
+                      <p class="summary-value" style="font-size: 20px;">4h 12m</p>
+                    </div>
+                  </div>
+                  <p class="section-header">Today</p>
+                  <div class="breakdown-item">
+                    <span class="breakdown-task" style="font-size: 13px;">Review client proposal</span>
+                    <span class="breakdown-duration" style="font-size: 13px;">1h 23m</span>
+                  </div>
+                  <div class="breakdown-item">
+                    <span class="breakdown-task" style="font-size: 13px;">Write documentation</span>
+                    <span class="breakdown-duration" style="font-size: 13px;">1h 05m</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="annotation">
+        <strong>Mobile Bottom Sheet:</strong> Same content as desktop but presented as bottom sheet. Quick filters horizontally scrollable. Touch targets are larger (min 44px). Note: Keyboard shortcuts don't work on mobile - feature is discoverable via settings in Growth phase.
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.mockup-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      // Show selected section
+      document.getElementById(sectionId).classList.add('active');
+      // Update nav buttons
+      document.querySelectorAll('.mockup-nav button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

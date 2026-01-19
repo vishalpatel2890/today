@@ -1,0 +1,240 @@
+<story-context id="1-4-macos-app-packaging" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>macOS App Packaging</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-4-macos-app-packaging.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>to package the Electron app as a runnable macOS .app bundle</iWant>
+    <soThat>I can run the desktop app outside of development mode</soThat>
+    <tasks>
+      <task id="1" ac="4.1">
+        <name>Install electron-builder</name>
+        <subtasks>
+          <subtask>Run npm install -D electron-builder</subtask>
+          <subtask>Verify electron-builder appears in package.json devDependencies</subtask>
+          <subtask>Verify no npm audit vulnerabilities introduced</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="4.1,4.2,4.4">
+        <name>Configure electron-builder</name>
+        <subtasks>
+          <subtask>Add electron-builder configuration to package.json "build" key</subtask>
+          <subtask>Set appId: "com.vishal.today"</subtask>
+          <subtask>Set productName: "Today"</subtask>
+          <subtask>Configure mac.target: ["universal"] for universal binary</subtask>
+          <subtask>Set mac.category: "public.app-category.productivity"</subtask>
+          <subtask>Set directories.output: "release"</subtask>
+          <subtask>Configure files to include dist-electron/**/*</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="4.4">
+        <name>Create placeholder app icon</name>
+        <subtasks>
+          <subtask>Create resources/ directory</subtask>
+          <subtask>Create or source placeholder icon.icns file (512x512 minimum)</subtask>
+          <subtask>Configure electron-builder to use resources/icon.icns</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="4.1">
+        <name>Add package script</name>
+        <subtasks>
+          <subtask>Add script "package": "electron-vite build &amp;&amp; electron-builder --mac --universal" to package.json</subtask>
+          <subtask>Verify script runs electron-vite build first (ensures fresh Electron build)</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="4.2,4.3">
+        <name>Verify universal binary packaging</name>
+        <subtasks>
+          <subtask>Run npm run package</subtask>
+          <subtask>Verify release/Today.app exists</subtask>
+          <subtask>Run file command to verify universal binary</subtask>
+          <subtask>Verify both arm64 and x86_64 architectures present</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="4.3,4.5,4.6">
+        <name>Test app launch and functionality</name>
+        <subtasks>
+          <subtask>Double-click Today.app - verify Gatekeeper warning appears</subtask>
+          <subtask>Right-click → Open → Open to bypass Gatekeeper</subtask>
+          <subtask>Verify app launches and React UI renders</subtask>
+          <subtask>Verify app icon appears in Dock</subtask>
+          <subtask>Copy to /Applications and launch from there</subtask>
+          <subtask>Verify all existing app functionality works</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="cleanup">
+        <name>Update .gitignore</name>
+        <subtasks>
+          <subtask>Add release/ to .gitignore if not present</subtask>
+          <subtask>Verify packaged app not committed to repo</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC4.1">Running npm run package creates a release/ directory containing Today.app</criterion>
+    <criterion id="AC4.2">The .app bundle is a universal binary (supports both arm64 and x64)</criterion>
+    <criterion id="AC4.3">Double-clicking Today.app launches the application</criterion>
+    <criterion id="AC4.4">The app icon appears in the Dock while running</criterion>
+    <criterion id="AC4.5">The app can be copied to /Applications and run from there</criterion>
+    <criterion id="AC4.6">First launch shows expected macOS security warning (unsigned app)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1-electron.md</path>
+        <title>Epic Technical Specification: Electron Foundation &amp; Dual Build</title>
+        <section>AC4: macOS App Packaging</section>
+        <snippet>Running npm run package creates release/ with Today.app as universal binary. Uses electron-builder with appId com.vishal.today.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Deployment Architecture</section>
+        <snippet>ADR-010: No signing for MVP (personal use). Build produces macOS universal binary via electron-builder --mac --universal.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 1.4: macOS App Packaging</section>
+        <snippet>Install electron-builder, configure package.json build section, create resources/icon.icns, add npm run package script.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Build &amp; Development Pipeline</section>
+        <snippet>FR5: Build process produces runnable macOS .app bundle. Success criteria: single-codebase architecture serving both web and Electron.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/1-3-dual-build-pipeline.md</path>
+        <title>Story 1.3: Dual Build Pipeline (Previous Story)</title>
+        <section>Dev Agent Record</section>
+        <snippet>All build scripts working. Electron build outputs to dist-electron/{main,preload,renderer}. 464 tests pass - no regressions.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/package.json</path>
+        <kind>config</kind>
+        <symbol>scripts, devDependencies</symbol>
+        <reason>Must add electron-builder devDependency and "build" configuration section. Add "package" script.</reason>
+      </file>
+      <file>
+        <path>today-app/electron.vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <reason>Reference for existing build configuration. Outputs to dist-electron/ which electron-builder will package.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/main.ts</path>
+        <kind>main-process</kind>
+        <symbol>createWindow, BrowserWindow</symbol>
+        <reason>Main process entry point. Already configured with title "Today", dimensions 1200x800, security settings.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/preload.ts</path>
+        <kind>preload</kind>
+        <symbol>contextBridge, electronAPI</symbol>
+        <reason>Preload script stub. Will be bundled into app package.</reason>
+      </file>
+      <file>
+        <path>today-app/.gitignore</path>
+        <kind>config</kind>
+        <symbol>release</symbol>
+        <reason>Already includes "release" entry - no changes needed for Task 7.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <existing>
+          <package>electron@^39.2.7</package>
+          <package>electron-vite@^5.0.0</package>
+          <package>@electron-toolkit/preload@^3.0.2</package>
+          <package>@electron-toolkit/utils@^4.0.0</package>
+          <package>sharp@^0.34.5</package>
+        </existing>
+        <toAdd>
+          <package>electron-builder@^24.x</package>
+        </toAdd>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="ADR-010">No code signing or notarization for MVP - personal use only. User bypasses Gatekeeper via right-click → Open.</constraint>
+    <constraint source="Architecture">macOS universal binary required (arm64 + x64). Use electron-builder --mac --universal flag.</constraint>
+    <constraint source="Architecture">Package output directory must be "release/" to match .gitignore and project conventions.</constraint>
+    <constraint source="Tech Spec">Build must first run electron-vite build to ensure fresh dist-electron/ artifacts before packaging.</constraint>
+    <constraint source="Tech Spec">electron-builder config should be in package.json "build" section, not separate YAML file.</constraint>
+    <constraint source="Story 1.3">Existing build scripts (build, build:electron, build:all) must remain unchanged and functional.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>package.json build config</name>
+      <kind>electron-builder configuration</kind>
+      <signature>
+{
+  "build": {
+    "appId": "com.vishal.today",
+    "productName": "Today",
+    "mac": {
+      "target": ["universal"],
+      "category": "public.app-category.productivity"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*"
+    ]
+  }
+}
+      </signature>
+      <path>today-app/package.json</path>
+    </interface>
+    <interface>
+      <name>npm run package</name>
+      <kind>npm script</kind>
+      <signature>"package": "electron-vite build &amp;&amp; electron-builder --mac --universal"</signature>
+      <path>today-app/package.json</path>
+    </interface>
+    <interface>
+      <name>App bundle verification</name>
+      <kind>shell command</kind>
+      <signature>file release/*/Contents/MacOS/* → "Mach-O universal binary with 2 architectures: [x86_64] [arm64]"</signature>
+      <path>Terminal</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest with @testing-library/react. Tests located in src/**/*.test.{ts,tsx}.
+      Current test count: 464 tests across 24 test files. All tests must continue to pass after changes.
+      Story 1.4 is primarily configuration/build tooling - manual verification via Frontend Test Gate is the primary validation method.
+    </standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/**/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="AC4.1">Manual: Run npm run package, verify release/ directory created with Today.app</idea>
+      <idea ac="AC4.2">Manual: Run "file release/*/Contents/MacOS/*" to verify universal binary (arm64 + x86_64)</idea>
+      <idea ac="AC4.3">Manual: Double-click Today.app, bypass Gatekeeper, verify app launches</idea>
+      <idea ac="AC4.4">Manual: Verify app icon appears in Dock while running</idea>
+      <idea ac="AC4.5">Manual: Copy Today.app to /Applications, launch from there</idea>
+      <idea ac="AC4.6">Manual: Verify Gatekeeper warning on first launch (expected for unsigned app)</idea>
+      <idea ac="regression">Run npm test to verify all 464 existing tests still pass</idea>
+      <idea ac="regression">Run npm run build and npm run build:electron to verify existing scripts unchanged</idea>
+    </ideas>
+  </tests>
+</story-context>

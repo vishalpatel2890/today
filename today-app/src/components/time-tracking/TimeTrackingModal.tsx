@@ -108,7 +108,7 @@ export const TimeTrackingModal = ({ isOpen, onClose, tasks, userId }: TimeTracki
   const [isSaving, setIsSaving] = useState(false)
 
   // Epic 4: Use useTimeEntries for sync-aware entry saving
-  const { addEntry } = useTimeEntries()
+  const { addEntry, syncEntries } = useTimeEntries()
 
   // Memoize the options to prevent re-renders
   const trackingOptions = useMemo(
@@ -269,7 +269,7 @@ export const TimeTrackingModal = ({ isOpen, onClose, tasks, userId }: TimeTracki
       const startTime = startOfDay(selectedDate)
       const endTime = new Date(startTime.getTime() + manualDuration)
 
-      // Create entry using addEntry (handles sync)
+      // Create entry using addEntry (saves to IndexedDB + queues for sync)
       const entry = await addEntry({
         user_id: userId ?? 'local',
         task_id: manualTask.id,
@@ -279,6 +279,17 @@ export const TimeTrackingModal = ({ isOpen, onClose, tasks, userId }: TimeTracki
         duration: manualDuration,
         date: manualDate,
       })
+
+      // Immediately sync to Supabase so insights can fetch it
+      // This ensures the entry appears in Time Insights right away
+      if (navigator.onLine) {
+        try {
+          await syncEntries()
+        } catch (syncError) {
+          // Non-blocking: entry is saved locally, will sync later
+          console.warn('[Today] TimeTracking: Sync failed, will retry later', syncError)
+        }
+      }
 
       // Show success feedback
       setLastEntry(entry)
@@ -298,7 +309,7 @@ export const TimeTrackingModal = ({ isOpen, onClose, tasks, userId }: TimeTracki
     } finally {
       setIsSaving(false)
     }
-  }, [manualTask, manualDuration, manualDate, userId, addEntry])
+  }, [manualTask, manualDuration, manualDate, userId, addEntry, syncEntries])
 
   // Handle keyboard shortcuts
   useEffect(() => {

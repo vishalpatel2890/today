@@ -1,0 +1,209 @@
+<story-context id="3-4-active-filter-chips-with-remove" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Active Filter Chips with Remove</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-4-active-filter-chips-with-remove.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>see my active filters as removable chips</iWant>
+    <soThat>I can easily understand what filters are applied and remove them individually</soThat>
+    <tasks>
+      <task id="1" ac="3,7">Verify FilterChip component exists and works - confirm component has x button, styling, accessibility</task>
+      <task id="2" ac="2,8">Extend FilterChip to handle all filter types - date presets, custom range, task, category</task>
+      <task id="3" ac="1,6">Integrate filter chips into TimeInsightsModal - render chips for all active filters with flex-wrap layout</task>
+      <task id="4" ac="4,5">Implement chip removal handlers - date, task, category removal triggers useTimeInsights recalculation</task>
+      <task id="5" ac="8">Format custom date range for chip display - MMM d format using date-fns</task>
+      <task id="6" ac="3,7">Write/verify FilterChip component tests</task>
+      <task id="7" ac="1,4,5,6">Write integration tests for filter chip behavior</task>
+      <task id="8" ac="1-8">Manual browser testing - complete Frontend Test Gate</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.4.1" fr="FR24">Active filters are displayed as chips below the filter controls</criterion>
+    <criterion id="AC-3.4.2">Each chip shows the filter value (e.g., "This Week", "Client Work", task name)</criterion>
+    <criterion id="AC-3.4.3">Each chip has a x (remove) button</criterion>
+    <criterion id="AC-3.4.4" fr="FR25">Clicking the x removes that specific filter</criterion>
+    <criterion id="AC-3.4.5" fr="FR26-28">Removing a filter updates all insights data</criterion>
+    <criterion id="AC-3.4.6">Multiple filter chips can be displayed simultaneously (e.g., date + category)</criterion>
+    <criterion id="AC-3.4.7">Chips use primary background with white text per UX spec</criterion>
+    <criterion id="AC-3.4.8">Custom date range chip shows formatted range (e.g., "Dec 1 - Dec 15")</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-3-insights-filtering.md" title="Epic 3 Tech Spec" section="Story 3.4: Active Filter Chips with Remove">
+        AC-3.4.1 through AC-3.4.8 define requirements for filter chips. FilterChipProps interface specifies label and onRemove callback.
+      </doc>
+      <doc path="notes/architecture-time-tracking.md" title="Time Tracking Architecture" section="ADR-TT-004: Client-Side Insights Aggregation">
+        All filtering computed client-side with useMemo. Filter parameters include datePreset, customRange, taskId, category combined with AND logic.
+      </doc>
+      <doc path="notes/ux-design-time-tracking.md" title="UX Design" section="6.1 FilterChip">
+        FilterChip: Filter name text, Remove (x) button, Active state with primary background and white text. Click x to remove filter.
+      </doc>
+      <doc path="notes/epics-time-tracking.md" title="Epic Breakdown" section="Story 3.4">
+        User story definition: As a power user, I want to see active filters as removable chips so I can understand and remove them individually.
+      </doc>
+      <doc path="notes/sprint-artifacts/3-3-task-and-category-filter-dropdowns.md" title="Previous Story" section="Dev Agent Record">
+        FilterChips display for active task/category filters with remove functionality ALREADY DONE. 309 tests passing.
+      </doc>
+    </docs>
+    <code>
+      <file path="today-app/src/components/time-tracking/FilterChip.tsx" kind="component" symbol="FilterChip" reason="Core component for this story - displays removable filter chips with x button">
+        <interface>FilterChipProps { label: string; onRemove: () => void }</interface>
+        <note>Uses slate-600 bg, white text, X icon from lucide-react. Accessibility: aria-label on remove button.</note>
+      </file>
+      <file path="today-app/src/components/time-tracking/FilterChip.test.tsx" kind="test" symbol="FilterChip tests" reason="Existing tests for FilterChip - verify and extend">
+        <note>Tests rendering, onRemove callback, styling classes (rounded-full, bg-slate-600, text-white), accessibility.</note>
+      </file>
+      <file path="today-app/src/components/time-tracking/TimeInsightsModal.tsx" kind="component" symbol="TimeInsightsModal" lines="251-272" reason="Integration point - renders FilterChips for active filters">
+        <note>CURRENT GAP: Only renders chips for customRange, taskId, category. DOES NOT render chips for datePreset (Today, Yesterday, This Week, This Month).</note>
+        <interface>TimeInsightsModalProps { isOpen: boolean; onClose: () => void; tasks?: Task[] }</interface>
+      </file>
+      <file path="today-app/src/components/time-tracking/QuickFilterBar.tsx" kind="component" symbol="QuickFilterBar" reason="Date preset filter pills - provides PRESETS constant for label mapping">
+        <note>PRESETS: [{ value: 'today', label: 'Today' }, { value: 'yesterday', label: 'Yesterday' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }]</note>
+      </file>
+      <file path="today-app/src/hooks/useTimeInsights.ts" kind="hook" symbol="useTimeInsights" reason="Filter logic - recalculates insights when filters change">
+        <interface>InsightFilters { datePreset?: DatePreset; customRange?: DateRange | null; taskId?: string | null; category?: string | null; taskCategories?: Map }</interface>
+        <note>Uses useMemo with filter dependencies. Combines filters with AND logic.</note>
+      </file>
+      <file path="today-app/src/lib/timeFormatters.ts" kind="utility" symbol="formatDateRange" reason="Formats custom date range for chip display">
+        <note>formatDateRange(range): Same day shows "Dec 15", same year shows "Dec 1 - Dec 15", cross-year includes years.</note>
+      </file>
+      <file path="today-app/src/types/timeTracking.ts" kind="types" symbol="DatePreset, DateRange, FilterOption" reason="Type definitions for filter state">
+        <note>DatePreset = 'today' | 'yesterday' | 'week' | 'month' | null. DateRange = { start: Date; end: Date }.</note>
+      </file>
+    </code>
+    <dependencies>
+      <ecosystem name="node" manifest="today-app/package.json">
+        <package name="react" version="^19.2.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="lucide-react" version="^0.562.0" purpose="X icon for remove button" />
+        <package name="tailwindcss" version="^4.1.18" dev="true" />
+        <package name="vitest" version="^3.2.4" dev="true" />
+        <package name="@testing-library/react" version="^16.3.1" dev="true" />
+        <package name="@testing-library/user-event" version="^14.6.1" dev="true" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" dev="true" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture">All filtering computed client-side with useMemo for performance</constraint>
+    <constraint source="architecture">Filter state is local to TimeInsightsModal component, resets on unmount (FR29)</constraint>
+    <constraint source="tech-spec">Filters combined with AND logic (date + task + category)</constraint>
+    <constraint source="ux-design">Chips use primary background (slate-600) with white text</constraint>
+    <constraint source="ux-design">Each chip must have a visible x button for removal</constraint>
+    <constraint source="tech-spec">Custom date range chip displays formatted range using formatDateRange()</constraint>
+    <constraint source="previous-story">FilterChip component already exists and works - REUSE, do not recreate</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="FilterChipProps" kind="component-props" path="today-app/src/components/time-tracking/FilterChip.tsx">
+      <signature>interface FilterChipProps { label: string; onRemove: () => void }</signature>
+    </interface>
+    <interface name="InsightFilters" kind="hook-params" path="today-app/src/hooks/useTimeInsights.ts">
+      <signature>interface InsightFilters { datePreset?: DatePreset; customRange?: DateRange | null; taskId?: string | null; category?: string | null; taskCategories?: Map&lt;string, string | null&gt; }</signature>
+    </interface>
+    <interface name="DatePreset" kind="type" path="today-app/src/types/timeTracking.ts">
+      <signature>type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | null</signature>
+    </interface>
+    <interface name="DateRange" kind="type" path="today-app/src/types/timeTracking.ts">
+      <signature>interface DateRange { start: Date; end: Date }</signature>
+    </interface>
+    <interface name="formatDateRange" kind="function" path="today-app/src/lib/timeFormatters.ts">
+      <signature>function formatDateRange(range: DateRange): string</signature>
+    </interface>
+    <interface name="PRESETS" kind="constant" path="today-app/src/components/time-tracking/QuickFilterBar.tsx">
+      <signature>const PRESETS: PresetConfig[] = [{ value: 'today', label: 'Today' }, { value: 'yesterday', label: 'Yesterday' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }]</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Vitest + @testing-library/react for component testing. Tests follow describe/it pattern with vi.fn() for mocks.
+      Component tests verify rendering, user interactions (fireEvent), and accessibility (aria-labels, roles).
+      Integration tests verify filter changes trigger useTimeInsights recalculation and UI updates.
+      Test setup (test/setup.ts) includes fake-indexeddb/auto, jest-dom matchers, and Radix component mocks (ResizeObserver, scrollIntoView, hasPointerCapture).
+    </standards>
+    <locations>
+      <loc>today-app/src/components/time-tracking/FilterChip.test.tsx</loc>
+      <loc>today-app/src/components/time-tracking/TimeInsightsModal.test.tsx</loc>
+      <loc>today-app/src/hooks/useTimeInsights.test.ts</loc>
+    </locations>
+    <ideas>
+      <idea ac="AC-3.4.1">Test that FilterChip appears when datePreset is set (Today, Yesterday, This Week, This Month)</idea>
+      <idea ac="AC-3.4.1">Test that FilterChip appears when customRange is set</idea>
+      <idea ac="AC-3.4.1">Test that FilterChip appears when taskId is set</idea>
+      <idea ac="AC-3.4.1">Test that FilterChip appears when category is set</idea>
+      <idea ac="AC-3.4.2">Test date preset chip shows correct label (Today, Yesterday, This Week, This Month)</idea>
+      <idea ac="AC-3.4.2">Test task chip shows task name from taskOptions</idea>
+      <idea ac="AC-3.4.2">Test category chip shows category name</idea>
+      <idea ac="AC-3.4.3">Test remove button is visible and has correct aria-label</idea>
+      <idea ac="AC-3.4.4">Test clicking x on date chip clears datePreset and customRange</idea>
+      <idea ac="AC-3.4.4">Test clicking x on task chip clears taskId</idea>
+      <idea ac="AC-3.4.4">Test clicking x on category chip clears category</idea>
+      <idea ac="AC-3.4.5">Test removing filter triggers insights recalculation</idea>
+      <idea ac="AC-3.4.6">Test multiple chips display simultaneously (date + task + category)</idea>
+      <idea ac="AC-3.4.7">Test chip has correct styling classes (bg-slate-600, text-white, rounded-full)</idea>
+      <idea ac="AC-3.4.8">Test custom range chip shows formatted date range (formatDateRange output)</idea>
+    </ideas>
+  </tests>
+
+  <keyFindings>
+    <finding priority="high">
+      CURRENT GAP: TimeInsightsModal (line 251) only renders chips for customRange, taskId, and category.
+      It does NOT render FilterChips for datePreset (Today, Yesterday, This Week, This Month).
+      The condition is: {(customRange || taskId || category) &amp;&amp; (...)}
+      This needs to be extended to also include datePreset to satisfy AC-3.4.1 and AC-3.4.2.
+    </finding>
+    <finding priority="medium">
+      FilterChip component already exists and is working correctly with proper styling and accessibility.
+      No changes needed to the FilterChip component itself.
+    </finding>
+    <finding priority="medium">
+      A label mapping function is needed to convert datePreset values to display labels.
+      PRESETS constant in QuickFilterBar.tsx provides this mapping.
+      Consider extracting to shared utility or reusing PRESETS.
+    </finding>
+    <finding priority="low">
+      Test coverage for FilterChip exists but may not cover all integration scenarios.
+      Integration tests for date preset chips with removal are missing.
+    </finding>
+  </keyFindings>
+
+  <implementationGuidance>
+    <step n="1">Add datePreset chip rendering to TimeInsightsModal:
+      - Update condition from (customRange || taskId || category) to (datePreset || customRange || taskId || category)
+      - Add FilterChip for datePreset with label from PRESETS mapping
+      - Add handleRemoveDatePreset handler that sets datePreset to null
+    </step>
+    <step n="2">Create or reuse date preset label mapping:
+      - Option A: Import PRESETS from QuickFilterBar and use find() to get label
+      - Option B: Create getDatePresetLabel(preset: DatePreset) utility function
+    </step>
+    <step n="3">Verify existing chip behaviors:
+      - customRange chip with formatDateRange() label - ALREADY WORKING
+      - taskId chip with selectedTaskName - ALREADY WORKING
+      - category chip with category value - ALREADY WORKING
+    </step>
+    <step n="4">Write integration tests for date preset chips:
+      - Apply "This Week" filter -> verify chip appears
+      - Click x on chip -> verify filter cleared
+      - Verify insights data updates on removal
+    </step>
+    <step n="5">Complete Frontend Test Gate:
+      - Manual browser testing per test steps in story
+      - Verify visual styling matches UX spec
+      - Verify keyboard accessibility
+    </step>
+  </implementationGuidance>
+</story-context>

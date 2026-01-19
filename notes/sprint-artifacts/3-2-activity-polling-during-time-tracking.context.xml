@@ -1,0 +1,433 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Activity Polling During Time Tracking</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-2-activity-polling-during-time-tracking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system</asA>
+    <iWant>to poll for activity changes every 5 seconds during active time tracking</iWant>
+    <soThat>I capture a complete log of app usage</soThat>
+    <tasks>
+      <task id="1" ac="3.2.1,3.2.7,3.2.8">
+        <title>Add tracker state management to tracker module</title>
+        <subtasks>
+          <subtask>1.1: Add TrackerState object to electron/activity/tracker.ts using existing type from types.ts</subtask>
+          <subtask>1.2: Initialize state with isTracking: false, timeEntryId: null, intervalId: null, entries: [], lastActivity: null</subtask>
+          <subtask>1.3: Add getTrackerState() export for testing/debugging</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="3.2.1,3.2.2,3.2.7">
+        <title>Implement startTracking function</title>
+        <subtasks>
+          <subtask>2.1: Create startTracking(timeEntryId: string) async function</subtask>
+          <subtask>2.2: If already tracking, return { success: false, error: 'Already tracking. Call stop first.' }</subtask>
+          <subtask>2.3: Set isTracking: true, store timeEntryId, clear entries array</subtask>
+          <subtask>2.4: Capture initial activity immediately via getCurrentActivity()</subtask>
+          <subtask>2.5: Start setInterval with 5000ms (POLL_INTERVAL_MS constant)</subtask>
+          <subtask>2.6: Store interval ID in state for cleanup</subtask>
+          <subtask>2.7: Return { success: true }</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="3.2.2,3.2.3,3.2.4">
+        <title>Implement poll callback with deduplication</title>
+        <subtasks>
+          <subtask>3.1: Create internal pollActivity() async function</subtask>
+          <subtask>3.2: Call getCurrentActivity() to get current app/window</subtask>
+          <subtask>3.3: Compare with lastActivity - if same appName AND windowTitle, skip recording</subtask>
+          <subtask>3.4: If different, create ActivityEntry with unique id, timeEntryId, appName, windowTitle, timestamp</subtask>
+          <subtask>3.5: Push entry to state.entries array</subtask>
+          <subtask>3.6: Update lastActivity with current appName/windowTitle</subtask>
+          <subtask>3.7: Log in dev mode: [Electron/Activity] Captured: appName - windowTitle</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="3.2.5,3.2.8">
+        <title>Implement stopTracking function</title>
+        <subtasks>
+          <subtask>4.1: Create stopTracking() async function</subtask>
+          <subtask>4.2: If not tracking, return { success: true, data: { entriesRecorded: 0 } }</subtask>
+          <subtask>4.3: Clear interval using clearInterval(state.intervalId)</subtask>
+          <subtask>4.4: Count entries in state.entries</subtask>
+          <subtask>4.5: Reset state: isTracking: false, timeEntryId: null, intervalId: null, lastActivity: null</subtask>
+          <subtask>4.6: Store entries reference for Story 3.3 (IndexedDB persistence) - for now just log count</subtask>
+          <subtask>4.7: Clear entries array</subtask>
+          <subtask>4.8: Return { success: true, data: { entriesRecorded: count } }</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="3.2.1,3.2.5">
+        <title>Wire up IPC handlers</title>
+        <subtasks>
+          <subtask>5.1: Update activity:start handler in electron/ipc/handlers.ts to call startTracking(timeEntryId)</subtask>
+          <subtask>5.2: Update activity:stop handler to call stopTracking()</subtask>
+          <subtask>5.3: Import new functions from tracker module</subtask>
+          <subtask>5.4: Remove stub comments from handlers</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="3.2.4">
+        <title>Add unique ID generation for entry IDs</title>
+        <subtasks>
+          <subtask>6.1: Use crypto.randomUUID() for generating unique entry IDs (Node.js built-in)</subtask>
+          <subtask>6.2: Alternative: Install nanoid package if preferred</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="3.2.1-3.2.8">
+        <title>Test polling in Electron</title>
+        <subtasks>
+          <subtask>7.1: Run npm run dev:electron</subtask>
+          <subtask>7.2: Test start/stop cycle via DevTools console</subtask>
+          <subtask>7.3: Verify activity captured when switching apps</subtask>
+          <subtask>7.4: Verify no duplicates when staying in same app</subtask>
+          <subtask>7.5: Verify error returned if starting while already tracking</subtask>
+          <subtask>7.6: Document test results in Dev Agent Record</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC3.2.1">When activity:start IPC is called with a timeEntryId, activity polling begins immediately</criterion>
+    <criterion id="AC3.2.2">Activity is captured every 5 seconds using getCurrentActivity() from Story 3.1</criterion>
+    <criterion id="AC3.2.3">Only NEW activity is recorded - if app/window title is unchanged from previous capture, no duplicate entry is created</criterion>
+    <criterion id="AC3.2.4">Each captured entry includes: timestamp (ISO 8601), appName, windowTitle, timeEntryId</criterion>
+    <criterion id="AC3.2.5">When activity:stop IPC is called, polling stops and returns count of entries recorded</criterion>
+    <criterion id="AC3.2.6">Polling uses less than 1% CPU (5-second interval is lightweight enough)</criterion>
+    <criterion id="AC3.2.7">If activity:start is called while already tracking, it returns error (must stop first)</criterion>
+    <criterion id="AC3.2.8">If activity:stop is called when not tracking, it returns success with 0 entries</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Implementation Patterns</section>
+        <snippet>5-second polling interval during active tracking. Only record NEW activity (deduplicate). Main Process Errors: return { success: true, data } or { success: false, error: string }. Logging: console.log('[Electron/Activity]', message);</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Data Architecture - Activity Log Schema</section>
+        <snippet>ActivityEntry: id (auto-generated), timeEntryId (links to time_entries), timestamp (ISO 8601), appName, windowTitle, durationMs? (calculated). Activity stored in IndexedDB, NEVER synced to remote.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Performance Considerations</section>
+        <snippet>Activity polling &lt; 1% CPU: 5-second interval, lightweight NSWorkspace calls. AppleScript via osascript is lightweight (~2-10ms per call).</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 3.2: Activity Polling During Time Tracking</section>
+        <snippet>Poll for activity changes every 5 seconds. Only NEW activity recorded (deduplicate). Each entry includes: timestamp, appName, windowTitle, timeEntryId. Polling continues until activity:stop called.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Activity Tracking - Capture</section>
+        <snippet>FR10: Captures active application name. FR11: Captures window title. FR12: Records timestamp for each activity change. FR13: Auto-starts capture when time tracking begins. FR14: Auto-stops capture when time tracking ends.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Non-Functional Requirements</section>
+        <snippet>NFR1: Activity polling must not noticeably impact system performance (&lt;1% CPU). NFR7: Electron app follows security best practices (contextIsolation, no nodeIntegration).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>today-app/electron/activity/tracker.ts</path>
+        <kind>main-process</kind>
+        <symbol>getCurrentActivity, isActivityTrackingSupported</symbol>
+        <lines>1-107</lines>
+        <reason>Story 3.1 implementation. getCurrentActivity() returns { appName, windowTitle, timestamp } or null. Uses AppleScript via osascript for macOS detection. This story adds startTracking(), stopTracking(), and state management to this file.</reason>
+        <content><![CDATA[
+/**
+ * macOS Activity Tracker
+ * Detects the currently active application and window title on macOS
+ */
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import type { CurrentActivity } from './types'
+
+const execAsync = promisify(exec)
+const OSASCRIPT_TIMEOUT = 2000
+
+const GET_APP_NAME_SCRIPT = `
+tell application "System Events"
+  set frontApp to first process whose frontmost is true
+  return name of frontApp
+end tell
+`
+
+const GET_WINDOW_TITLE_SCRIPT = `
+tell application "System Events"
+  set frontApp to first process whose frontmost is true
+  try
+    set windowTitle to name of front window of frontApp
+    return windowTitle
+  on error
+    return ""
+  end try
+end tell
+`
+
+async function runAppleScript(script: string): Promise<string | null> {
+  try {
+    const { stdout } = await execAsync(`osascript -e '${script.replace(/'/g, "'\"'\"'")}'`, {
+      timeout: OSASCRIPT_TIMEOUT,
+    })
+    return stdout.trim()
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Electron/Activity] AppleScript execution failed:', error)
+    }
+    return null
+  }
+}
+
+export async function getCurrentActivity(): Promise<CurrentActivity | null> {
+  if (process.platform !== 'darwin') {
+    return null
+  }
+  const appName = await runAppleScript(GET_APP_NAME_SCRIPT)
+  if (!appName) return null
+  const windowTitle = (await runAppleScript(GET_WINDOW_TITLE_SCRIPT)) ?? ''
+  return { appName, windowTitle, timestamp: new Date().toISOString() }
+}
+
+export function isActivityTrackingSupported(): boolean {
+  return process.platform === 'darwin'
+}
+]]></content>
+      </artifact>
+      <artifact>
+        <path>today-app/electron/activity/types.ts</path>
+        <kind>types</kind>
+        <symbol>ActivityEntry, CurrentActivity, TrackerState</symbol>
+        <lines>1-64</lines>
+        <reason>Type definitions for activity tracking. TrackerState interface defines all state fields needed for this story: isTracking, timeEntryId, intervalId, entries[], lastActivity.</reason>
+        <content><![CDATA[
+/**
+ * Activity Tracking Types
+ */
+
+/** Single activity capture at a point in time */
+export interface ActivityEntry {
+  id: string
+  timeEntryId: string
+  appName: string
+  windowTitle: string
+  timestamp: string
+}
+
+/** Result of getCurrentActivity() call */
+export interface CurrentActivity {
+  appName: string
+  windowTitle: string
+  timestamp: string
+}
+
+/** Tracker state for managing polling sessions */
+export interface TrackerState {
+  isTracking: boolean
+  timeEntryId: string | null
+  intervalId: NodeJS.Timeout | null
+  entries: ActivityEntry[]
+  lastActivity: { appName: string; windowTitle: string } | null
+}
+]]></content>
+      </artifact>
+      <artifact>
+        <path>today-app/electron/ipc/handlers.ts</path>
+        <kind>main-process</kind>
+        <symbol>registerIpcHandlers</symbol>
+        <lines>1-81</lines>
+        <reason>IPC handlers from Story 2.2. Currently has stub implementations for activity:start and activity:stop. This story replaces stubs with real implementations calling startTracking() and stopTracking().</reason>
+        <content><![CDATA[
+/**
+ * IPC Handlers for Main Process
+ * Story 2.2 established stubs, Story 3.2 implements actual functionality.
+ */
+import { ipcMain } from 'electron'
+import { IPC_CHANNELS } from './channels'
+import { getCurrentActivity } from '../activity/tracker'
+
+const isDev = process.env.NODE_ENV === 'development'
+
+function logIPC(channel: string, args?: unknown): void {
+  if (isDev) {
+    console.log(`[Electron/IPC] ${channel}`, args ?? '')
+  }
+}
+
+export function registerIpcHandlers(): void {
+  // Activity: Start tracking - STUB TO BE REPLACED
+  ipcMain.handle(IPC_CHANNELS.ACTIVITY_START, async (_event, timeEntryId: string) => {
+    logIPC(IPC_CHANNELS.ACTIVITY_START, { timeEntryId })
+    return { success: true }  // Replace with startTracking(timeEntryId)
+  })
+
+  // Activity: Stop tracking - STUB TO BE REPLACED
+  ipcMain.handle(IPC_CHANNELS.ACTIVITY_STOP, async () => {
+    logIPC(IPC_CHANNELS.ACTIVITY_STOP)
+    return { success: true, data: { entriesRecorded: 0 } }  // Replace with stopTracking()
+  })
+
+  // Other handlers remain unchanged...
+}
+]]></content>
+      </artifact>
+      <artifact>
+        <path>today-app/electron/ipc/channels.ts</path>
+        <kind>constants</kind>
+        <symbol>IPC_CHANNELS</symbol>
+        <lines>1-29</lines>
+        <reason>IPC channel name constants. Channels activity:start and activity:stop are already defined. No changes needed for this story.</reason>
+        <content><![CDATA[
+export const IPC_CHANNELS = {
+  ACTIVITY_START: 'activity:start',
+  ACTIVITY_STOP: 'activity:stop',
+  ACTIVITY_GET_LOG: 'activity:get-log',
+  ACTIVITY_EXPORT: 'activity:export',
+  ACTIVITY_GET_CURRENT: 'activity:get-current',
+} as const
+
+export type IPCChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
+]]></content>
+      </artifact>
+      <artifact>
+        <path>today-app/src/types/electron.d.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>ElectronAPI, IPCResponse, ActivityEntry</symbol>
+        <lines>1-57</lines>
+        <reason>TypeScript declarations for Electron API. Already has ActivityEntry interface and IPCResponse generic. No changes needed for this story.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/electron/main.ts</path>
+        <kind>main-process</kind>
+        <symbol>createWindow, app</symbol>
+        <lines>all</lines>
+        <reason>Main process entry point. registerIpcHandlers() is already called. No changes needed for this story - all work is in tracker.ts and handlers.ts.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="electron" version="^39.2.7" dev="true" />
+        <package name="electron-vite" version="^5.0.0" dev="true" />
+        <package name="@electron-toolkit/preload" version="^3.0.2" dev="true" />
+        <package name="@electron-toolkit/utils" version="^4.0.0" dev="true" />
+        <package name="typescript" version="~5.9.3" dev="true" />
+        <package name="vitest" version="^3.2.4" dev="true" />
+      </node>
+      <note>crypto.randomUUID() is built-in to Node.js 16+ for generating unique IDs. No additional dependency needed.</note>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="performance">Polling interval MUST be 5 seconds (5000ms) to stay under 1% CPU</constraint>
+    <constraint type="pattern">All IPC handlers MUST return { success: true/false, data?, error? } shape</constraint>
+    <constraint type="pattern">Logging MUST use [Electron/Activity] prefix in development mode only</constraint>
+    <constraint type="architecture">All changes are in electron/ directory - no changes to src/ (React app)</constraint>
+    <constraint type="architecture">Activity entries stored in memory during session - Story 3.3 adds IndexedDB persistence</constraint>
+    <constraint type="deduplication">Only record activity when appName OR windowTitle changes from lastActivity</constraint>
+    <constraint type="state">Only ONE tracking session can be active at a time - return error if start called while tracking</constraint>
+    <constraint type="testing">Primary validation via Electron DevTools console - use Frontend Test Gate steps</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>startTracking</name>
+      <kind>async function</kind>
+      <signature>
+async function startTracking(timeEntryId: string): Promise&lt;IPCResponse&gt;
+// Returns { success: true } on success
+// Returns { success: false, error: 'Already tracking...' } if already tracking
+      </signature>
+      <path>today-app/electron/activity/tracker.ts (add to existing file)</path>
+    </interface>
+    <interface>
+      <name>stopTracking</name>
+      <kind>async function</kind>
+      <signature>
+async function stopTracking(): Promise&lt;IPCResponse&lt;{ entriesRecorded: number }&gt;&gt;
+// Returns { success: true, data: { entriesRecorded: N } }
+// Returns { success: true, data: { entriesRecorded: 0 } } if not tracking
+      </signature>
+      <path>today-app/electron/activity/tracker.ts (add to existing file)</path>
+    </interface>
+    <interface>
+      <name>getTrackerState</name>
+      <kind>function</kind>
+      <signature>
+function getTrackerState(): TrackerState
+// Returns current tracker state for debugging
+      </signature>
+      <path>today-app/electron/activity/tracker.ts (add to existing file)</path>
+    </interface>
+    <interface>
+      <name>POLL_INTERVAL_MS</name>
+      <kind>constant</kind>
+      <signature>const POLL_INTERVAL_MS = 5000</signature>
+      <path>today-app/electron/activity/tracker.ts (add to existing file)</path>
+    </interface>
+    <interface>
+      <name>TrackerState</name>
+      <kind>interface</kind>
+      <signature>
+interface TrackerState {
+  isTracking: boolean
+  timeEntryId: string | null
+  intervalId: NodeJS.Timeout | null
+  entries: ActivityEntry[]
+  lastActivity: { appName: string; windowTitle: string } | null
+}
+      </signature>
+      <path>today-app/electron/activity/types.ts (already exists)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Project uses Vitest for unit testing. For Electron main process code, primary validation is manual testing via DevTools console per Frontend Test Gate. Main process modules can have unit tests but require mocking of child_process and other Node APIs.
+    </standards>
+    <locations>
+      <location>today-app/electron/activity/tracker.ts (manual testing via IPC)</location>
+      <location>today-app/electron/activity/tracker.test.ts (optional unit tests)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC3.2.1">Manual test: window.electronAPI.activity.start('test-1') returns { success: true }</idea>
+      <idea ac="AC3.2.2">Manual test: Main process logs show activity captures every ~5 seconds</idea>
+      <idea ac="AC3.2.3">Manual test: Stay in same app for 15 seconds - only 1 entry recorded (deduplication)</idea>
+      <idea ac="AC3.2.4">Manual test: Verify captured entries have all required fields in console log</idea>
+      <idea ac="AC3.2.5">Manual test: window.electronAPI.activity.stop() returns { success: true, data: { entriesRecorded: N } }</idea>
+      <idea ac="AC3.2.7">Manual test: Call start() twice - second call returns error</idea>
+      <idea ac="AC3.2.8">Manual test: Call stop() without start - returns { success: true, data: { entriesRecorded: 0 } }</idea>
+      <idea ac="AC3.2.6">Performance test: Monitor Activity Monitor while tracking - CPU should stay under 1%</idea>
+    </ideas>
+  </tests>
+
+  <previousStoryLearnings>
+    <learning source="3-1-macos-app-detection-module">
+      <summary>getCurrentActivity() implemented and working</summary>
+      <detail>The tracker.ts file already has getCurrentActivity() which returns { appName, windowTitle, timestamp } using AppleScript via osascript. Returns null on error or non-macOS platforms. This story builds on this foundation.</detail>
+    </learning>
+    <learning source="2-2-ipc-bridge-setup">
+      <summary>IPC handlers exist as stubs ready for implementation</summary>
+      <detail>activity:start and activity:stop IPC handlers are implemented as stubs returning success. This story replaces them with real implementations. The IPCResponse pattern is established: { success: boolean, data?: T, error?: string }.</detail>
+    </learning>
+    <learning source="2-2-ipc-bridge-setup">
+      <summary>Test baseline is 512 tests</summary>
+      <detail>After Story 2.2, the test suite has 512 passing tests. This story should maintain that baseline. Main process code typically uses manual testing via DevTools console.</detail>
+    </learning>
+    <learning source="2-1-platform-detection-utility">
+      <summary>TypeScript types already defined</summary>
+      <detail>ActivityEntry and TrackerState interfaces are already defined in electron/activity/types.ts. No new type definitions needed - just use existing types.</detail>
+    </learning>
+  </previousStoryLearnings>
+</story-context>

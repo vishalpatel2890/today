@@ -1,10 +1,15 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { TimeEntry } from '../../types/timeTracking'
 import { formatRelativeTimestamp, formatDurationSummary } from '../../lib/timeFormatters'
+import { isElectron } from '../../lib/platform'
+import { ViewActivityButton } from './ViewActivityButton'
 
-/** Width of the action buttons area (Edit + Delete) */
-const ACTION_WIDTH = 120
+/** Base width of the action buttons area (Edit + Delete = 2 buttons) */
+const BASE_ACTION_WIDTH = 120
+
+/** Width per action button */
+const BUTTON_WIDTH = 60
 
 /** If swiped past this threshold, snap open; otherwise snap closed */
 const SNAP_THRESHOLD = 60
@@ -52,6 +57,15 @@ export const InsightRow = ({
   const timestamp = formatRelativeTimestamp(entry.start_time)
   const duration = formatDurationSummary(entry.duration)
 
+  // Electron-only: Show View Activity button for completed entries (AC3.1, AC3.2)
+  // Source: notes/sprint-artifacts/tech-spec-epic-2-electron.md#AC3
+  const showActivityButton = useMemo(() => {
+    return isElectron() && !!entry.end_time
+  }, [entry.end_time])
+
+  // Calculate action width: 3 buttons in Electron (180px), 2 buttons in web (120px)
+  const actionWidth = showActivityButton ? BASE_ACTION_WIDTH + BUTTON_WIDTH : BASE_ACTION_WIDTH
+
   // Swipe state
   const [swipeOffset, setSwipeOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -61,11 +75,11 @@ export const InsightRow = ({
   // Sync with controlled isRevealed prop
   useEffect(() => {
     if (isRevealed) {
-      setSwipeOffset(ACTION_WIDTH)
+      setSwipeOffset(actionWidth)
     } else if (!isDragging) {
       setSwipeOffset(0)
     }
-  }, [isRevealed, isDragging])
+  }, [isRevealed, isDragging, actionWidth])
 
   /**
    * Handle wheel event for trackpad swipe detection
@@ -90,7 +104,7 @@ export const InsightRow = ({
 
       // Update offset based on deltaX (negative = swipe left = reveal actions)
       setSwipeOffset((prev) => {
-        const newOffset = Math.max(0, Math.min(ACTION_WIDTH, prev + e.deltaX))
+        const newOffset = Math.max(0, Math.min(actionWidth, prev + e.deltaX))
         return newOffset
       })
 
@@ -101,7 +115,7 @@ export const InsightRow = ({
         // Snap to open or closed based on threshold
         setSwipeOffset((prev) => {
           const shouldSnap = prev > SNAP_THRESHOLD
-          const newOffset = shouldSnap ? ACTION_WIDTH : 0
+          const newOffset = shouldSnap ? actionWidth : 0
 
           // Notify parent of reveal state change
           if (onRevealChange) {
@@ -112,7 +126,7 @@ export const InsightRow = ({
         })
       }, 150)
     },
-    [entry.id, onRevealChange]
+    [entry.id, onRevealChange, actionWidth]
   )
 
   // Attach wheel event listener
@@ -180,9 +194,16 @@ export const InsightRow = ({
       {/* Action buttons (positioned behind the sliding content) */}
       <div
         className="absolute right-0 top-0 bottom-0 flex items-center"
-        style={{ width: ACTION_WIDTH }}
+        style={{ width: actionWidth }}
         aria-hidden={!isActionVisible}
       >
+        {/* View Activity button - Electron only (AC3.1, AC3.2) */}
+        {showActivityButton && (
+          <ViewActivityButton
+            timeEntryId={entry.id}
+            tabIndex={isActionVisible ? 0 : -1}
+          />
+        )}
         <button
           type="button"
           onClick={handleEditClick}

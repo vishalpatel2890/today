@@ -1,7 +1,7 @@
 # Today UX Design Specification
 
-_Created on 2026-01-05 by Vishal_
-_Generated using BMad Method - Create UX Design Workflow v1.0_
+*Created on 2026-01-05 by Vishal*
+*Generated using BMad Method - Create UX Design Workflow v1.0*
 
 ---
 
@@ -38,7 +38,7 @@ _Generated using BMad Method - Create UX Design Workflow v1.0_
 
 **Component Library Strategy:**
 | Component | Approach |
-|-----------|----------|
+| --- | --- |
 | Buttons | Custom (simple, minimal) |
 | Task Card | Custom |
 | Tabs | Custom (discreet styling) |
@@ -143,7 +143,7 @@ _Generated using BMad Method - Create UX Design Workflow v1.0_
 ### 2.2 Core Experience Principles
 
 | Principle | Decision | Rationale |
-|-----------|----------|-----------|
+| --- | --- | --- |
 | **Speed** | Instant feedback on all actions | Tasks complete/defer immediately, no loading states for local actions |
 | **Guidance** | Minimal - trust the user | Power users don't need hand-holding; the UI is self-evident |
 | **Flexibility** | Constrained simplicity | Fewer options = faster decisions. No priority levels, no tags, no due times |
@@ -156,7 +156,7 @@ _Generated using BMad Method - Create UX Design Workflow v1.0_
 This is the unique interaction that differentiates Today from other to-do apps. Categorization happens at *deferment*, not creation.
 
 | Aspect | Design Decision |
-|--------|-----------------|
+| --- | --- |
 | **Trigger** | Click/tap "Defer" button on any task |
 | **Modal Behavior** | Compact modal with two sections: date selection + category |
 | **Date Options** | Quick buttons: "Tomorrow" / "Pick date" / "No date (someday)" |
@@ -183,7 +183,7 @@ This is the unique interaction that differentiates Today from other to-do apps. 
 **Color Application:**
 
 | Element | Color | Token |
-|---------|-------|-------|
+| --- | --- | --- |
 | Page background | `#f8fafc` | `--background` |
 | Task cards | `#ffffff` | `--surface` |
 | Tab bar background | `#f1f5f9` | `--surface-muted` |
@@ -199,7 +199,7 @@ This is the unique interaction that differentiates Today from other to-do apps. 
 ### 3.2 Typography System
 
 | Element | Font | Size | Weight |
-|---------|------|------|--------|
+| --- | --- | --- | --- |
 | App title "Today" | Playfair Display | 24px | 500 |
 | Tab labels | DM Sans | 14px | 500 |
 | Task text | DM Sans | 16px | 400 |
@@ -213,7 +213,7 @@ This is the unique interaction that differentiates Today from other to-do apps. 
 **Approach:** Minimal, outline-style icons (Heroicons or Lucide)
 
 | Action | Icon |
-|--------|------|
+| --- | --- |
 | Complete | Circle (unchecked) → Check circle (checked) |
 | Defer | Clock or arrow-right |
 | Delete | Trash (only visible on hover/focus) |
@@ -239,7 +239,7 @@ This is the unique interaction that differentiates Today from other to-do apps. 
 **Visual Characteristics:**
 
 | Aspect | Decision |
-|--------|----------|
+| --- | --- |
 | **Layout** | Single column, centered |
 | **Density** | Spacious - tasks breathe |
 | **Navigation** | Top tabs (Today / Tomorrow / Deferred) |
@@ -317,7 +317,7 @@ graph LR
 ```
 
 | Step | User Action | System Response |
-|------|-------------|-----------------|
+| --- | --- | --- |
 | 1 | Focus on "Add a task..." input | Input activates, placeholder clears |
 | 2 | Type task text | Characters appear |
 | 3 | Press Enter | Task card animates in at bottom of list, input clears |
@@ -343,7 +343,7 @@ graph LR
 ```
 
 | Step | User Action | System Response |
-|------|-------------|-----------------|
+| --- | --- | --- |
 | 1 | Click/tap the circle checkbox | Circle fills with checkmark (green) |
 | 2 | (none) | After 300ms, task gently fades out |
 | 3 | (none) | Task removed from list, saved as complete |
@@ -374,7 +374,7 @@ graph TD
 ```
 
 | Step | User Action | System Response |
-|------|-------------|-----------------|
+| --- | --- | --- |
 | 1 | Hover/focus on task | "Defer" button becomes visible |
 | 2 | Click "Defer" | Modal slides up from bottom (mobile) or appears centered (desktop) |
 | 3 | Choose date option | "Tomorrow" / "Pick date" / "No date" buttons |
@@ -397,7 +397,7 @@ graph TD
 **Goal:** See what's been pushed back, organized by category
 
 | Step | User Action | System Response |
-|------|-------------|-----------------|
+| --- | --- | --- |
 | 1 | Click "Deferred" tab | View switches, categories displayed |
 | 2 | See category headers with counts | First category expanded, others collapsed |
 | 3 | Click category header | Category expands/collapses |
@@ -429,7 +429,7 @@ graph TD
 **States:**
 
 | State | Appearance |
-|-------|------------|
+| --- | --- |
 | Default | White card, gray border, circle checkbox |
 | Hover | Slight shadow lift, actions menu appears |
 | Completing | Checkbox fills green, brief pause, fade out |
@@ -455,7 +455,7 @@ graph TD
 **States:**
 
 | State | Appearance |
-|-------|------------|
+| --- | --- |
 | Active tab | Bold text, underline indicator |
 | Inactive tab | Normal weight, muted color |
 | Badge | Small dot/number for task count |
@@ -474,7 +474,7 @@ graph TD
 **States:**
 
 | State | Appearance |
-|-------|------------|
+| --- | --- |
 | Default | Dashed border, muted placeholder |
 | Focused | Solid border, clear placeholder |
 | With text | Solid border, dark text |
@@ -517,7 +517,7 @@ graph TD
 **States:**
 
 | State | Appearance |
-|-------|------------|
+| --- | --- |
 | Expanded | Down chevron, tasks visible below |
 | Collapsed | Right chevron, tasks hidden |
 | Hover | Slight background highlight |
@@ -546,7 +546,7 @@ graph TD
 ### 7.1 Consistency Rules
 
 | Pattern | Decision | Rationale |
-|---------|----------|-----------|
+| --- | --- | --- |
 | **Button Hierarchy** | Primary: filled dark. Secondary: outlined. Destructive: red text only | Minimal visual weight, red reserved for danger |
 | **Feedback - Success** | Subtle toast, bottom-center, auto-dismiss 3s | Non-intrusive, doesn't break flow |
 | **Feedback - Error** | Inline red text below input | Errors rare (local storage), show immediately |
@@ -594,7 +594,7 @@ Everything is in Today or Tomorrow!
 **Breakpoints:**
 
 | Breakpoint | Width | Layout Changes |
-|------------|-------|----------------|
+| --- | --- | --- |
 | Mobile | < 768px | Full-width cards, bottom sheet modal, larger touch targets |
 | Tablet | 768px - 1023px | Centered column (500px), standard modal |
 | Desktop | 1024px+ | Centered column (600px), hover states active |
@@ -602,7 +602,7 @@ Everything is in Today or Tomorrow!
 **Mobile Adaptations:**
 
 | Element | Desktop | Mobile |
-|---------|---------|--------|
+| --- | --- | --- |
 | Task card actions | Hover-revealed | Always visible (icons smaller) |
 | Defer modal | Centered dialog | Bottom sheet (slides up) |
 | Add input | Bottom of list | Fixed at bottom of viewport |
@@ -616,7 +616,7 @@ Everything is in Today or Tomorrow!
 **Requirements:**
 
 | Requirement | Implementation |
-|-------------|----------------|
+| --- | --- |
 | Color contrast | All text meets 4.5:1 ratio (verified with Slate palette) |
 | Keyboard navigation | Tab through tasks, Enter to complete, Escape to close modals |
 | Focus indicators | Visible focus ring (2px solid, primary color) on all interactive elements |
@@ -627,7 +627,7 @@ Everything is in Today or Tomorrow!
 **Keyboard Shortcuts:**
 
 | Key | Action |
-|-----|--------|
+| --- | --- |
 | Tab | Move between tasks and controls |
 | Enter | Complete focused task / Submit input |
 | Escape | Close modal |
@@ -643,7 +643,7 @@ Everything is in Today or Tomorrow!
 **UX Design Specification Complete**
 
 | Aspect | Decision |
-|--------|----------|
+| --- | --- |
 | **Design System** | Custom (Tailwind + Radix primitives) |
 | **Visual Theme** | Slate Sophisticated - minimal paper |
 | **Layout** | Single-column, centered, spacious |
@@ -660,7 +660,7 @@ Everything is in Today or Tomorrow!
 Based on the UX requirements:
 
 | Need | Recommendation |
-|------|----------------|
+| --- | --- |
 | Framework | React or Vue (component-based) |
 | Styling | Tailwind CSS with custom design tokens |
 | Primitives | Radix UI (Dialog, Select, Popover) |
@@ -701,10 +701,10 @@ interface AppState {
 
 ### Version History
 
-| Date       | Version | Changes                         | Author |
-| ---------- | ------- | ------------------------------- | ------ |
-| 2026-01-05 | 1.0     | Initial UX Design Specification | Vishal |
+| Date | Version | Changes | Author |
+| --- | --- | --- | --- |
+| 2026-01-05 | 1.0 | Initial UX Design Specification | Vishal |
 
 ---
 
-_This UX Design Specification was created through collaborative design facilitation._
+*This UX Design Specification was created through collaborative design facilitation.*

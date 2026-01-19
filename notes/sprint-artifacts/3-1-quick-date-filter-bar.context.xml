@@ -1,0 +1,258 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.1</storyId>
+    <title>Quick Date Filter Bar</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-1-quick-date-filter-bar.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>to quickly filter insights by preset date ranges (Today, Yesterday, This Week, This Month)</iWant>
+    <soThat>I can see my time data for specific periods without manual date entry</soThat>
+    <tasks>
+      <task id="1" title="Create QuickFilterBar component" acs="1,2,3,8">
+        <subtask>Create src/components/time-tracking/QuickFilterBar.tsx component</subtask>
+        <subtask>Props interface: activePreset: DatePreset, onPresetSelect: (preset: DatePreset) => void</subtask>
+        <subtask>Render 5 pill buttons: Today, Yesterday, This Week, This Month, Custom</subtask>
+        <subtask>Style pills: default = gray outline/muted text, active = filled primary bg/white text</subtask>
+        <subtask>Use Tailwind classes: rounded-full px-3 py-1 text-sm</subtask>
+        <subtask>Active state: bg-slate-600 text-white, default: border border-slate-300 text-slate-600</subtask>
+        <subtask>Accessibility: role="radiogroup", aria-label="Date filter"</subtask>
+        <subtask>Write component tests</subtask>
+      </task>
+      <task id="2" title="Add DatePreset type and filter state to TimeInsightsModal" acs="8,9">
+        <subtask>Add to src/types/timeTracking.ts: type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | null</subtask>
+        <subtask>Add useState&lt;DatePreset&gt;(null) in TimeInsightsModal</subtask>
+        <subtask>Pass state and setter to QuickFilterBar</subtask>
+        <subtask>Filter state resets on modal unmount (React default behavior)</subtask>
+      </task>
+      <task id="3" title="Create date range calculation utilities" acs="7">
+        <subtask>Add to src/lib/timeFormatters.ts: getDateRangeForPreset(preset: DatePreset): DateRange | null</subtask>
+        <subtask>Use date-fns: startOfDay, endOfDay, startOfWeek, startOfMonth, subDays</subtask>
+        <subtask>Today = { start: startOfDay(now), end: endOfDay(now) }</subtask>
+        <subtask>Yesterday = { start: startOfDay(subDays(now, 1)), end: endOfDay(subDays(now, 1)) }</subtask>
+        <subtask>This Week = { start: startOfWeek(now), end: endOfDay(now) }</subtask>
+        <subtask>This Month = { start: startOfMonth(now), end: endOfDay(now) }</subtask>
+        <subtask>Write unit tests for all date range calculations</subtask>
+      </task>
+      <task id="4" title="Extend useTimeInsights to accept filter parameter" acs="4,5,6">
+        <subtask>Update hook signature: useTimeInsights(filters?: { datePreset: DatePreset })</subtask>
+        <subtask>Add filtering logic before aggregation using isWithinInterval from date-fns</subtask>
+        <subtask>Update useMemo dependencies to include filter state</subtask>
+        <subtask>All calculations (totalToday, totalWeek, byTask, recentEntries) operate on filtered entries</subtask>
+        <subtask>Handle null filter (show all entries)</subtask>
+        <subtask>Write tests for filtering behavior</subtask>
+      </task>
+      <task id="5" title="Integrate QuickFilterBar into TimeInsightsModal" acs="1">
+        <subtask>Add QuickFilterBar component above summary cards in modal</subtask>
+        <subtask>Pass datePreset state and onPresetSelect handler</subtask>
+        <subtask>Pass current filter to useTimeInsights hook</subtask>
+        <subtask>Verify all sections update when filter changes</subtask>
+      </task>
+      <task id="6" title="Handle toggle behavior for pill deselection" acs="3">
+        <subtask>In onPresetSelect: if current preset === selected preset, set to null (deselect)</subtask>
+        <subtask>Else set to selected preset</subtask>
+        <subtask>Test toggle behavior</subtask>
+      </task>
+      <task id="7" title="Write QuickFilterBar component tests" acs="1,2,3,8">
+        <subtask>Test renders 5 pills with correct labels</subtask>
+        <subtask>Test clicking pill calls onPresetSelect with correct preset</subtask>
+        <subtask>Test active preset shows highlighted styling</subtask>
+        <subtask>Test clicking active preset calls onPresetSelect with null</subtask>
+        <subtask>Test only one pill can be active at a time</subtask>
+        <subtask>Test accessibility attributes (role, aria-label)</subtask>
+      </task>
+      <task id="8" title="Write date range calculation unit tests" acs="7">
+        <subtask>Test "today" returns correct date range</subtask>
+        <subtask>Test "yesterday" returns correct date range</subtask>
+        <subtask>Test "week" starts from Sunday and ends today</subtask>
+        <subtask>Test "month" starts from 1st and ends today</subtask>
+        <subtask>Test edge cases: end of month, start of month, week boundary</subtask>
+      </task>
+      <task id="9" title="Write useTimeInsights filter integration tests" acs="4,5,6">
+        <subtask>Test filtering entries by "today" preset</subtask>
+        <subtask>Test filtering entries by "yesterday" preset</subtask>
+        <subtask>Test filtering entries by "week" preset</subtask>
+        <subtask>Test filtering entries by "month" preset</subtask>
+        <subtask>Test no filter returns all entries</subtask>
+        <subtask>Test metrics recalculate correctly with filter</subtask>
+        <subtask>Test empty filter results return 0 totals</subtask>
+      </task>
+      <task id="10" title="Manual browser testing" acs="1-9">
+        <subtask>Run through Frontend Test Gate checklist</subtask>
+        <subtask>Test with entries spanning multiple days</subtask>
+        <subtask>Verify filter state resets on modal close</subtask>
+        <subtask>Check pill styling matches UX spec</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.1.1">Opening the Insights modal displays a row of quick filter pills at the top: "Today", "Yesterday", "This Week", "This Month", "Custom"</criterion>
+    <criterion id="AC-3.1.2">Clicking a date preset pill highlights it (filled primary background, white text)</criterion>
+    <criterion id="AC-3.1.3">Clicking a highlighted preset pill deselects it (returns to default styling, filter removed)</criterion>
+    <criterion id="AC-3.1.4">Selecting a preset updates all summary metrics to show only data from that period</criterion>
+    <criterion id="AC-3.1.5">Selecting a preset updates the task breakdown list to show only filtered results</criterion>
+    <criterion id="AC-3.1.6">Selecting a preset updates the recent entries list to show only filtered entries</criterion>
+    <criterion id="AC-3.1.7">Date filters use correct date ranges: Today=today, Yesterday=yesterday, This Week=Sunday-today, This Month=1st-today</criterion>
+    <criterion id="AC-3.1.8">Only one date filter can be active at a time (presets are mutually exclusive)</criterion>
+    <criterion id="AC-3.1.9">Filter state persists while modal is open, resets on modal close</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3-insights-filtering.md</path>
+        <title>Epic 3 Technical Specification: Insights Filtering</title>
+        <section>Story 3.1: Quick Date Filter Bar</section>
+        <snippet>Defines DatePreset type, QuickFilterBarProps interface, date-fns functions for range calculations, and AC details.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Architecture</title>
+        <section>ADR-TT-004: Client-Side Insights Aggregation</section>
+        <snippet>All filtering computed client-side with useMemo; dependencies include filter state to trigger recalculation.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design Specification</title>
+        <section>Section 6.1 - QuickFilterBar Component</section>
+        <snippet>Pills: Today, Yesterday, This Week, This Month, Custom. Default: gray outline/muted text. Active: filled primary bg/white text.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Epics Breakdown</title>
+        <section>Epic 3: Insights Filtering - Story 3.1</section>
+        <snippet>FR20 coverage: quick date filter presets. Filter state persists within modal session, resets on close.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>TimeEntry, ActiveSession, TimeInsights</symbol>
+        <lines>1-53</lines>
+        <reason>Defines core time tracking types. Must add DatePreset type here.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeInsights.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeInsights, UseTimeInsightsReturn</symbol>
+        <lines>1-153</lines>
+        <reason>Core insights aggregation hook. Must extend to accept filter parameters and filter entries before aggregation.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeInsightsModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeInsightsModal</symbol>
+        <lines>1-171</lines>
+        <reason>Main modal component. Must add filter state and integrate QuickFilterBar above summary cards.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDuration, formatDurationSummary, formatRelativeTimestamp</symbol>
+        <lines>1-102</lines>
+        <reason>Time formatting utilities. Must add getDateRangeForPreset function for date range calculations.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/InsightCard.tsx</path>
+        <kind>component</kind>
+        <symbol>InsightCard</symbol>
+        <lines>1-50</lines>
+        <reason>Summary card component. No changes needed but used for displaying filtered metrics.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/InsightRow.tsx</path>
+        <kind>component</kind>
+        <symbol>InsightRow</symbol>
+        <lines>1-51</lines>
+        <reason>Entry row component. No changes needed but used for displaying filtered entries. Follow styling pattern for QuickFilterBar pills.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="react" version="^19.2.0" />
+        <package name="date-fns" version="^4.1.0" purpose="Date calculations: startOfDay, endOfDay, startOfWeek, startOfMonth, subDays, isWithinInterval, parseISO" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" purpose="Modal component" />
+        <package name="lucide-react" version="^0.562.0" purpose="Icons" />
+        <package name="tailwindcss" version="^4.1.18" purpose="Styling" />
+        <package name="vitest" version="^3.2.4" purpose="Testing framework" />
+        <package name="@testing-library/react" version="^16.3.1" purpose="Component testing" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">All filtering computed client-side with useMemo per ADR-TT-004. Dependencies include filter state to trigger recalculation.</constraint>
+    <constraint type="architecture">Expected data volume is small (&lt; 1000 entries/year) - no pagination or virtualization needed.</constraint>
+    <constraint type="pattern">Components must be functional with TypeScript, arrow function syntax, named exports, destructured props.</constraint>
+    <constraint type="pattern">Use existing Tailwind patterns: text-slate-600, text-slate-900, bg-slate-50, hover:bg-slate-50.</constraint>
+    <constraint type="pattern">Pills: rounded-full, px-3 py-1, text-sm, font-medium. Active: bg-slate-600 text-white, default: border border-slate-300 text-slate-600.</constraint>
+    <constraint type="pattern">Week starts on Sunday using date-fns startOfWeek with weekStartsOn: 0.</constraint>
+    <constraint type="pattern">Filter state is local to TimeInsightsModal (useState), resets on modal unmount per FR29.</constraint>
+    <constraint type="testing">Must maintain 209+ passing tests. Add unit tests for date calculations and component tests for QuickFilterBar.</constraint>
+    <constraint type="accessibility">QuickFilterBar: role="radiogroup", aria-label="Date filter". Pills need proper focus states.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>DatePreset</name>
+      <kind>type</kind>
+      <signature>type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | null</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>DateRange</name>
+      <kind>interface</kind>
+      <signature>interface DateRange { start: Date; end: Date }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>QuickFilterBarProps</name>
+      <kind>interface</kind>
+      <signature>interface QuickFilterBarProps { activePreset: DatePreset; onPresetSelect: (preset: DatePreset) => void }</signature>
+      <path>today-app/src/components/time-tracking/QuickFilterBar.tsx</path>
+    </interface>
+    <interface>
+      <name>getDateRangeForPreset</name>
+      <kind>function</kind>
+      <signature>function getDateRangeForPreset(preset: DatePreset): DateRange | null</signature>
+      <path>today-app/src/lib/timeFormatters.ts</path>
+    </interface>
+    <interface>
+      <name>useTimeInsights (extended)</name>
+      <kind>hook</kind>
+      <signature>function useTimeInsights(filters?: { datePreset: DatePreset }): UseTimeInsightsReturn</signature>
+      <path>today-app/src/hooks/useTimeInsights.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <paragraph>Tests use Vitest with @testing-library/react for component testing. IndexedDB is mocked via fake-indexeddb. Test files are co-located with source files (.test.ts/.test.tsx suffix). Follow existing patterns in useTimeInsights.test.ts for hook testing. Use createEntry helper for creating TimeEntry fixtures. Tests should verify both happy path and edge cases.</paragraph>
+    </standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/**/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-3.1.1">Test QuickFilterBar renders 5 pills with correct labels</idea>
+      <idea ac="AC-3.1.2">Test clicking pill calls onPresetSelect and applies active styling class</idea>
+      <idea ac="AC-3.1.3">Test clicking active pill calls onPresetSelect(null) to deselect</idea>
+      <idea ac="AC-3.1.4">Test useTimeInsights with filter returns filtered totalToday/totalWeek/avgPerDay</idea>
+      <idea ac="AC-3.1.5">Test byTask only includes entries matching filter date range</idea>
+      <idea ac="AC-3.1.6">Test recentEntries only includes entries matching filter date range</idea>
+      <idea ac="AC-3.1.7">Test getDateRangeForPreset returns correct ranges for each preset</idea>
+      <idea ac="AC-3.1.7">Test week range starts from Sunday (weekStartsOn: 0)</idea>
+      <idea ac="AC-3.1.7">Test month range starts from 1st of current month</idea>
+      <idea ac="AC-3.1.8">Test only one pill can be active at a time</idea>
+      <idea ac="AC-3.1.9">Test filter state resets when modal unmounts and remounts</idea>
+      <idea ac="empty-state">Test filter returning no entries shows 0 totals and empty arrays</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,222 @@
+<story-context id="bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Activity Storage in IndexedDB</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-3-activity-storage-in-indexeddb.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system</asA>
+    <iWant>to persist activity logs to IndexedDB when tracking stops</iWant>
+    <soThat>activity data survives app restarts</soThat>
+    <tasks>
+      <task id="1" title="Extend Dexie database schema with activityLogs table" ac="3.3.2, 3.3.3">
+        <subtask id="1.1">Add new table definition to src/lib/db.ts: activityLogs: '++id, timeEntryId, timestamp'</subtask>
+        <subtask id="1.2">Create ActivityLogEntry interface matching existing ActivityEntry type</subtask>
+        <subtask id="1.3">Increment Dexie version number for schema migration</subtask>
+        <subtask id="1.4">Ensure table has compound index on [timeEntryId+timestamp] for ordered retrieval</subtask>
+      </task>
+      <task id="2" title="Create activity store module for IndexedDB operations" ac="3.3.1, 3.3.6, 3.3.7">
+        <subtask id="2.1">Create src/lib/activityStore.ts with CRUD operations</subtask>
+        <subtask id="2.2">Implement saveActivityEntries(entries: ActivityEntry[]): Promise&lt;void&gt;</subtask>
+        <subtask id="2.3">Implement getActivityEntriesByTimeEntryId(timeEntryId: string): Promise&lt;ActivityEntry[]&gt;</subtask>
+        <subtask id="2.4">Entries returned should be sorted by timestamp ascending</subtask>
+      </task>
+      <task id="3" title="Wire up IPC handlers to use activity store" ac="3.3.1, 3.3.6">
+        <subtask id="3.1">Import activity store functions in IPC handlers</subtask>
+        <subtask id="3.2">Update activity:stop handler to call saveActivityEntries() with captured entries</subtask>
+        <subtask id="3.3">Update activity:get-log handler to call getActivityEntriesByTimeEntryId()</subtask>
+        <subtask id="3.4">Handle errors gracefully with proper IPC response format</subtask>
+      </task>
+      <task id="4" title="Ensure Supabase sync exclusion" ac="3.3.5">
+        <subtask id="4.1">Review existing sync implementation in src/lib/syncQueue.ts</subtask>
+        <subtask id="4.2">Verify activityLogs table is NOT in the sync table list</subtask>
+        <subtask id="4.3">Add explicit exclusion comment for future clarity</subtask>
+        <subtask id="4.4">Test that no activity data appears in Supabase</subtask>
+      </task>
+      <task id="5" title="Implement IPC communication bridge for renderer-to-DB access" ac="3.3.1">
+        <subtask id="5.1">Since Dexie runs in renderer process, implement IPC message passing for activity storage</subtask>
+        <subtask id="5.2">Create activity:save-entries IPC channel for main→renderer→DB flow</subtask>
+        <subtask id="5.3">Alternatively, pass entries via existing stop response and save in renderer</subtask>
+        <subtask id="5.4">Choose simplest approach per architecture (prefer renderer-side DB access)</subtask>
+      </task>
+      <task id="6" title="Test persistence and retrieval" ac="3.3.4, 3.3.7">
+        <subtask id="6.1">Run npm run dev:electron and complete a tracking session</subtask>
+        <subtask id="6.2">Verify entries saved to IndexedDB (DevTools → Application → IndexedDB)</subtask>
+        <subtask id="6.3">Close and reopen app, verify data persists</subtask>
+        <subtask id="6.4">Test retrieval with valid and invalid timeEntryIds</subtask>
+        <subtask id="6.5">Document test results in Dev Agent Record</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC3.3.1">When activity:stop IPC is called, all captured activity entries are saved to IndexedDB</criterion>
+    <criterion id="AC3.3.2">Entries are stored in a separate activityLogs table (not mixed with other synced tables)</criterion>
+    <criterion id="AC3.3.3">Entries are indexed by timeEntryId for fast retrieval</criterion>
+    <criterion id="AC3.3.4">The data persists after closing and reopening Electron</criterion>
+    <criterion id="AC3.3.5">The activityLogs table is NOT included in Supabase sync</criterion>
+    <criterion id="AC3.3.6">Existing activity retrieval via activity:get-log IPC returns entries from IndexedDB</criterion>
+    <criterion id="AC3.3.7">If no activity exists for a timeEntryId, an empty array is returned</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Data Architecture, ADR-008</section>
+        <snippet>Activity logs stored in separate Dexie table (Electron-only). Storage never synced to remote. IndexedDB schema: activityLogs: '++id, timeEntryId, timestamp'</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>PRD - Today Electron Migration</title>
+        <section>Activity Tracking - Storage (FR16-FR19)</section>
+        <snippet>Activity logs stored locally in IndexedDB, persist across restarts, keyed to time entry IDs, never synced to Supabase.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Epic 3: Activity Tracking Core, Story 3.3</section>
+        <snippet>Persist activity logs to IndexedDB when tracking stops. Extend Dexie db with activityLogs table. Verify sync queue ignores activityLogs table.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/3-2-activity-polling-during-time-tracking.md</path>
+        <title>Story 3.2: Activity Polling During Time Tracking</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>stopTracking() returns { success: true, data: { entriesRecorded, entries } }. Entries array available for persistence in Story 3.3.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/lib/db.ts</path>
+        <kind>database</kind>
+        <symbol>TodayDatabase, db</symbol>
+        <lines>1-98</lines>
+        <reason>Dexie database singleton - must add activityLogs table here. Current schema has tasks and syncQueue tables only.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/syncQueue.ts</path>
+        <kind>sync</kind>
+        <symbol>SyncTable, queueOperation, processQueue</symbol>
+        <lines>1-496</lines>
+        <reason>Sync implementation - verify activityLogs NOT in SyncTable type. Currently syncs: tasks, categories, time_entries.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/activity/types.ts</path>
+        <kind>types</kind>
+        <symbol>ActivityEntry, TrackerState</symbol>
+        <lines>1-63</lines>
+        <reason>Existing ActivityEntry interface to reuse for IndexedDB storage. Fields: id, timeEntryId, appName, windowTitle, timestamp.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/activity/tracker.ts</path>
+        <kind>service</kind>
+        <symbol>startTracking, stopTracking, getCurrentActivity</symbol>
+        <lines>186-262</lines>
+        <reason>stopTracking() returns entries array in response. This story needs to persist these entries to IndexedDB.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/ipc/handlers.ts</path>
+        <kind>ipc</kind>
+        <symbol>registerIpcHandlers</symbol>
+        <lines>1-78</lines>
+        <reason>IPC handlers for activity:start, activity:stop, activity:get-log. get-log currently returns stub empty array - needs DB query.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/ipc/channels.ts</path>
+        <kind>constants</kind>
+        <symbol>IPC_CHANNELS</symbol>
+        <lines>1-29</lines>
+        <reason>IPC channel constants. May need to add activity:save-entries channel for renderer-side DB access pattern.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeTracking, stopTracking</symbol>
+        <lines>138-196</lines>
+        <reason>Time tracking hook - may need to intercept stopTracking to save activity entries to IndexedDB in renderer process.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/preload.ts</path>
+        <kind>preload</kind>
+        <symbol>electronAPI</symbol>
+        <reason>Preload script exposing IPC bridge. May need to add activity:save-entries if using main→renderer pattern.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="dexie" version="^4.2.1" />
+        <package name="dexie-react-hooks" version="^4.2.0" />
+        <package name="electron" version="^39.2.7" devDependency="true" />
+        <package name="electron-vite" version="^5.0.0" devDependency="true" />
+        <package name="fake-indexeddb" version="^6.2.5" devDependency="true" />
+        <package name="vitest" version="^3.2.4" devDependency="true" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="ADR-008">Activity data stored in IndexedDB (Dexie), never in SQLite. Renderer-side access preferred.</constraint>
+    <constraint source="ADR-007">All IPC handlers return { success: true, data? } or { success: false, error }. Follow existing pattern.</constraint>
+    <constraint source="Architecture">Dexie runs in renderer process only. Main process cannot directly access IndexedDB.</constraint>
+    <constraint source="FR19">Activity data is NEVER synced to Supabase or any remote server. Local only.</constraint>
+    <constraint source="Naming">IPC channels: domain:action kebab-case (e.g., activity:get-log)</constraint>
+    <constraint source="Error Handling">Graceful degradation - return empty array if no data, don't throw errors.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ActivityEntry</name>
+      <kind>interface</kind>
+      <signature>interface ActivityEntry { id: string; timeEntryId: string; appName: string; windowTitle: string; timestamp: string; }</signature>
+      <path>today-app/electron/activity/types.ts</path>
+    </interface>
+    <interface>
+      <name>activity:stop IPC</name>
+      <kind>IPC endpoint</kind>
+      <signature>invoke('activity:stop') → { success: true, data: { entriesRecorded: number, entries: ActivityEntry[] } }</signature>
+      <path>today-app/electron/ipc/handlers.ts</path>
+    </interface>
+    <interface>
+      <name>activity:get-log IPC</name>
+      <kind>IPC endpoint</kind>
+      <signature>invoke('activity:get-log', timeEntryId: string) → { success: true, data: ActivityEntry[] }</signature>
+      <path>today-app/electron/ipc/handlers.ts</path>
+    </interface>
+    <interface>
+      <name>Dexie db.version().stores()</name>
+      <kind>database schema</kind>
+      <signature>this.version(N).stores({ activityLogs: '++id, timeEntryId, timestamp' })</signature>
+      <path>today-app/src/lib/db.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest with @testing-library/react for component tests. Use fake-indexeddb for IndexedDB mocking.
+      Tests live alongside source files (*.test.ts, *.test.tsx). Run with npm run test or npm run test:run.
+      Mock IPC calls using vi.mock() for electron-related tests. Current test suite has 576+ passing tests.
+    </standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/**/*.test.tsx</location>
+      <location>today-app/src/**/*.integration.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="AC3.3.1">Test saveActivityEntries() writes entries to IndexedDB activityLogs table</idea>
+      <idea ac="AC3.3.2">Test activityLogs table exists separately from tasks/syncQueue tables</idea>
+      <idea ac="AC3.3.3">Test getActivityEntriesByTimeEntryId() uses index for fast retrieval</idea>
+      <idea ac="AC3.3.4">Test entries persist after db close/reopen (simulated restart)</idea>
+      <idea ac="AC3.3.5">Test SyncTable type does NOT include activityLogs - no sync operations queued</idea>
+      <idea ac="AC3.3.6">Test activity:get-log IPC returns correct entries from IndexedDB</idea>
+      <idea ac="AC3.3.7">Test getActivityEntriesByTimeEntryId() returns [] for non-existent timeEntryId</idea>
+    </ideas>
+  </tests>
+</story-context>

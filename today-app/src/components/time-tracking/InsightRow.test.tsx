@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react'
 import { InsightRow } from './InsightRow'
 import type { TimeEntry } from '../../types/timeTracking'
 
+// Mock the platform module for Electron detection tests
+vi.mock('../../lib/platform', () => ({
+  isElectron: vi.fn(() => false), // Default to browser (non-Electron)
+}))
+
 describe('InsightRow', () => {
   // Use a fixed local date for consistent testing
   // Set to Jan 10, 2026 at 3:00 PM local time
@@ -240,6 +245,74 @@ describe('InsightRow', () => {
       render(<InsightRow entry={entry} />)
 
       expect(screen.getByText('0m')).toBeTruthy()
+    })
+  })
+
+  describe('ViewActivityButton conditional rendering (AC3.1, AC3.2)', () => {
+    it('should NOT render ViewActivityButton in browser context', async () => {
+      const { isElectron } = await import('../../lib/platform')
+      vi.mocked(isElectron).mockReturnValue(false)
+
+      const entry = createEntry({
+        end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
+      })
+      render(<InsightRow entry={entry} />)
+
+      expect(screen.queryByRole('button', { name: 'View Activity' })).toBeNull()
+    })
+
+    it('should render ViewActivityButton in Electron context for completed entries', async () => {
+      const { isElectron } = await import('../../lib/platform')
+      vi.mocked(isElectron).mockReturnValue(true)
+
+      const entry = createEntry({
+        end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
+      })
+      render(<InsightRow entry={entry} />)
+
+      // Use hidden: true because the button is inside aria-hidden container (swipe actions hidden by default)
+      expect(screen.getByRole('button', { name: 'View Activity', hidden: true })).toBeTruthy()
+    })
+
+    it('should NOT render ViewActivityButton in Electron for entries without end_time', async () => {
+      const { isElectron } = await import('../../lib/platform')
+      vi.mocked(isElectron).mockReturnValue(true)
+
+      const entry = createEntry({
+        end_time: '', // Entry without end_time (incomplete)
+      })
+      render(<InsightRow entry={entry} />)
+
+      expect(screen.queryByRole('button', { name: 'View Activity' })).toBeNull()
+    })
+
+    it('should have wider action area in Electron (180px vs 120px)', async () => {
+      const { isElectron } = await import('../../lib/platform')
+      vi.mocked(isElectron).mockReturnValue(true)
+
+      const entry = createEntry({
+        end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
+      })
+      render(<InsightRow entry={entry} />)
+
+      const listitem = screen.getByRole('listitem')
+      // Action area is the first child div with absolute positioning
+      const actionArea = listitem.firstElementChild as HTMLElement
+      expect(actionArea.style.width).toBe('180px')
+    })
+
+    it('should have standard action area width in browser (120px)', async () => {
+      const { isElectron } = await import('../../lib/platform')
+      vi.mocked(isElectron).mockReturnValue(false)
+
+      const entry = createEntry({
+        end_time: toISOLocal(2026, 0, 10, 15, 0),
+      })
+      render(<InsightRow entry={entry} />)
+
+      const listitem = screen.getByRole('listitem')
+      const actionArea = listitem.firstElementChild as HTMLElement
+      expect(actionArea.style.width).toBe('120px')
     })
   })
 })

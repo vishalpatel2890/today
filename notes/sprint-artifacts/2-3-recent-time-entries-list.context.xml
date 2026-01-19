@@ -1,0 +1,203 @@
+<story-context id="2-3-recent-time-entries-list" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Recent Time Entries List</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-3-recent-time-entries-list.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>see a chronological list of my recent time entries in the Insights modal</iWant>
+    <soThat>I can review my tracking history and verify accuracy</soThat>
+    <tasks>
+      <task id="1" ac="2,6">Create InsightRow component for displaying time entries
+        <subtask>Create src/components/time-tracking/InsightRow.tsx component</subtask>
+        <subtask>Props: entry: TimeEntry (from existing types)</subtask>
+        <subtask>Render layout: relative timestamp (left) | task name (center, truncated) | duration (right)</subtask>
+        <subtask>Add hover state with hover:bg-slate-50 or similar muted background</subtask>
+        <subtask>Use formatDurationSummary(ms) for duration display</subtask>
+        <subtask>Style per UX spec section 6.1: 15px task name, 14px duration, 13px timestamp</subtask>
+        <subtask>Accessibility: role="listitem", meaningful aria-labels</subtask>
+        <subtask>Write component tests</subtask>
+      </task>
+      <task id="2" ac="2">Create formatRelativeTimestamp utility function
+        <subtask>Add to src/lib/timeFormatters.ts</subtask>
+        <subtask>Function signature: formatRelativeTimestamp(isoString: string): string</subtask>
+        <subtask>Today's entries: "Today 2:30pm"</subtask>
+        <subtask>Yesterday's entries: "Yesterday 11:00am"</subtask>
+        <subtask>Entries from this week: "Mon 9:15am" (day abbreviation)</subtask>
+        <subtask>Older entries: "Dec 15 2:30pm" (month + day)</subtask>
+        <subtask>Use date-fns: isToday, isYesterday, format, parseISO</subtask>
+        <subtask>Write unit tests covering all date scenarios</subtask>
+      </task>
+      <task id="3" ac="1,3">Update useTimeInsights to provide recentEntries array
+        <subtask>Verify recentEntries is already in TimeInsights interface from Story 2.2</subtask>
+        <subtask>Confirm entries are sorted by start_time descending</subtask>
+        <subtask>Confirm limit of 20 entries is enforced</subtask>
+        <subtask>Add tests if not already present</subtask>
+      </task>
+      <task id="4" ac="1,3,5">Integrate InsightRow into TimeInsightsModal
+        <subtask>Add RECENT ENTRIES section below BREAKDOWN section</subtask>
+        <subtask>Section header: "RECENT ENTRIES (X entries)" with entry count</subtask>
+        <subtask>Render list of InsightRow components from insights.recentEntries</subtask>
+        <subtask>Wrap in scrollable container if needed</subtask>
+        <subtask>Add section divider consistent with BREAKDOWN section</subtask>
+      </task>
+      <task id="5" ac="4">Handle empty state
+        <subtask>When no entries exist, show: "Start tracking time to see insights here."</subtask>
+        <subtask>Use muted-foreground color and centered text per UX spec</subtask>
+        <subtask>Consistent with existing empty state styling in modal</subtask>
+      </task>
+      <task id="6" ac="2,6">Write InsightRow component tests</task>
+      <task id="7" ac="2">Write formatRelativeTimestamp unit tests</task>
+      <task id="8" ac="1-6">Integration testing - Recent Entries list</task>
+      <task id="9" ac="1-6">Manual browser testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">When I open the Insights modal and scroll to the "RECENT ENTRIES" section, I see a list of my time entries in reverse chronological order (newest first)</criterion>
+    <criterion id="2">Each entry in the Recent Entries list shows: relative timestamp (e.g., "Today 2:30pm", "Yesterday 11:00am", "Mon 9:15am"), task name (truncated with ellipsis if too long), and duration (format: "Xh Ym" or "Xm" if under 1 hour)</criterion>
+    <criterion id="3">When I have more than 10 recent entries, I see the 20 most recent entries displayed and the list is scrollable within the modal</criterion>
+    <criterion id="4">When I have no time entries at all, I see "Start tracking time to see insights here." in the Recent Entries section</criterion>
+    <criterion id="5">The section header shows entry count: "RECENT ENTRIES (X entries)"</criterion>
+    <criterion id="6">Entries have subtle hover state (light background highlight)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-2.md" title="Epic 2 Technical Specification" section="AC5 - Recent Entries Section">
+        Defines AC5.1-AC5.7: entry row format, relative timestamp formats, sorting (start_time desc), 20 entry limit, hover state styling, duration format.
+      </doc>
+      <doc path="notes/epics-time-tracking.md" title="Time Tracking Epics" section="Story 2.3">
+        Story definition with acceptance criteria and technical notes for recent entries list implementation.
+      </doc>
+      <doc path="notes/architecture-time-tracking.md" title="Time Tracking Architecture" section="ADR-TT-004">
+        Client-side aggregation pattern: fetch entries once, aggregate with useMemo, limit to 20 recent entries for performance.
+      </doc>
+      <doc path="notes/ux-design-time-tracking.md" title="Time Tracking UX Design" section="6.1 InsightRow">
+        InsightRow component anatomy: timestamp, task name (truncated), duration. States: default, hover (subtle background).
+      </doc>
+      <doc path="notes/ux-design-time-tracking.md" title="Time Tracking UX Design" section="2.3 Insights Modal Structure">
+        Modal layout showing RECENT ENTRIES section below BREAKDOWN with entry format and empty state.
+      </doc>
+      <doc path="notes/sprint-artifacts/2-2-time-summary-cards-today-and-week.md" title="Story 2.2 (Previous)" section="Dev Agent Record">
+        Completion notes: useTimeInsights already returns recentEntries with 20 limit, TimeInsightsModal has placeholder for RECENT ENTRIES.
+      </doc>
+    </docs>
+
+    <code>
+      <file path="today-app/src/hooks/useTimeInsights.ts" kind="hook" symbol="useTimeInsights" lines="39-153" reason="Already provides recentEntries array sorted by start_time desc, limited to 20 entries. REUSE directly - no modification needed."/>
+      <file path="today-app/src/lib/timeFormatters.ts" kind="utility" symbol="formatDurationSummary" lines="39-62" reason="Existing duration formatter to reuse for entry duration display. ADD formatRelativeTimestamp function here."/>
+      <file path="today-app/src/components/time-tracking/TimeInsightsModal.tsx" kind="component" symbol="TimeInsightsModal" lines="130-140" reason="Has placeholder for RECENT ENTRIES section - replace with InsightRow list."/>
+      <file path="today-app/src/types/timeTracking.ts" kind="types" symbol="TimeEntry, TimeInsights" lines="20-52" reason="Existing interfaces to use: TimeEntry for InsightRow props, TimeInsights.recentEntries for data."/>
+      <file path="today-app/src/components/time-tracking/InsightCard.tsx" kind="component" symbol="InsightCard" lines="22-49" reason="Reference for styling patterns: Tailwind classes, aria-label pattern, loading state structure."/>
+      <file path="today-app/src/lib/timeTrackingDb.ts" kind="service" symbol="getTimeEntries" reason="IndexedDB query already used by useTimeInsights - no direct use needed."/>
+      <file path="today-app/src/hooks/useTimeInsights.test.ts" kind="test" reason="Existing test patterns for hook testing with fake-indexeddb. Reference for recentEntries tests."/>
+      <file path="today-app/src/components/time-tracking/InsightCard.test.tsx" kind="test" reason="Reference for component testing patterns and accessibility assertions."/>
+      <file path="today-app/src/test/setup.ts" kind="test-setup" reason="Test setup with fake-indexeddb and cleanup patterns."/>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="react" version="^19.2.0" use="Component framework"/>
+        <package name="date-fns" version="^4.1.0" use="isToday, isYesterday, format, parseISO for relative timestamps"/>
+        <package name="lucide-react" version="^0.562.0" use="Icons if needed"/>
+        <package name="@radix-ui/react-dialog" version="^1.1.15" use="Modal container (already used)"/>
+      </npm>
+      <devDependencies>
+        <package name="vitest" version="^3.2.4" use="Test runner"/>
+        <package name="@testing-library/react" version="^16.3.1" use="Component testing"/>
+        <package name="fake-indexeddb" version="^6.2.5" use="Mock IndexedDB for tests"/>
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="InsightRowProps" kind="component-props" path="today-app/src/components/time-tracking/InsightRow.tsx">
+      <![CDATA[
+interface InsightRowProps {
+  entry: TimeEntry  // Full TimeEntry object from useTimeInsights
+}
+      ]]>
+    </interface>
+    <interface name="formatRelativeTimestamp" kind="function" path="today-app/src/lib/timeFormatters.ts">
+      <![CDATA[
+/**
+ * Format ISO timestamp to relative display format
+ * @param isoString - ISO 8601 timestamp (e.g., "2026-01-10T14:30:00Z")
+ * @returns "Today 2:30pm" | "Yesterday 11:00am" | "Mon 9:15am" | "Dec 15 2:30pm"
+ */
+function formatRelativeTimestamp(isoString: string): string
+      ]]>
+    </interface>
+    <interface name="TimeEntry" kind="type" path="today-app/src/types/timeTracking.ts">
+      <![CDATA[
+interface TimeEntry {
+  id: string              // UUID
+  user_id: string         // User reference
+  task_id: string | null  // Task reference (null if deleted)
+  task_name: string       // Snapshot of task name
+  start_time: string      // ISO 8601 timestamp
+  end_time: string        // ISO 8601 timestamp
+  duration: number        // Milliseconds
+  date: string            // YYYY-MM-DD
+  created_at: string      // ISO 8601 timestamp
+  updated_at: string      // ISO 8601 timestamp
+}
+      ]]>
+    </interface>
+    <interface name="TimeInsights.recentEntries" kind="type" path="today-app/src/types/timeTracking.ts">
+      <![CDATA[
+recentEntries: TimeEntry[]  // Limited to 20 most recent, sorted by start_time desc
+      ]]>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint source="architecture" priority="high">Client-side aggregation only - no server queries for insights. All data from IndexedDB via useTimeInsights hook.</constraint>
+    <constraint source="architecture" priority="high">Maximum 20 entries in recentEntries - already enforced by useTimeInsights hook.</constraint>
+    <constraint source="ux" priority="medium">Entries sorted by start_time descending (newest first) - already implemented in hook.</constraint>
+    <constraint source="ux" priority="medium">Task names must truncate with ellipsis - use CSS text-overflow: ellipsis with max-width.</constraint>
+    <constraint source="ux" priority="medium">Hover state must be subtle - use hover:bg-slate-50 or similar muted color.</constraint>
+    <constraint source="coding-standards" priority="medium">Follow existing Tailwind patterns from InsightCard: text-foreground, text-muted-foreground, bg-surface-muted.</constraint>
+    <constraint source="coding-standards" priority="medium">Use named exports for components (not default exports).</constraint>
+    <constraint source="accessibility" priority="high">Use role="listitem" for entry rows, provide meaningful aria-labels.</constraint>
+    <constraint source="testing" priority="high">Write unit tests for formatRelativeTimestamp covering all date scenarios.</constraint>
+    <constraint source="testing" priority="high">Write component tests for InsightRow with different entry types.</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Vitest for unit and component tests. React Testing Library for component interaction.
+      Use fake-indexeddb for IndexedDB mocking. Follow patterns from useTimeInsights.test.ts
+      and InsightCard.test.tsx. All tests should be colocated with source files (.test.ts/.test.tsx).
+      Focus on behavior, not implementation. Test accessibility with aria queries.
+    </standards>
+    <locations>
+      <location>today-app/src/lib/timeFormatters.test.ts</location>
+      <location>today-app/src/components/time-tracking/InsightRow.test.tsx</location>
+      <location>today-app/src/components/time-tracking/TimeInsightsModal.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="2">formatRelativeTimestamp: Test "Today X:XXpm" for today's date</idea>
+      <idea ac="2">formatRelativeTimestamp: Test "Yesterday X:XXam" for yesterday's date</idea>
+      <idea ac="2">formatRelativeTimestamp: Test "Mon X:XXpm" for earlier this week</idea>
+      <idea ac="2">formatRelativeTimestamp: Test "Dec 15 X:XXpm" for older dates</idea>
+      <idea ac="2">formatRelativeTimestamp: Test edge cases (midnight, noon, 12-hour format)</idea>
+      <idea ac="2,6">InsightRow: Test renders timestamp, task name, duration correctly</idea>
+      <idea ac="2">InsightRow: Test long task names truncate with ellipsis</idea>
+      <idea ac="6">InsightRow: Test hover state accessibility</idea>
+      <idea ac="2">InsightRow: Test different duration formats (hours+minutes vs minutes-only)</idea>
+      <idea ac="1,3">TimeInsightsModal: Test RECENT ENTRIES section renders with entries</idea>
+      <idea ac="5">TimeInsightsModal: Test section header shows "(X entries)" count</idea>
+      <idea ac="4">TimeInsightsModal: Test empty state message displays when no entries</idea>
+      <idea ac="1">TimeInsightsModal: Test entries sorted newest first</idea>
+      <idea ac="3">TimeInsightsModal: Test maximum 20 entries displayed</idea>
+    </ideas>
+  </tests>
+</story-context>

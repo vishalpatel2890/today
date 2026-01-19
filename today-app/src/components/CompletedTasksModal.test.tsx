@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { subDays, subWeeks, startOfWeek } from 'date-fns'
+import { subDays, subWeeks } from 'date-fns'
 import { CompletedTasksModal } from './CompletedTasksModal'
 import type { Task } from '../types'
 
@@ -105,7 +105,6 @@ describe('CompletedTasksModal', () => {
 
     it('should group tasks from this week under "This Week"', () => {
       // Get a day from this week that's not today or yesterday
-      const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
       const dayOfWeek = new Date().getDay()
 
       // Only test if we're at least 3 days into the week

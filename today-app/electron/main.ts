@@ -1,6 +1,7 @@
 import { app, BrowserWindow, globalShortcut } from 'electron'
 import path from 'path'
 import { is } from '@electron-toolkit/utils'
+import { registerIpcHandlers } from './ipc/handlers'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -42,6 +43,9 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Register IPC handlers before creating window
+  registerIpcHandlers()
+
   createWindow()
 
   app.on('activate', () => {

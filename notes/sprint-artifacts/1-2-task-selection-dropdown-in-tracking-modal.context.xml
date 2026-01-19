@@ -1,0 +1,185 @@
+<story-context id="1-2-task-selection-dropdown-in-tracking-modal" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Task Selection Dropdown in Tracking Modal</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-2-task-selection-dropdown-in-tracking-modal.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>see my today's tasks in a dropdown when I open the tracking modal</iWant>
+    <soThat>I can quickly select which task to track time for</soThat>
+    <tasks>
+      <task id="1" acs="1,2,3,4,6">Create TaskSelector component
+        <subtasks>
+          <subtask>Create src/components/time-tracking/TaskSelector.tsx</subtask>
+          <subtask>Use Radix UI Combobox/Popover pattern for accessible dropdown</subtask>
+          <subtask>Implement trigger button showing placeholder or selected task name</subtask>
+          <subtask>Implement dropdown list with task items</subtask>
+          <subtask>Add keyboard navigation: Arrow Up/Down, Enter to select, Escape to close</subtask>
+          <subtask>Implement type-ahead filtering with search input</subtask>
+          <subtask>Style using Tailwind consistent with existing modal patterns</subtask>
+        </subtasks>
+      </task>
+      <task id="2" acs="2,5">Integrate TaskSelector with useTasks hook
+        <subtasks>
+          <subtask>Import and use existing useTasks hook to get all tasks</subtask>
+          <subtask>Filter tasks by today's date using date-fns: format(new Date(), 'yyyy-MM-dd')</subtask>
+          <subtask>Pass filtered tasks to TaskSelector component</subtask>
+          <subtask>Handle loading state while tasks are fetching</subtask>
+        </subtasks>
+      </task>
+      <task id="3" acs="5">Implement empty state handling
+        <subtasks>
+          <subtask>Show "No tasks for today. Add a task first." message when task list is empty</subtask>
+          <subtask>Disable Track button when no tasks available</subtask>
+          <subtask>Disable Track button when no task is selected</subtask>
+        </subtasks>
+      </task>
+      <task id="4" acs="1,7,8">Update TimeTrackingModal with TaskSelector integration
+        <subtasks>
+          <subtask>Replace placeholder content with TaskSelector component</subtask>
+          <subtask>Add state for selected task: useState&lt;{ id: string, name: string } | null&gt;(null)</subtask>
+          <subtask>Auto-focus TaskSelector when modal opens in idle state</subtask>
+          <subtask>Update modal width to 320px for compact command palette style</subtask>
+          <subtask>Add Track button that enables when task is selected</subtask>
+          <subtask>Pass onSelect callback to TaskSelector to capture selection</subtask>
+        </subtasks>
+      </task>
+      <task id="5" acs="7">Ensure modal responsiveness
+        <subtasks>
+          <subtask>Verify bottom sheet behavior on mobile (&lt; 768px)</subtask>
+          <subtask>Verify centered modal on desktop (&gt;= 768px)</subtask>
+          <subtask>Test touch interactions on mobile if possible</subtask>
+        </subtasks>
+      </task>
+      <task id="6" acs="1,2,3,4,5">Write unit tests for TaskSelector
+        <subtasks>
+          <subtask>Test dropdown renders with provided tasks</subtask>
+          <subtask>Test keyboard navigation (arrow keys, Enter)</subtask>
+          <subtask>Test type-ahead filtering reduces displayed tasks</subtask>
+          <subtask>Test empty state renders correct message</subtask>
+          <subtask>Test selection callback fires with correct task data</subtask>
+        </subtasks>
+      </task>
+      <task id="7" acs="1-8">Manual browser testing
+        <subtasks>
+          <subtask>Test in Chrome</subtask>
+          <subtask>Test in Safari</subtask>
+          <subtask>Verify accessibility with keyboard-only navigation</subtask>
+          <subtask>Run through Frontend Test Gate checklist</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Modal displays a dropdown labeled "Select a task..." that auto-focuses when modal opens in idle state</ac>
+    <ac id="2">Clicking the dropdown or pressing Enter shows a list of all tasks scheduled for today (from existing task data)</ac>
+    <ac id="3">Tasks are displayed with their title text and can be navigated with arrow keys, selected with Enter</ac>
+    <ac id="4">Type-ahead filtering works: user can type to filter/search tasks in the dropdown</ac>
+    <ac id="5">When no tasks exist for today, the message "No tasks for today. Add a task first." displays, and the Track button is disabled</ac>
+    <ac id="6">The dropdown uses existing Radix Select/Combobox patterns consistent with the app's design system</ac>
+    <ac id="7">The modal matches the "Compact Command Palette" design (320px width, centered on desktop, bottom sheet on mobile)</ac>
+    <ac id="8">When a task is selected, the dropdown shows the selected task name and enables the Track button</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-1.md" title="Epic 1 Tech Spec" section="AC2 Task Selection" snippet="AC2.1-AC2.6 define task dropdown behavior: auto-focus, keyboard navigation, type-ahead filtering, empty state handling"/>
+      <doc path="notes/architecture-time-tracking.md" title="Time Tracking Architecture" section="Implementation Patterns" snippet="Use functional components with TypeScript, named exports, Tailwind styling, Radix UI primitives"/>
+      <doc path="notes/ux-design-time-tracking.md" title="UX Design Specification" section="4.1 Design Direction" snippet="Compact Command Palette approach: 320px width modal, keyboard-optimized, minimal height"/>
+      <doc path="notes/ux-design-time-tracking.md" title="UX Design Specification" section="6.1 TaskSelector Component" snippet="Combobox with trigger button, dropdown menu, type-ahead filtering, arrow key navigation"/>
+      <doc path="notes/epics-time-tracking.md" title="Time Tracking Epics" section="Story 1.2" snippet="Task selection dropdown with today's tasks, keyboard navigation, empty state handling"/>
+      <doc path="notes/sprint-artifacts/1-1-global-keyboard-shortcut-registration.md" title="Story 1.1 (Previous)" section="Dev Agent Record" snippet="Created TimeTrackingModal placeholder, types, hotkeys hook - foundation for this story"/>
+    </docs>
+    <code>
+      <file path="today-app/src/components/time-tracking/TimeTrackingModal.tsx" kind="component" symbol="TimeTrackingModal" reason="Placeholder modal to be updated with TaskSelector integration - replace placeholder content"/>
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="180-698" reason="Provides tasks array - filter by deferredTo matching today's date for dropdown population"/>
+      <file path="today-app/src/types/index.ts" kind="types" symbol="Task" lines="29-37" reason="Task interface with id, text, deferredTo, category, etc. - used for dropdown items"/>
+      <file path="today-app/src/types/timeTracking.ts" kind="types" symbol="ActiveSession" lines="10-14" reason="ActiveSession interface with taskId, taskName - for capturing selection"/>
+      <file path="today-app/src/components/DeferModal.tsx" kind="component" symbol="UpdateModal" reason="Reference for modal styling patterns, button classes, Radix Dialog usage"/>
+      <file path="today-app/src/App.tsx" kind="component" symbol="App" reason="TimeTrackingModal already integrated - passes isTimeTrackingOpen state"/>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="@radix-ui/react-dialog" version="^1.1.15" usage="Modal shell - already used by TimeTrackingModal"/>
+        <package name="@radix-ui/react-popover" version="^1.1.15" usage="Can be used for combobox dropdown positioning"/>
+        <package name="@radix-ui/react-select" version="^2.2.6" usage="Reference for select patterns - consider for dropdown"/>
+        <package name="date-fns" version="^4.1.0" usage="format() for filtering tasks by today's date"/>
+        <package name="lucide-react" version="^0.562.0" usage="Icons for dropdown (ChevronDown, Check, etc.)"/>
+        <package name="react" version="^19.2.0" usage="useState, useEffect, useRef for component state"/>
+      </npm>
+      <dev>
+        <package name="vitest" version="^3.2.4" usage="Unit testing framework"/>
+        <package name="@testing-library/react" version="^16.3.1" usage="React component testing utilities"/>
+        <package name="fake-indexeddb" version="^6.2.5" usage="Mock IndexedDB for useTasks integration tests"/>
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Use functional components with TypeScript and arrow function syntax</constraint>
+    <constraint type="pattern">Export as named export (not default): export const TaskSelector = ...</constraint>
+    <constraint type="pattern">Use Tailwind for styling, follow existing modal patterns (DeferModal reference)</constraint>
+    <constraint type="pattern">Use Radix UI primitives for accessible dropdown (Combobox or Popover pattern)</constraint>
+    <constraint type="accessibility">Follow accessibility patterns: role="combobox", aria-expanded, aria-activedescendant</constraint>
+    <constraint type="architecture">Filter tasks by today's date: tasks.filter(t => t.deferredTo === format(new Date(), 'yyyy-MM-dd'))</constraint>
+    <constraint type="architecture">Store task_name snapshot when selected (for deleted task handling per FR11)</constraint>
+    <constraint type="ux">Modal width: 320px desktop, full-width minus padding on mobile</constraint>
+    <constraint type="ux">Bottom sheet on mobile (&lt;768px), centered modal on desktop (&gt;=768px)</constraint>
+    <constraint type="ux">Auto-focus dropdown when modal opens in idle state</constraint>
+    <constraint type="testing">Unit tests with Vitest for component logic</constraint>
+    <constraint type="testing">Use @testing-library/react for component testing</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="useTasks" kind="hook">
+      <signature>useTasks(userId: string | null): { tasks: Task[], categories: string[], ... }</signature>
+      <path>today-app/src/hooks/useTasks.ts</path>
+      <usage>Get all tasks, filter by today's date for dropdown</usage>
+    </interface>
+    <interface name="Task" kind="type">
+      <signature>interface Task { id: string; text: string; deferredTo: string | null; ... }</signature>
+      <path>today-app/src/types/index.ts</path>
+      <usage>Type for task items in dropdown</usage>
+    </interface>
+    <interface name="TaskSelectorProps" kind="component-props">
+      <signature>{ tasks: Task[]; selectedTask: { id: string; name: string } | null; onSelect: (task: { id: string; name: string }) => void; disabled?: boolean; autoFocus?: boolean }</signature>
+      <path>NEW: today-app/src/components/time-tracking/TaskSelector.tsx</path>
+      <usage>Props interface for TaskSelector component</usage>
+    </interface>
+    <interface name="TimeTrackingModalProps" kind="component-props">
+      <signature>{ isOpen: boolean; onClose: () => void }</signature>
+      <path>today-app/src/components/time-tracking/TimeTrackingModal.tsx</path>
+      <usage>Existing props - no changes needed</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests with Vitest framework. Use @testing-library/react for component rendering and interaction testing.
+      Test files placed alongside source files with .test.ts(x) suffix.
+      Use fake-indexeddb for mocking IndexedDB in integration tests.
+      Follow existing test patterns from useTimeTrackingHotkeys.test.ts.
+    </standards>
+    <locations>
+      <location>today-app/src/components/time-tracking/*.test.tsx</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test TaskSelector auto-focuses when rendered with autoFocus=true</idea>
+      <idea ac="2">Test dropdown opens on click/Enter and shows provided tasks</idea>
+      <idea ac="3">Test arrow key navigation highlights correct item, Enter selects</idea>
+      <idea ac="4">Test typing filters task list to matching items</idea>
+      <idea ac="5">Test empty task array renders "No tasks for today" message</idea>
+      <idea ac="5">Test Track button is disabled when tasks=[] or selectedTask=null</idea>
+      <idea ac="6">Test dropdown uses proper aria attributes for accessibility</idea>
+      <idea ac="8">Test onSelect callback receives correct task id and name</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,281 @@
+<story-context id="3-2-custom-date-range-picker" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Custom Date Range Picker</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-2-custom-date-range-picker.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>select a custom date range for filtering insights</iWant>
+    <soThat>I can analyze time data for specific periods not covered by presets (e.g., last project sprint, specific billing period)</soThat>
+    <tasks>
+      <task id="1" ac="2,5">Extend types for custom date range
+        <subtask>Add DateRange interface to src/types/timeTracking.ts if not already present</subtask>
+        <subtask>Extend InsightFilters to include customRange: DateRange | null</subtask>
+        <subtask>Verify existing DatePreset type includes null handling for custom mode</subtask>
+      </task>
+      <task id="2" ac="1,2,3,4,8">Create DateRangePicker component
+        <subtask>Create src/components/time-tracking/DateRangePicker.tsx component</subtask>
+        <subtask>Use Radix Popover for the picker container</subtask>
+        <subtask>Implement calendar with range selection</subtask>
+        <subtask>Disable future dates (maxDate validation)</subtask>
+        <subtask>Prevent start > end (swap dates or show inline error)</subtask>
+        <subtask>Style per UX spec: modal surface bg, shadow, 8px border radius</subtask>
+        <subtask>Keyboard accessibility: Tab, Arrow keys, Enter, Escape</subtask>
+      </task>
+      <task id="3" ac="5">Add formatDateRange utility function
+        <subtask>Add to src/lib/timeFormatters.ts: formatDateRange(range: DateRange): string</subtask>
+        <subtask>Format as "MMM d - MMM d" (e.g., "Dec 1 - Dec 15")</subtask>
+        <subtask>Handle same-day range (show single date)</subtask>
+        <subtask>Handle cross-year ranges (include year)</subtask>
+        <subtask>Write unit tests for formatting</subtask>
+      </task>
+      <task id="4" ac="1,5,7">Integrate DateRangePicker into QuickFilterBar
+        <subtask>Modify src/components/time-tracking/QuickFilterBar.tsx</subtask>
+        <subtask>Add onCustomClick, hasCustomRange, customRangeLabel props</subtask>
+        <subtask>Enable the "Custom" button (currently disabled)</subtask>
+        <subtask>Show range label on "Custom" pill when active</subtask>
+      </task>
+      <task id="5" ac="6,7">Add filter state management in TimeInsightsModal
+        <subtask>Add customRange: DateRange | null to filter state</subtask>
+        <subtask>Add isDatePickerOpen: boolean state for popover control</subtask>
+        <subtask>Implement handleCustomRangeSelect(range: DateRange) handler</subtask>
+        <subtask>When preset selected: clear customRange</subtask>
+      </task>
+      <task id="6" ac="6">Extend useTimeInsights to filter by custom range
+        <subtask>Modify src/hooks/useTimeInsights.ts to accept customRange in filters</subtask>
+        <subtask>Add filtering logic using isWithinInterval from date-fns</subtask>
+        <subtask>customRange takes precedence when datePreset is null</subtask>
+        <subtask>Write unit tests for custom range filtering</subtask>
+      </task>
+      <task id="7" ac="5">Integrate FilterChip for custom range display
+        <subtask>When customRange active, render FilterChip</subtask>
+        <subtask>FilterChip label = formatted date range</subtask>
+        <subtask>FilterChip onRemove clears customRange</subtask>
+      </task>
+      <task id="8" ac="1,2,3,4,8">Write DateRangePicker component tests
+        <subtask>Test popover opens when triggered</subtask>
+        <subtask>Test start/end date selection</subtask>
+        <subtask>Test future dates are disabled</subtask>
+        <subtask>Test start > end is prevented/corrected</subtask>
+        <subtask>Test keyboard navigation</subtask>
+      </task>
+      <task id="9" ac="5,6,7">Write integration tests
+        <subtask>Test custom range appears on QuickFilterBar pill</subtask>
+        <subtask>Test custom range filters insights data correctly</subtask>
+        <subtask>Test preset replaces custom range</subtask>
+        <subtask>Test FilterChip appears with range label</subtask>
+        <subtask>Test filter state resets on modal close</subtask>
+      </task>
+      <task id="10" ac="1-8">Manual browser testing
+        <subtask>Complete Frontend Test Gate checklist</subtask>
+        <subtask>Verify keyboard accessibility</subtask>
+        <subtask>Verify visual styling matches UX spec</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.2.1">Clicking "Custom" pill opens a date range picker popover/inline UI</criterion>
+    <criterion id="AC-3.2.2">Date picker allows selecting a start date and end date</criterion>
+    <criterion id="AC-3.2.3">Date picker only allows selecting past dates (no future dates)</criterion>
+    <criterion id="AC-3.2.4">Start date cannot be after end date (validation prevents invalid selection)</criterion>
+    <criterion id="AC-3.2.5">Confirming a custom range displays the range on the "Custom" pill (e.g., "Dec 1 - Dec 15")</criterion>
+    <criterion id="AC-3.2.6">Custom range filters all insights data to show only entries within that range</criterion>
+    <criterion id="AC-3.2.7">Selecting a preset after custom range replaces the custom filter</criterion>
+    <criterion id="AC-3.2.8">Date picker is keyboard accessible (Tab, Arrow keys, Enter)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-3-insights-filtering.md</path>
+        <title>Epic 3 Technical Specification</title>
+        <section>Story 3.2: Custom Date Range Picker</section>
+        <snippet>AC-3.2.1 through AC-3.2.8. DateRangePickerProps interface: isOpen, selectedRange, onSelect, onClose, maxDate. Workflow Flow 2: Apply Custom Date Range.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Epic Breakdown</title>
+        <section>Story 3.2: Custom Date Range Picker</section>
+        <snippet>Custom date range selection for filtering insights. User can select start/end dates. Future dates disabled. Custom range replaces preset filter.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Architecture</title>
+        <section>ADR-TT-004: Client-Side Insights Aggregation</section>
+        <snippet>All filtering computed client-side with useMemo. Filter parameters include datePreset and customRange. Uses isWithinInterval for range filtering.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design</title>
+        <section>6.1 QuickFilterBar</section>
+        <snippet>Custom opens date picker modal. Selection updates all insights data. Pills: default gray outline, active filled primary background.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/3-1-quick-date-filter-bar.md</path>
+        <title>Story 3.1 Implementation Reference</title>
+        <section>Dev Agent Record</section>
+        <snippet>252 tests passing. QuickFilterBar has "Custom" button DISABLED. useTimeInsights already filters by datePreset using isWithinInterval.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>DatePreset, DateRange, InsightFilters, TimeEntry</symbol>
+        <lines>1-67</lines>
+        <reason>Contains DatePreset and DateRange types. Need to extend InsightFilters with customRange property.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/QuickFilterBar.tsx</path>
+        <kind>component</kind>
+        <symbol>QuickFilterBar</symbol>
+        <lines>1-96</lines>
+        <reason>Current filter bar with disabled Custom button. Must enable Custom, add props for custom range handling, show range label on pill.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeInsights.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeInsights, InsightFilters</symbol>
+        <lines>1-179</lines>
+        <reason>Hook for aggregating time entries. Currently filters by datePreset. Must extend to filter by customRange using same isWithinInterval pattern.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>getDateRangeForPreset, formatDuration, formatDurationSummary</symbol>
+        <lines>1-164</lines>
+        <reason>Date formatting utilities. Must add formatDateRange function for displaying "Dec 1 - Dec 15" format.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeInsightsModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeInsightsModal</symbol>
+        <lines>1-187</lines>
+        <reason>Modal containing QuickFilterBar. Must add customRange state, DateRangePicker integration, and FilterChip for active custom range.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/InsightCard.tsx</path>
+        <kind>component</kind>
+        <symbol>InsightCard</symbol>
+        <reason>Reference for consistent styling patterns (rounded-lg, bg-surface-muted, spacing).</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/InsightRow.tsx</path>
+        <kind>component</kind>
+        <symbol>InsightRow</symbol>
+        <reason>Reference for consistent styling patterns.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="@radix-ui/react-popover" version="^1.1.15">For DateRangePicker popover container</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.15">Existing modal patterns</package>
+        <package name="date-fns" version="^4.1.0">Date calculations: format, parseISO, isWithinInterval, isBefore, isAfter, startOfMonth, endOfMonth</package>
+        <package name="lucide-react" version="^0.562.0">Icons: Calendar, ChevronLeft, ChevronRight, X</package>
+        <package name="react" version="^19.2.0">UI framework</package>
+        <package name="tailwindcss" version="^4.1.18">Component styling</package>
+        <package name="vitest" version="^3.2.4">Unit and component testing</package>
+        <package name="@testing-library/react" version="^16.3.1">Component testing utilities</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Client-side filtering only (ADR-TT-004). All date range filtering uses useMemo with isWithinInterval from date-fns.</constraint>
+    <constraint type="architecture">customRange takes precedence over datePreset when both could theoretically be set. In practice, selecting one clears the other.</constraint>
+    <constraint type="architecture">Filter state is local to TimeInsightsModal component (useState). Resets on modal unmount per FR29.</constraint>
+    <constraint type="pattern">Use existing Radix Popover patterns. Follow QuickFilterBar styling: rounded-full pills, slate-600/white active state.</constraint>
+    <constraint type="pattern">Use date-fns for all date operations. Week starts on Sunday (weekStartsOn: 0).</constraint>
+    <constraint type="pattern">Follow existing component patterns: named exports, arrow functions, TypeScript interfaces, Tailwind styling.</constraint>
+    <constraint type="testing">Unit tests required for formatDateRange utility. Component tests for DateRangePicker. Integration tests for filter behavior.</constraint>
+    <constraint type="accessibility">DateRangePicker must be keyboard accessible: Tab through days, Arrow keys to navigate, Enter to select, Escape to close.</constraint>
+    <constraint type="validation">Future dates must be disabled (maxDate defaults to today). Start date cannot be after end date.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>DateRangePickerProps</name>
+      <kind>component-props</kind>
+      <signature>interface DateRangePickerProps {
+  isOpen: boolean;
+  selectedRange: DateRange | null;
+  onSelect: (range: DateRange) => void;
+  onClose: () => void;
+  maxDate?: Date;  // Default: today (no future dates)
+}</signature>
+      <path>today-app/src/components/time-tracking/DateRangePicker.tsx</path>
+    </interface>
+    <interface>
+      <name>QuickFilterBarProps (extended)</name>
+      <kind>component-props</kind>
+      <signature>interface QuickFilterBarProps {
+  activePreset: DatePreset;
+  hasCustomRange: boolean;
+  customRangeLabel: string | null;  // "Dec 1 - Dec 15"
+  onPresetSelect: (preset: DatePreset) => void;
+  onCustomClick: () => void;
+}</signature>
+      <path>today-app/src/components/time-tracking/QuickFilterBar.tsx</path>
+    </interface>
+    <interface>
+      <name>InsightFilters (extended)</name>
+      <kind>hook-params</kind>
+      <signature>interface InsightFilters {
+  datePreset?: DatePreset;
+  customRange?: DateRange | null;
+}</signature>
+      <path>today-app/src/hooks/useTimeInsights.ts</path>
+    </interface>
+    <interface>
+      <name>formatDateRange</name>
+      <kind>function</kind>
+      <signature>function formatDateRange(range: DateRange): string
+// Returns "MMM d - MMM d" (e.g., "Dec 1 - Dec 15")
+// Same-day: "Dec 15"
+// Cross-year: "Dec 15, 2025 - Jan 5, 2026"</signature>
+      <path>today-app/src/lib/timeFormatters.ts</path>
+    </interface>
+    <interface>
+      <name>FilterChipProps</name>
+      <kind>component-props</kind>
+      <signature>interface FilterChipProps {
+  label: string;      // Display text (e.g., "Dec 1 - Dec 15")
+  onRemove: () => void;
+}</signature>
+      <path>today-app/src/components/time-tracking/FilterChip.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Testing uses Vitest + Testing Library. Component tests use render/screen/fireEvent/userEvent. Unit tests for pure functions. Mock IndexedDB with fake-indexeddb. Tests co-located with source files (*.test.ts/tsx). Follow AAA pattern (Arrange-Act-Assert). 252 existing tests provide baseline.</standards>
+    <locations>
+      <pattern>today-app/src/**/*.test.ts</pattern>
+      <pattern>today-app/src/**/*.test.tsx</pattern>
+      <pattern>today-app/src/lib/timeFormatters.test.ts</pattern>
+      <pattern>today-app/src/hooks/useTimeInsights.test.ts</pattern>
+      <pattern>today-app/src/components/time-tracking/*.test.tsx</pattern>
+    </locations>
+    <ideas>
+      <idea ac="AC-3.2.1">Test clicking "Custom" pill opens DateRangePicker popover</idea>
+      <idea ac="AC-3.2.2">Test selecting start date then end date in picker</idea>
+      <idea ac="AC-3.2.3">Test future dates are visually disabled and unselectable</idea>
+      <idea ac="AC-3.2.4">Test selecting end date before start date auto-swaps or shows error</idea>
+      <idea ac="AC-3.2.5">Test confirmed range displays on Custom pill as "Dec 1 - Dec 15"</idea>
+      <idea ac="AC-3.2.5">Test FilterChip appears with formatted range label and remove button</idea>
+      <idea ac="AC-3.2.6">Test useTimeInsights filters entries correctly for custom range</idea>
+      <idea ac="AC-3.2.6">Test summary cards, breakdown, entries all update with custom filter</idea>
+      <idea ac="AC-3.2.7">Test clicking preset after custom range clears customRange state</idea>
+      <idea ac="AC-3.2.8">Test keyboard navigation: Tab into picker, Arrow keys, Enter to select, Escape to close</idea>
+      <idea ac="formatDateRange">Test same-day range returns single date "Dec 15"</idea>
+      <idea ac="formatDateRange">Test cross-year range includes year "Dec 15, 2025 - Jan 5, 2026"</idea>
+      <idea ac="formatDateRange">Test normal range returns "Dec 1 - Dec 15"</idea>
+    </ideas>
+  </tests>
+</story-context>

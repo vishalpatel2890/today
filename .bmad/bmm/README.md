@@ -6,15 +6,15 @@ Core orchestration system for AI-driven agile development, providing comprehensi
 
 ## 📚 Complete Documentation
 
-👉 **[BMM Documentation Hub](./docs/README.md)** - Start here for complete guides, tutorials, and references
+👉 [README.md](./docs/README.md) - Start here for complete guides, tutorials, and references
 
 **Quick Links:**
 
-- **[Quick Start Guide](./docs/quick-start.md)** - New to BMM? Start here (15 min)
-- **[Agents Guide](./docs/agents-guide.md)** - Meet your 12 specialized AI agents (45 min)
-- **[Scale Adaptive System](./docs/scale-adaptive-system.md)** - How BMM adapts to project size (42 min)
-- **[FAQ](./docs/faq.md)** - Quick answers to common questions
-- **[Glossary](./docs/glossary.md)** - Key terminology reference
+- [quick-start.md](./docs/quick-start.md) - New to BMM? Start here (15 min)
+- [agents-guide.md](./docs/agents-guide.md) - Meet your 12 specialized AI agents (45 min)
+- [scale-adaptive-system.md](./docs/scale-adaptive-system.md) - How BMM adapts to project size (42 min)
+- [faq.md](./docs/faq.md) - Quick answers to common questions
+- [glossary.md](./docs/glossary.md) - Key terminology reference
 
 ---
 
@@ -38,7 +38,7 @@ bmm/
 **Game Development:** Game Designer, Game Developer, Game Architect
 **Orchestration:** BMad Master (from Core)
 
-👉 **[Full Agents Guide](./docs/agents-guide.md)** - Roles, workflows, and when to use each agent
+👉 [agents-guide.md](./docs/agents-guide.md) - Roles, workflows, and when to use each agent
 
 ### Workflow Phases
 
@@ -49,7 +49,7 @@ bmm/
 **Phase 4:** Implementation (iterative) - 10 workflows
 **Testing:** Quality assurance (parallel) - 9 workflows
 
-👉 **[Workflow Guides](./docs/README.md#-workflow-guides)** - Detailed documentation for each phase
+👉 [**Workflow Guides**](./docs/README.md#-workflow-guides) - Detailed documentation for each phase
 
 ---
 
@@ -75,7 +75,7 @@ npx bmad-method@alpha install
 *workflow-init
 ```
 
-👉 **[Quick Start Guide](./docs/quick-start.md)** - Complete setup and first project walkthrough
+👉 [quick-start.md](./docs/quick-start.md) - Complete setup and first project walkthrough
 
 ---
 
@@ -89,7 +89,7 @@ BMM automatically adjusts to project complexity (Levels 0-4):
 - **Level 2:** PRD with optional architecture
 - **Level 3-4:** Full PRD + comprehensive architecture
 
-👉 **[Scale Adaptive System](./docs/scale-adaptive-system.md)** - Complete level breakdown
+👉 [scale-adaptive-system.md](./docs/scale-adaptive-system.md) - Complete level breakdown
 
 ### Story-Centric Implementation
 
@@ -97,32 +97,32 @@ Stories move through a defined lifecycle: `backlog → drafted → ready → in-
 
 Just-in-time epic context and story context provide exact expertise when needed.
 
-👉 **[Implementation Workflows](./docs/workflows-implementation.md)** - Complete story lifecycle guide
+👉 [workflows-implementation.md](./docs/workflows-implementation.md) - Complete story lifecycle guide
 
 ### Multi-Agent Collaboration
 
 Use party mode to engage all 19+ agents (from BMM, CIS, BMB, custom modules) in group discussions for strategic decisions, creative brainstorming, and complex problem-solving.
 
-👉 **[Party Mode Guide](./docs/party-mode.md)** - How to orchestrate multi-agent collaboration
+👉 [party-mode.md](./docs/party-mode.md) - How to orchestrate multi-agent collaboration
 
 ---
 
 ## 📖 Additional Resources
 
-- **[Brownfield Guide](./docs/brownfield-guide.md)** - Working with existing codebases
-- **[Quick Spec Flow](./docs/quick-spec-flow.md)** - Fast-track for Level 0-1 projects
-- **[Enterprise Agentic Development](./docs/enterprise-agentic-development.md)** - Team collaboration patterns
-- **[Troubleshooting](./docs/troubleshooting.md)** - Common issues and solutions
-- **[IDE Setup Guides](../../../docs/ide-info/)** - Configure Claude Code, Cursor, Windsurf, etc.
+- [brownfield-guide.md](./docs/brownfield-guide.md) - Working with existing codebases
+- [quick-spec-flow.md](./docs/quick-spec-flow.md) - Fast-track for Level 0-1 projects
+- [enterprise-agentic-development.md](./docs/enterprise-agentic-development.md) - Team collaboration patterns
+- [troubleshooting.md](./docs/troubleshooting.md) - Common issues and solutions
+- [**IDE Setup Guides**](../../../docs/ide-info/) - Configure Claude Code, Cursor, Windsurf, etc.
 
 ---
 
 ## 🤝 Community
 
-- **[Discord](https://discord.gg/gk8jAdXWmj)** - Get help, share feedback (#general-dev, #bugs-issues)
-- **[GitHub Issues](https://github.com/bmad-code-org/BMAD-METHOD/issues)** - Report bugs or request features
-- **[YouTube](https://www.youtube.com/@BMadCode)** - Video tutorials and walkthroughs
+- [**Discord**](https://discord.gg/gk8jAdXWmj) - Get help, share feedback (#general-dev, #bugs-issues)
+- [**GitHub Issues**](https://github.com/bmad-code-org/BMAD-METHOD/issues) - Report bugs or request features
+- [**YouTube**](https://www.youtube.com/@BMadCode) - Video tutorials and walkthroughs
 
 ---
 
-**Ready to build?** → [Start with the Quick Start Guide](./docs/quick-start.md)
+**Ready to build?** → [quick-start.md](./docs/quick-start.md)

@@ -1,0 +1,254 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Time Entries in Export/Backup</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-2-time-entries-in-export-backup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>my time entries included in app exports and backups</iWant>
+    <soThat>I have a complete record of my productivity data and can restore it if needed</soThat>
+    <tasks>
+      <task id="1" acs="1,2,3">Extend export payload schema to include time entries
+        <subtask>Update ExportPayload interface to include time_entries: ExportedTimeEntry[]</subtask>
+        <subtask>Create ExportedTimeEntry interface with required fields plus duration_formatted</subtask>
+        <subtask>Add formatDurationSummary function call for human-readable duration</subtask>
+        <subtask>Write unit tests for export schema</subtask>
+      </task>
+      <task id="2" acs="1,2,4,9">Implement time entries export in exportService
+        <subtask>Locate existing export functionality (likely in src/lib/exportService.ts or similar)</subtask>
+        <subtask>Query all time entries from IndexedDB (all sync statuses)</subtask>
+        <subtask>Map TimeEntry to ExportedTimeEntry format</subtask>
+        <subtask>Sort entries by start_time ascending (oldest first)</subtask>
+        <subtask>Include entries with null task_id (deleted tasks)</subtask>
+        <subtask>Write unit tests for export logic</subtask>
+      </task>
+      <task id="3" acs="3">Add human-readable duration formatting
+        <subtask>Import or create formatDurationSummary(ms) function</subtask>
+        <subtask>Add duration_formatted field to each exported entry</subtask>
+        <subtask>Format: "Xh Ym" for hours+minutes, "Xm" for under 1 hour</subtask>
+        <subtask>Write unit tests for duration formatting edge cases</subtask>
+      </task>
+      <task id="4" acs="5,6,8">Implement time entries import in importService
+        <subtask>Locate existing import functionality</subtask>
+        <subtask>Parse time_entries array from import payload</subtask>
+        <subtask>Validate required fields (id, task_name, start_time, end_time, duration, date)</subtask>
+        <subtask>Upsert each entry to IndexedDB using id as key</subtask>
+        <subtask>Set _syncStatus = 'pending' for all imported entries</subtask>
+        <subtask>Queue entries for sync (add to sync queue)</subtask>
+        <subtask>Write unit tests for import logic</subtask>
+      </task>
+      <task id="5" acs="7">Update import success toast with time entry count
+        <subtask>Modify import success handler to count time entries</subtask>
+        <subtask>Update toast message format: "Restored X tasks and Y time entries"</subtask>
+        <subtask>Handle edge cases: 0 tasks, 0 time entries, singular/plural</subtask>
+      </task>
+      <task id="6" acs="1-9">Integration testing with existing export/import flow</task>
+      <task id="7" acs="1-9">Manual browser testing via Frontend Test Gate</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="4.2.1">When the user triggers export, the exported JSON includes a time_entries array</ac>
+    <ac id="4.2.2">Each exported time entry includes: id, task_name, start_time, end_time, duration, date</ac>
+    <ac id="4.2.3">The duration field in export is human-readable (e.g., "1h 23m") in addition to the raw milliseconds value</ac>
+    <ac id="4.2.4">Time entries with deleted tasks (null task_id) are still included in exports with their task_name snapshot</ac>
+    <ac id="4.2.5">When the user restores from backup, time entries are imported to IndexedDB and queued for sync</ac>
+    <ac id="4.2.6">Restored entries appear in the Insights modal after import completes</ac>
+    <ac id="4.2.7">Import shows success toast: "Restored X tasks and Y time entries"</ac>
+    <ac id="4.2.8">Duplicate entries (same id) are updated rather than creating duplicates (upsert behavior)</ac>
+    <ac id="4.2.9">Time entries are exported in chronological order (oldest first)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-4-cross-device-sync.md</path>
+        <title>Epic 4 Technical Specification - Cross-Device Sync</title>
+        <section>Story 4.2: Time Entries in Export/Backup</section>
+        <snippet>Defines AC-4.2.1 through AC-4.2.9, export schema extension with time_entries array, export flow (gather entries from IndexedDB, sort chronologically, include duration_formatted), and import/restore flow (upsert to IndexedDB with pending sync status).</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Architecture</title>
+        <section>Data Architecture, Implementation Patterns</section>
+        <snippet>Defines TimeEntry interface, formatDurationSummary pattern, ADR-TT-002 for Supabase storage with IndexedDB cache, and error handling patterns with toast notifications.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Epic Breakdown</title>
+        <section>Story 4.2: Time Entries in Export/Backup</section>
+        <snippet>User story definition: power user wants time entries in exports/backups for complete productivity record and restore capability. Maps FR47.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/4-1-supabase-time-entries-table-and-sync.md</path>
+        <title>Story 4.1 - Supabase Sync (Previous Story)</title>
+        <section>Dev Notes, Project Structure Notes</section>
+        <snippet>Establishes CachedTimeEntry interface with _syncStatus field, timeTrackingDb patterns, sync queue integration, and test patterns with fake-indexeddb.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>TimeEntry, CachedTimeEntry, TimeEntrySyncStatus</symbol>
+        <reason>Core time entry interfaces to extend for export. CachedTimeEntry has _syncStatus for sync tracking. Export should use base TimeEntry fields.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeTrackingDb.ts</path>
+        <kind>database</kind>
+        <symbol>getTimeEntries, upsertTimeEntry, bulkUpsertTimeEntries</symbol>
+        <reason>IndexedDB operations for time entries. getTimeEntries() returns all entries for export. upsertTimeEntry/bulkUpsertTimeEntries for import.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDurationSummary</symbol>
+        <lines>56-79</lines>
+        <reason>Existing duration formatting function. Returns "Xh Ym" or "Xm" format. Use for duration_formatted field in export.</reason>
+      </file>
+      <file>
+        <path>today-app/src/utils/storage.ts</path>
+        <kind>utility</kind>
+        <symbol>saveState, loadState, STORAGE_KEY</symbol>
+        <reason>Existing localStorage persistence pattern. May need to extend or create parallel export/import service.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task, AppState</symbol>
+        <reason>Existing Task and AppState types. Export payload should extend AppState to include time_entries.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/db.ts</path>
+        <kind>database</kind>
+        <symbol>LocalTask, SyncQueueItem, SyncTable</symbol>
+        <reason>Main app database. SyncTable already includes 'time_entries'. SyncQueueItem for queuing imported entries.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/syncQueue.ts</path>
+        <kind>service</kind>
+        <symbol>sync queue operations</symbol>
+        <reason>Existing sync queue pattern. Import should add time entries to this queue for Supabase sync.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeEntries.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeEntries</symbol>
+        <reason>Hook for time entry CRUD with sync queue integration. May have addEntry function usable for import.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeInsights.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeInsights</symbol>
+        <reason>Insights aggregation hook. Restored entries should appear here after import (AC-4.2.6).</reason>
+      </file>
+      <file>
+        <path>today-app/src/test/setup.ts</path>
+        <kind>test-setup</kind>
+        <symbol>fake-indexeddb, beforeEach cleanup</symbol>
+        <reason>Test setup pattern. Uses fake-indexeddb/auto, clears timeTrackingDb tables before each test.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="dexie" version="^4.2.1">IndexedDB wrapper for time entries storage</package>
+        <package name="dexie-react-hooks" version="^4.2.0">React hooks for Dexie operations</package>
+        <package name="date-fns" version="^4.1.0">Date formatting for timestamps</package>
+        <package name="@supabase/supabase-js" version="^2.89.0">Supabase client for sync</package>
+        <package name="vitest" version="^3.2.4" dev="true">Testing framework</package>
+        <package name="fake-indexeddb" version="^6.2.5" dev="true">IndexedDB mocking for tests</package>
+        <package name="@testing-library/react" version="^16.3.1" dev="true">React testing utilities</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture">All time entries (synced, pending, error) must be included in export regardless of _syncStatus</constraint>
+    <constraint source="architecture">Import must set _syncStatus = 'pending' for all imported entries to queue for Supabase sync</constraint>
+    <constraint source="tech-spec">Export entries sorted by start_time ascending (oldest first)</constraint>
+    <constraint source="tech-spec">Use upsert behavior (put not add) to handle duplicate imports without creating duplicates</constraint>
+    <constraint source="tech-spec">Include entries with null task_id (deleted tasks) - task_name snapshot is preserved</constraint>
+    <constraint source="architecture">Follow existing error handling pattern with try/catch and toast notifications</constraint>
+    <constraint source="architecture">Use dev-mode logging: if (import.meta.env.DEV) console.log('[Today] Export:', ...)</constraint>
+    <constraint source="story-4.1">Integration with sync queue - imported entries queued for Supabase push</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TimeEntry</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TimeEntry { id: string; user_id: string; task_id: string | null; task_name: string; start_time: string; end_time: string; duration: number; date: string; created_at: string; updated_at: string; }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>CachedTimeEntry</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface CachedTimeEntry extends TimeEntry { _syncStatus: 'synced' | 'pending' | 'error'; _lastSyncAttempt?: string; }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>ExportedTimeEntry (NEW)</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface ExportedTimeEntry { id: string; task_name: string; start_time: string; end_time: string; duration: number; duration_formatted: string; date: string; }</signature>
+      <path>to be created in types/export.ts or types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>ExportPayload (EXTEND)</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface ExportPayload { version: string; exported_at: string; tasks: Task[]; categories: string[]; time_entries: ExportedTimeEntry[]; }</signature>
+      <path>to be created in types/export.ts or lib/exportService.ts</path>
+    </interface>
+    <interface>
+      <name>getTimeEntries</name>
+      <kind>Function</kind>
+      <signature>async function getTimeEntries(dateRange?: { start: string; end: string }): Promise&lt;CachedTimeEntry[]&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+    </interface>
+    <interface>
+      <name>bulkUpsertTimeEntries</name>
+      <kind>Function</kind>
+      <signature>async function bulkUpsertTimeEntries(entries: CachedTimeEntry[]): Promise&lt;void&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+    </interface>
+    <interface>
+      <name>formatDurationSummary</name>
+      <kind>Function</kind>
+      <signature>function formatDurationSummary(ms: number): string</signature>
+      <path>today-app/src/lib/timeFormatters.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Tests use Vitest framework with fake-indexeddb for IndexedDB mocking. Test files co-located with source files using .test.ts suffix. Setup in src/test/setup.ts clears IndexedDB tables before each test. Use @testing-library/react for component tests. Follow existing patterns in timeTrackingDb.test.ts and timeFormatters.test.ts for service/utility tests.
+    </standards>
+    <locations>
+      <location>today-app/src/lib/*.test.ts</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+      <location>today-app/src/test/setup.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="4.2.1">Test export payload includes time_entries array when entries exist</idea>
+      <idea ac="4.2.1">Test export payload has empty time_entries array when no entries</idea>
+      <idea ac="4.2.2">Test each exported entry has all required fields (id, task_name, start_time, end_time, duration, date)</idea>
+      <idea ac="4.2.3">Test duration_formatted field has correct "Xh Ym" or "Xm" format</idea>
+      <idea ac="4.2.3">Test edge cases: 0m, 59m, 1h 0m, 23h 59m</idea>
+      <idea ac="4.2.4">Test entries with null task_id are included with task_name preserved</idea>
+      <idea ac="4.2.5">Test import writes entries to IndexedDB with _syncStatus = 'pending'</idea>
+      <idea ac="4.2.5">Test import adds entries to sync queue</idea>
+      <idea ac="4.2.6">Test imported entries are queryable via getTimeEntries after import</idea>
+      <idea ac="4.2.7">Test import success toast shows correct counts (X tasks and Y time entries)</idea>
+      <idea ac="4.2.7">Test toast handles singular/plural correctly</idea>
+      <idea ac="4.2.8">Test re-import of same file uses upsert (no duplicates created)</idea>
+      <idea ac="4.2.9">Test exported entries are sorted by start_time ascending</idea>
+    </ideas>
+  </tests>
+</story-context>

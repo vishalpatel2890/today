@@ -1,0 +1,289 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>IPC Bridge Setup</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-2-ipc-bridge-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a type-safe IPC bridge between React and Electron main process</iWant>
+    <soThat>React components can trigger native functionality securely</soThat>
+    <tasks>
+      <task id="1" ac="2.9">
+        <title>Create IPC channel constants</title>
+        <subtasks>
+          <subtask>1.1: Create electron/ipc/channels.ts with channel name constants</subtask>
+          <subtask>1.2: Define channels: activity:start, activity:stop, activity:get-log, activity:export</subtask>
+          <subtask>1.3: Export as IPC_CHANNELS const object for type safety</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="2.2,2.3,2.4,2.5">
+        <title>Implement IPC handlers (stubs)</title>
+        <subtasks>
+          <subtask>2.1: Create electron/ipc/handlers.ts with registerIpcHandlers() function</subtask>
+          <subtask>2.2: Implement activity:start handler returning { success: true }</subtask>
+          <subtask>2.3: Implement activity:stop handler returning { success: true, data: { entriesRecorded: 0 } }</subtask>
+          <subtask>2.4: Implement activity:get-log handler returning { success: true, data: [] }</subtask>
+          <subtask>2.5: Implement activity:export handler returning { success: true, data: { filePath: '' } }</subtask>
+          <subtask>2.6: Add development-mode logging for each IPC call</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="2.1,2.7,2.8">
+        <title>Update preload script</title>
+        <subtasks>
+          <subtask>3.1: Import IPC_CHANNELS from ./ipc/channels</subtask>
+          <subtask>3.2: Expose electronAPI.activity object via contextBridge</subtask>
+          <subtask>3.3: Map each activity method to ipcRenderer.invoke() with correct channel</subtask>
+          <subtask>3.4: Verify contextIsolation: true in main.ts BrowserWindow config</subtask>
+          <subtask>3.5: Verify nodeIntegration: false in main.ts BrowserWindow config</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="2.1">
+        <title>Register handlers in main process</title>
+        <subtasks>
+          <subtask>4.1: Import registerIpcHandlers in electron/main.ts</subtask>
+          <subtask>4.2: Call registerIpcHandlers() before creating BrowserWindow</subtask>
+          <subtask>4.3: Verify handlers are active by checking console logs</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="2.6">
+        <title>Update TypeScript declarations</title>
+        <subtasks>
+          <subtask>5.1: Update src/types/electron.d.ts with complete ElectronAPI interface</subtask>
+          <subtask>5.2: Add IPCResponse generic type for consistent response shapes</subtask>
+          <subtask>5.3: Add ActivityEntry placeholder interface (full definition in Epic 3)</subtask>
+          <subtask>5.4: Verify TypeScript autocomplete works in VS Code</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="2.6">
+        <title>Create type-safe electronBridge wrapper</title>
+        <subtasks>
+          <subtask>6.1: Create src/lib/electronBridge.ts</subtask>
+          <subtask>6.2: Import isElectron from ./platform</subtask>
+          <subtask>6.3: Implement wrapper methods that check isElectron() first</subtask>
+          <subtask>6.4: Return { success: false, error: 'Not in Electron' } for web context</subtask>
+          <subtask>6.5: Add JSDoc comments for API documentation</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="2.1-2.9">
+        <title>Verify in both environments</title>
+        <subtasks>
+          <subtask>7.1: Run npm run dev:electron - test all IPC methods in DevTools</subtask>
+          <subtask>7.2: Run npm run dev - verify window.electronAPI is undefined in browser</subtask>
+          <subtask>7.3: Run npm run build - verify no TypeScript errors</subtask>
+          <subtask>7.4: Verify no Electron code in web build with grep check</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC2.1">window.electronAPI is available in Electron renderer context</criterion>
+    <criterion id="AC2.2">window.electronAPI.activity.start(timeEntryId) returns Promise with { success: true }</criterion>
+    <criterion id="AC2.3">window.electronAPI.activity.stop() returns Promise with { success: true, data: { entriesRecorded: 0 } }</criterion>
+    <criterion id="AC2.4">window.electronAPI.activity.getLog(timeEntryId) returns Promise with { success: true, data: [] }</criterion>
+    <criterion id="AC2.5">window.electronAPI.activity.export(timeEntryId, format) returns Promise with { success: true, data: { filePath: '' } }</criterion>
+    <criterion id="AC2.6">TypeScript recognizes window.electronAPI with correct method types</criterion>
+    <criterion id="AC2.7">contextIsolation: true is enabled (security requirement)</criterion>
+    <criterion id="AC2.8">nodeIntegration: false is enabled (security requirement)</criterion>
+    <criterion id="AC2.9">IPC channel names follow domain:action kebab-case convention</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Implementation Patterns - IPC Channel Naming, Preload Script Pattern</section>
+        <snippet>IPC channels follow domain:action kebab-case convention. All IPC exposed via contextBridge MUST use typed channel names and return Promises. NEVER expose Node.js APIs directly.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>ADR-007: IPC-Only Communication</section>
+        <snippet>All communication via IPC with typed channels. Security: contextIsolation prevents direct Node access. Type safety: Shared channel/payload types.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-2-electron.md</path>
+        <title>Epic Technical Specification: Feature Detection and IPC Bridge</title>
+        <section>AC2: IPC Bridge Setup</section>
+        <snippet>window.electronAPI exposes typed methods for activity tracking. All methods return Promises and follow IPCResponse pattern. contextIsolation: true and nodeIntegration: false are security requirements.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 2.2: IPC Bridge Setup</section>
+        <snippet>Preload script exposes activity.start(), activity.stop(), activity.getLog(), activity.export(). All methods should be stubs returning { success: true } for now.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Feature Detection and Isolation</section>
+        <snippet>FR6: Application detects at runtime whether running in Electron. FR7: Desktop-only UI elements conditionally rendered. FR8: Web app functions identically when not in Electron.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/2-1-platform-detection-utility.md</path>
+        <title>Story 2.1: Platform Detection Utility</title>
+        <section>Dev Agent Record</section>
+        <snippet>Created src/lib/platform.ts with isElectron() function. Added src/types/electron.d.ts with TypeScript declarations for ElectronAPI. Test suite: 502 tests pass.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>today-app/electron/main.ts</path>
+        <kind>main-process</kind>
+        <symbol>createWindow</symbol>
+        <lines>7-42</lines>
+        <reason>Main process entry point. BrowserWindow config already has contextIsolation: true and nodeIntegration: false. Need to add registerIpcHandlers() call before createWindow.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/electron/preload.ts</path>
+        <kind>preload-script</kind>
+        <symbol>electronAPI</symbol>
+        <lines>1-7</lines>
+        <reason>Current stub exposes empty electronAPI. Must be updated to expose activity methods via contextBridge.exposeInMainWorld.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/lib/platform.ts</path>
+        <kind>utility</kind>
+        <symbol>isElectron</symbol>
+        <lines>29-42</lines>
+        <reason>Platform detection function from Story 2.1. Use in electronBridge.ts to guard IPC calls. Checks for window.electronAPI presence.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/types/electron.d.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>ElectronAPI, IPCResponse, ActivityEntry, ElectronActivityAPI</symbol>
+        <lines>1-57</lines>
+        <reason>Type definitions from Story 2.1. Already defines complete ElectronAPI interface with activity methods. May need minor updates.</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/electron.vite.config.ts</path>
+        <kind>build-config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-42</lines>
+        <reason>Electron-vite configuration. Defines build paths for main (dist-electron/main), preload (dist-electron/preload), and renderer (dist-electron/renderer).</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/lib/platform.test.ts</path>
+        <kind>test</kind>
+        <symbol>isElectron tests</symbol>
+        <lines>all</lines>
+        <reason>7 unit tests for platform detection. Use similar patterns for electronBridge tests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="electron" version="^39.2.7" dev="true" />
+        <package name="electron-vite" version="^5.0.0" dev="true" />
+        <package name="@electron-toolkit/preload" version="^3.0.2" dev="true" />
+        <package name="@electron-toolkit/utils" version="^4.0.0" dev="true" />
+        <package name="electron-builder" version="^26.4.0" dev="true" />
+        <package name="typescript" version="~5.9.3" dev="true" />
+        <package name="vitest" version="^3.2.4" dev="true" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="security">contextIsolation MUST be true in BrowserWindow webPreferences (already configured)</constraint>
+    <constraint type="security">nodeIntegration MUST be false in BrowserWindow webPreferences (already configured)</constraint>
+    <constraint type="security">Never expose ipcRenderer directly - only expose specific methods via contextBridge</constraint>
+    <constraint type="pattern">IPC channel names MUST follow domain:action kebab-case convention (e.g., activity:start)</constraint>
+    <constraint type="pattern">All IPC methods MUST return Promise with IPCResponse shape { success, data?, error? }</constraint>
+    <constraint type="pattern">Use IPC_CHANNELS const object - never use string literals for channel names</constraint>
+    <constraint type="architecture">New files go in electron/ipc/ directory for IPC-related code</constraint>
+    <constraint type="architecture">electronBridge.ts provides safe wrapper with isElectron() guard for React usage</constraint>
+    <constraint type="testing">Maintain 502 test baseline from Story 2.1</constraint>
+    <constraint type="build">Web build (npm run build) MUST NOT include any Electron code</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>IPC_CHANNELS</name>
+      <kind>const object</kind>
+      <signature>
+const IPC_CHANNELS = {
+  ACTIVITY_START: 'activity:start',
+  ACTIVITY_STOP: 'activity:stop',
+  ACTIVITY_GET_LOG: 'activity:get-log',
+  ACTIVITY_EXPORT: 'activity:export',
+} as const;
+      </signature>
+      <path>today-app/electron/ipc/channels.ts (new file)</path>
+    </interface>
+    <interface>
+      <name>registerIpcHandlers</name>
+      <kind>function</kind>
+      <signature>function registerIpcHandlers(): void</signature>
+      <path>today-app/electron/ipc/handlers.ts (new file)</path>
+    </interface>
+    <interface>
+      <name>ElectronAPI</name>
+      <kind>interface</kind>
+      <signature>
+interface ElectronAPI {
+  activity: ElectronActivityAPI;
+}
+interface ElectronActivityAPI {
+  start: (timeEntryId: string) => Promise&lt;IPCResponse&gt;;
+  stop: () => Promise&lt;IPCResponse&lt;{ entriesRecorded: number }&gt;&gt;;
+  getLog: (timeEntryId: string) => Promise&lt;IPCResponse&lt;ActivityEntry[]&gt;&gt;;
+  export: (timeEntryId: string, format: 'json' | 'csv') => Promise&lt;IPCResponse&lt;{ filePath: string }&gt;&gt;;
+}
+      </signature>
+      <path>today-app/src/types/electron.d.ts (exists)</path>
+    </interface>
+    <interface>
+      <name>IPCResponse</name>
+      <kind>generic interface</kind>
+      <signature>
+interface IPCResponse&lt;T = void&gt; {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+      </signature>
+      <path>today-app/src/types/electron.d.ts (exists)</path>
+    </interface>
+    <interface>
+      <name>electronBridge</name>
+      <kind>module</kind>
+      <signature>
+const electronBridge = {
+  activity: {
+    start: async (timeEntryId: string) => Promise&lt;IPCResponse&gt;,
+    stop: async () => Promise&lt;IPCResponse&lt;{ entriesRecorded: number }&gt;&gt;,
+    getLog: async (timeEntryId: string) => Promise&lt;IPCResponse&lt;ActivityEntry[]&gt;&gt;,
+    export: async (timeEntryId: string, format: 'json' | 'csv') => Promise&lt;IPCResponse&lt;{ filePath: string }&gt;&gt;,
+  },
+};
+      </signature>
+      <path>today-app/src/lib/electronBridge.ts (new file)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Project uses Vitest for unit and integration testing. Tests are co-located with source files (*.test.ts pattern). Use @testing-library/react for component tests. Mock window object for platform detection tests. For Electron IPC, manual testing in DevTools console is primary validation method per Frontend Test Gate.
+    </standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/lib/platform.test.ts (reference for similar tests)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC2.6">Unit test: electronBridge.activity.start returns error when not in Electron</idea>
+      <idea ac="AC2.6">Unit test: electronBridge.activity.stop returns error when not in Electron</idea>
+      <idea ac="AC2.6">Unit test: electronBridge methods call window.electronAPI when in Electron</idea>
+      <idea ac="AC2.1-2.5">Manual test: In Electron DevTools, verify all window.electronAPI.activity methods return expected responses</idea>
+      <idea ac="AC2.7,AC2.8">Verification: Confirm BrowserWindow config has contextIsolation: true and nodeIntegration: false</idea>
+      <idea ac="AC2.9">Verification: All IPC channels follow domain:action kebab-case naming</idea>
+      <idea ac="web-continuity">Build test: grep -r "electronAPI" dist/ returns no matches</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,66 @@
+# generated: 2026-01-10
+# project: Today - Time Tracking Feature
+# project_key: time-tracking
+# tracking_system: file-system
+# story_location: notes/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+
+generated: 2026-01-10
+project: Today - Time Tracking Feature
+project_key: time-tracking
+tracking_system: file-system
+story_location: notes/sprint-artifacts
+
+development_status:
+  # Epic 1: Time Tracking Foundation
+  epic-1-time-tracking-foundation: done
+  1-1-global-keyboard-shortcut-registration: done
+  1-2-task-selection-dropdown-in-tracking-modal: done
+  1-3-start-tracking-and-background-timer: done
+  1-4-view-active-tracking-and-stop-session: done
+  epic-1-retrospective: completed
+
+  # Epic 2: Time Insights Dashboard
+  epic-2-time-insights-dashboard: done
+  2-1-insights-modal-with-double-tap-hotkey: done
+  2-2-time-summary-cards-today-and-week: done
+  2-3-recent-time-entries-list: done
+  epic-2-retrospective: completed
+
+  # Epic 3: Insights Filtering
+  epic-3-insights-filtering: done
+  3-1-quick-date-filter-bar: done
+  3-2-custom-date-range-picker: done
+  3-3-task-and-category-filter-dropdowns: done
+  3-4-active-filter-chips-with-remove: done
+  epic-3-retrospective: completed
+
+  # Epic 4: Cross-Device Sync
+  epic-4-cross-device-sync: done
+  4-1-supabase-time-entries-table-and-sync: done
+  4-2-time-entries-in-export-backup: done
+  epic-4-retrospective: completed

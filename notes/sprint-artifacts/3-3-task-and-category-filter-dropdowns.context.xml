@@ -1,0 +1,148 @@
+<story-context id="3-3-task-and-category-filter-dropdowns" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Task and Category Filter Dropdowns</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-3-task-and-category-filter-dropdowns.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>to filter insights by specific tasks or categories</iWant>
+    <soThat>I can analyze time spent on particular work areas (e.g., "How much time did I spend on client work this week?")</soThat>
+    <tasks>
+      <task id="1" acs="1,2,4,7,8">Create FilterDropdown component using Radix Select</task>
+      <task id="2" acs="3,5,6">Add filter state for task and category in TimeInsightsModal</task>
+      <task id="3" acs="2,4">Derive task and category options from time entries</task>
+      <task id="4" acs="3,5,6">Extend useTimeInsights to filter by taskId and category</task>
+      <task id="5" acs="1">Integrate FilterDropdowns into TimeInsightsModal layout</task>
+      <task id="6" acs="3,5">Add FilterChips for task and category filters</task>
+      <task id="7" acs="1,2,4,7,8">Write FilterDropdown component tests</task>
+      <task id="8" acs="3,5,6">Write integration tests</task>
+      <task id="9" acs="1-8">Manual browser testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.3.1">Insights modal shows two filter dropdowns below the date filter bar: "Tasks" and "Category"</ac>
+    <ac id="3.3.2">Tasks dropdown shows "All tasks" option plus list of tasks that have time entries</ac>
+    <ac id="3.3.3">Selecting a specific task filters all insights to show only that task's entries (FR22)</ac>
+    <ac id="3.3.4">Category dropdown shows "All" option plus categories from tasks that have time entries</ac>
+    <ac id="3.3.5">Selecting a category filters insights to show only entries for tasks in that category (FR23)</ac>
+    <ac id="3.3.6">Task and category filters can be combined with date filters (AND logic)</ac>
+    <ac id="3.3.7">Selecting "All tasks" or "All" clears the respective filter</ac>
+    <ac id="3.3.8">Dropdown selections are reflected in the dropdown display text</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-3-insights-filtering.md" title="Epic 3 Tech Spec" section="Story 3.3" snippet="Defines FilterDropdownProps interface, InsightFilters extension for taskId/category, and combined filter logic (AND)." />
+      <doc path="notes/architecture-time-tracking.md" title="Architecture" section="ADR-TT-004" snippet="Client-side insights aggregation using useMemo. All filtering computed client-side. Filters combined with AND logic." />
+      <doc path="notes/ux-design-time-tracking.md" title="UX Design" section="6.1 FilterDropdown" snippet="Dropdown anatomy: label, current value, chevron icon, dropdown menu. Active filter: border highlights, primary color text." />
+      <doc path="notes/epics-time-tracking.md" title="Epics" section="Story 3.3" snippet="Filter by task (FR22) and category (FR23) with AND logic for combined filters." />
+      <doc path="notes/sprint-artifacts/3-2-custom-date-range-picker.md" title="Previous Story" section="Dev Agent Record" snippet="FilterChip.tsx exists and works. 289 tests passing. InsightFilters has customRange - extend for taskId/category." />
+    </docs>
+
+    <code>
+      <file path="today-app/src/components/time-tracking/TimeInsightsModal.tsx" kind="component" symbol="TimeInsightsModal" lines="1-255" reason="Main component to extend with FilterDropdowns. Already has QuickFilterBar and FilterChip integration." />
+      <file path="today-app/src/hooks/useTimeInsights.ts" kind="hook" symbol="useTimeInsights, InsightFilters" lines="1-197" reason="Hook to extend with taskId and category filtering. Already has datePreset and customRange filtering with isWithinInterval pattern." />
+      <file path="today-app/src/components/time-tracking/FilterChip.tsx" kind="component" symbol="FilterChip, FilterChipProps" lines="1-39" reason="REUSE for task/category filter chips. Displays active filters with remove button." />
+      <file path="today-app/src/components/time-tracking/QuickFilterBar.tsx" kind="component" symbol="QuickFilterBar" lines="1-117" reason="Reference for styling patterns (slate-600 active, border-slate-300 default). Layout reference for filter bar." />
+      <file path="today-app/src/types/timeTracking.ts" kind="types" symbol="DatePreset, DateRange, TimeEntry, TimeInsights" lines="1-68" reason="Types to potentially extend with FilterOption interface. TimeEntry has task_id and task_name fields." />
+      <file path="today-app/src/hooks/useTasks.ts" kind="hook" symbol="useTasks" lines="180-698" reason="Reference for task structure. Tasks have category field (string | null). categories array returned from hook." />
+      <file path="today-app/src/lib/timeFormatters.ts" kind="utility" symbol="getDateRangeForPreset, formatDateRange" lines="1-199" reason="Pattern for date filtering. formatDateRange for custom range display." />
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="@radix-ui/react-select" version="^2.2.6" reason="For dropdown implementation - already installed" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" reason="Modal foundation - used by TimeInsightsModal" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" reason="Popover pattern reference from DateRangePicker" />
+        <package name="lucide-react" version="^0.562.0" reason="ChevronDown, X icons for dropdowns and chips" />
+        <package name="date-fns" version="^4.1.0" reason="Date utilities for filtering (isWithinInterval)" />
+        <package name="react" version="^19.2.0" reason="React framework" />
+        <package name="vitest" version="^3.2.4" reason="Testing framework" />
+        <package name="@testing-library/react" version="^16.3.1" reason="Component testing utilities" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="FilterDropdownProps" kind="component-props" path="today-app/src/components/time-tracking/FilterDropdown.tsx">
+      <signature><![CDATA[
+interface FilterDropdownProps {
+  label: string;                    // "Tasks" or "Category"
+  placeholder: string;              // "All tasks" or "All"
+  options: FilterOption[];
+  selectedValue: string | null;
+  onSelect: (value: string | null) => void;
+}
+      ]]></signature>
+    </interface>
+    <interface name="FilterOption" kind="type" path="today-app/src/types/timeTracking.ts">
+      <signature><![CDATA[
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+      ]]></signature>
+    </interface>
+    <interface name="InsightFilters (extended)" kind="interface" path="today-app/src/hooks/useTimeInsights.ts">
+      <signature><![CDATA[
+export interface InsightFilters {
+  datePreset?: DatePreset;
+  customRange?: DateRange | null;
+  taskId?: string | null;      // NEW: Filter by specific task
+  category?: string | null;    // NEW: Filter by task category
+}
+      ]]></signature>
+    </interface>
+    <interface name="FilterChipProps" kind="component-props" path="today-app/src/components/time-tracking/FilterChip.tsx">
+      <signature><![CDATA[
+export interface FilterChipProps {
+  label: string;
+  onRemove: () => void;
+}
+      ]]></signature>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint source="ADR-TT-004">All filtering computed client-side using useMemo for performance</constraint>
+    <constraint source="Tech Spec">Filters combined with AND logic (date AND task AND category)</constraint>
+    <constraint source="UX Design">FilterDropdown uses Radix Select with keyboard accessibility (Tab, Arrow, Enter, Escape)</constraint>
+    <constraint source="UX Design">Active filter state: border highlights, primary color text</constraint>
+    <constraint source="UX Design">Dropdown shows options from tasks that have time entries (not all tasks)</constraint>
+    <constraint source="Previous Story">FilterChip component exists and should be reused for task/category chips</constraint>
+    <constraint source="Previous Story">ResizeObserver mock exists in test/setup.ts for Radix component tests</constraint>
+    <constraint source="Tech Spec">Category filtering requires looking up task category via task_id from entries</constraint>
+    <constraint source="Styling">Use slate-600 for active state, border-slate-300 for default per QuickFilterBar patterns</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Testing uses Vitest with React Testing Library. Tests are colocated with components (ComponentName.test.tsx) or hooks (hookName.test.ts). Use userEvent for interactions. Mock IndexedDB with fake-indexeddb. ResizeObserver mock exists in src/test/setup.ts for Radix components. Target: all tests pass before PR.
+    </standards>
+    <locations>
+      <location>today-app/src/components/time-tracking/*.test.tsx</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+      <location>today-app/src/lib/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="3.3.1">Test FilterDropdown renders with label and placeholder</idea>
+      <idea ac="3.3.2">Test Tasks dropdown options derived from time entries (unique tasks only)</idea>
+      <idea ac="3.3.3">Test selecting task filters insights to that task only</idea>
+      <idea ac="3.3.4">Test Category dropdown shows categories from tasks with entries</idea>
+      <idea ac="3.3.5">Test selecting category filters to tasks in that category</idea>
+      <idea ac="3.3.6">Test combined date + task + category filters apply AND logic</idea>
+      <idea ac="3.3.7">Test selecting "All tasks" clears taskId filter, "All" clears category</idea>
+      <idea ac="3.3.8">Test dropdown display text updates to selected option label</idea>
+      <idea ac="general">Test FilterChips appear for active task/category filters</idea>
+      <idea ac="general">Test removing filter via chip clears the filter</idea>
+      <idea ac="general">Test keyboard navigation in dropdowns (Tab, Arrow, Enter, Escape)</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,205 @@
+<story-context id="1-3-dual-build-pipeline" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Dual Build Pipeline</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-3-dual-build-pipeline.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>separate build commands for web and Electron that can also run together</iWant>
+    <soThat>I can deploy web updates and build desktop apps independently or together</soThat>
+    <tasks>
+      <task id="1" ac="3.1">
+        <title>Verify existing web build is unchanged</title>
+        <subtasks>
+          <subtask>1.1: Run `npm run build` and verify it produces `dist/` directory</subtask>
+          <subtask>1.2: Run `npm run preview` and verify web app works</subtask>
+          <subtask>1.3: Confirm existing "build": "tsc -b &amp;&amp; vite build" script unchanged</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="3.2,3.5">
+        <title>Add build:electron script</title>
+        <subtasks>
+          <subtask>2.1: Add script "build:electron": "electron-vite build" to package.json</subtask>
+          <subtask>2.2: Verify electron.vite.config.ts outputs to `dist-electron/`</subtask>
+          <subtask>2.3: Run `npm run build:electron` and verify dist-electron/main/ exists</subtask>
+          <subtask>2.4: Verify dist-electron/preload/ exists</subtask>
+          <subtask>2.5: Verify dist-electron/renderer/ exists with React app assets</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="3.3">
+        <title>Add build:all script</title>
+        <subtasks>
+          <subtask>3.1: Add script "build:all": "npm run build &amp;&amp; npm run build:electron" to package.json</subtask>
+          <subtask>3.2: Run `npm run build:all` and verify both outputs created</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="3.4">
+        <title>Verify web build excludes Electron code</title>
+        <subtasks>
+          <subtask>4.1: Run `grep -r "electron" dist/` and verify no matches</subtask>
+          <subtask>4.2: Verify no electron imports in bundled JS files</subtask>
+          <subtask>4.3: Check bundle size hasn't increased from Electron addition</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="3.6">
+        <title>Verify builds complete cleanly</title>
+        <subtasks>
+          <subtask>5.1: Run `npm run build` - no errors or warnings</subtask>
+          <subtask>5.2: Run `npm run build:electron` - no errors or warnings</subtask>
+          <subtask>5.3: Run `npm run build:all` - no errors or warnings</subtask>
+          <subtask>5.4: Run existing test suite - all tests pass</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.1">Running `npm run build` produces only the web build in `dist/` (unchanged behavior)</ac>
+    <ac id="3.2">Running `npm run build:electron` produces Electron build in `dist-electron/` with main/, preload/, and renderer/ subdirectories</ac>
+    <ac id="3.3">Running `npm run build:all` produces both web and Electron builds</ac>
+    <ac id="3.4">The web build in `dist/` contains NO Electron-specific code (verified by grep)</ac>
+    <ac id="3.5">The Electron renderer build includes the complete React app</ac>
+    <ac id="3.6">Both builds complete without errors or warnings</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Deployment Architecture, Build Configuration Pattern</section>
+        <snippet>Defines dual-target build system producing both PWA and Electron desktop app. Build commands: npm run build (web), npm run build:electron, npm run package.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1-electron.md</path>
+        <title>Epic Technical Specification: Electron Foundation &amp; Dual Build</title>
+        <section>AC3: Dual Build Pipeline, Workflows and Sequencing</section>
+        <snippet>AC3.1-AC3.6 define build pipeline requirements. Flow 3 documents build:all sequence: web build to dist/, then electron-vite build to dist-electron/.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 1.3: Dual Build Pipeline</section>
+        <snippet>Covers FR1 (single command builds both), FR4 (deployable web assets), FR9 (no Electron in web build). Prerequisites: Story 1.2.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/package.json</path>
+        <kind>config</kind>
+        <symbol>scripts</symbol>
+        <lines>7-16</lines>
+        <reason>Contains build scripts: build, build:electron, build:all. Main entry points to dist-electron/main/main.js.</reason>
+      </file>
+      <file>
+        <path>today-app/electron.vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-41</lines>
+        <reason>Electron build configuration with main/preload/renderer outputs to dist-electron/ subdirectories. Uses externalizeDepsPlugin.</reason>
+      </file>
+      <file>
+        <path>today-app/vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-56</lines>
+        <reason>Web build configuration - must remain unchanged. Outputs to dist/ by default. Includes PWA plugin.</reason>
+      </file>
+      <file>
+        <path>today-app/electron/main.ts</path>
+        <kind>electron-main</kind>
+        <symbol>createWindow</symbol>
+        <lines>7-42</lines>
+        <reason>Main process entry. In production loads from dist-electron/renderer/index.html (line 27).</reason>
+      </file>
+      <file>
+        <path>today-app/electron/preload.ts</path>
+        <kind>electron-preload</kind>
+        <symbol>contextBridge</symbol>
+        <lines>1-6</lines>
+        <reason>Preload script stub. Built to dist-electron/preload/preload.js.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="react" version="^19.2.0" />
+          <package name="react-dom" version="^19.2.0" />
+          <package name="dexie" version="^4.2.1" />
+          <package name="@supabase/supabase-js" version="^2.89.0" />
+        </runtime>
+        <dev>
+          <package name="electron" version="^39.2.7" />
+          <package name="electron-vite" version="^5.0.0" />
+          <package name="@electron-toolkit/preload" version="^3.0.2" />
+          <package name="@electron-toolkit/utils" version="^4.0.0" />
+          <package name="vite" version="^7.2.4" />
+          <package name="typescript" version="~5.9.3" />
+          <package name="vitest" version="^3.2.4" />
+        </dev>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      Per ADR-006: Use electron-vite for native Vite integration. Build outputs must be separate: dist/ for web, dist-electron/ for Electron.
+    </constraint>
+    <constraint type="compatibility">
+      Web build must remain unchanged - no regressions. Existing npm run build and npm run dev commands must work identically.
+    </constraint>
+    <constraint type="security">
+      Electron builds must maintain contextIsolation: true, nodeIntegration: false, sandbox: true per architecture security requirements.
+    </constraint>
+    <constraint type="bundle-size">
+      Web build should have 0 KB increase from Electron addition. Electron code must be completely excluded via separate entry points.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Build Script Interface</name>
+      <kind>npm-scripts</kind>
+      <signature>
+        "build": "tsc -b &amp;&amp; vite build" (web only, outputs dist/)
+        "build:electron": "electron-vite build" (Electron only, outputs dist-electron/)
+        "build:all": "npm run build &amp;&amp; npm run build:electron" (both)
+      </signature>
+      <path>today-app/package.json</path>
+    </interface>
+    <interface>
+      <name>Electron Vite Config</name>
+      <kind>build-config</kind>
+      <signature>
+        defineConfig({ main: { outDir: 'dist-electron/main' }, preload: { outDir: 'dist-electron/preload' }, renderer: { outDir: 'dist-electron/renderer' } })
+      </signature>
+      <path>today-app/electron.vite.config.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual verification is the primary test approach for build infrastructure stories. Run build commands and verify output directories, file presence, and absence of Electron code in web build. Use grep to verify no "electron" strings in dist/. Existing automated test suite (vitest) must continue to pass with no regressions.
+    </standards>
+    <locations>
+      <location>today-app/src/test/ (vitest unit tests)</location>
+      <location>today-app/dist/ (web build output - verify structure)</location>
+      <location>today-app/dist-electron/ (Electron build output - verify structure)</location>
+    </locations>
+    <ideas>
+      <idea ac="3.1">Run `npm run build`, verify dist/ exists with index.html and assets/</idea>
+      <idea ac="3.2">Run `npm run build:electron`, verify dist-electron/{main,preload,renderer}/ exist</idea>
+      <idea ac="3.3">Run `npm run build:all`, verify both dist/ and dist-electron/ exist</idea>
+      <idea ac="3.4">Run `grep -r "electron" dist/` and verify zero matches</idea>
+      <idea ac="3.5">Check dist-electron/renderer/ contains index.html and React bundle</idea>
+      <idea ac="3.6">Run all build commands, capture exit codes, verify all return 0</idea>
+      <idea ac="regression">Run `npm run test` to verify all 464 existing tests pass</idea>
+    </ideas>
+  </tests>
+</story-context>

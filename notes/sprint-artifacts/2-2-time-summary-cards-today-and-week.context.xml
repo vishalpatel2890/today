@@ -1,0 +1,270 @@
+<story-context id="2-2-time-summary-cards-today-and-week" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Time Summary Cards (Today and Week)</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-2-time-summary-cards-today-and-week.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>see my total time tracked today and this week at a glance</iWant>
+    <soThat>I can quickly understand my productivity level</soThat>
+    <tasks>
+      <task id="1" ac="1-4">Create useTimeInsights hook for data aggregation
+        <subtask>Create src/hooks/useTimeInsights.ts with TypeScript interfaces</subtask>
+        <subtask>Implement getTimeEntries() call from timeTrackingDb.ts</subtask>
+        <subtask>Calculate totalToday: sum durations where entry.date === today</subtask>
+        <subtask>Calculate totalWeek: sum durations where entry.date >= startOfWeek</subtask>
+        <subtask>Calculate avgPerDay: totalWeek / distinctDaysWithEntriesThisWeek</subtask>
+        <subtask>Handle edge case: avgPerDay = 0 when no entries this week</subtask>
+        <subtask>Use useMemo for calculations to prevent recalculation</subtask>
+        <subtask>Export TimeInsights interface</subtask>
+        <subtask>Write unit tests with fake-indexeddb</subtask>
+      </task>
+      <task id="2" ac="5-8">Implement byTask aggregation for breakdown
+        <subtask>Group today's entries by task_id</subtask>
+        <subtask>Aggregate duration per task (sum milliseconds)</subtask>
+        <subtask>Sort by duration descending (most time first)</subtask>
+        <subtask>Store result as byTask array</subtask>
+        <subtask>Handle null task_id using snapshotted task_name</subtask>
+        <subtask>Write unit tests for grouping and sorting</subtask>
+      </task>
+      <task id="3" ac="1-4">Create InsightCard component
+        <subtask>Create src/components/time-tracking/InsightCard.tsx</subtask>
+        <subtask>Props: label, value, sublabel (all strings)</subtask>
+        <subtask>Styling: 8px border-radius, shadow-sm, surface-muted bg</subtask>
+        <subtask>Typography: label 14px/500, value 32px/600, sublabel 13px/400</subtask>
+        <subtask>Use formatDurationSummary(ms) from timeFormatters.ts</subtask>
+        <subtask>Write component tests</subtask>
+      </task>
+      <task id="4" ac="1-4">Integrate summary cards into TimeInsightsModal
+        <subtask>Replace placeholder TODAY card with InsightCard</subtask>
+        <subtask>Replace placeholder AVG / DAY card with InsightCard</subtask>
+        <subtask>Wire up useTimeInsights hook</subtask>
+        <subtask>Handle loading, error, empty states</subtask>
+      </task>
+      <task id="5" ac="5-8">Create breakdown section UI
+        <subtask>Add BREAKDOWN section below summary cards</subtask>
+        <subtask>Section header: "BREAKDOWN (X tasks)"</subtask>
+        <subtask>Render task rows from insights.byTask</subtask>
+        <subtask>Each row: task name (truncate) + duration</subtask>
+        <subtask>Use Tailwind flex justify-between for layout</subtask>
+      </task>
+      <task id="6" ac="2,3">Handle edge cases and empty states
+        <subtask>TODAY = 0 when no entries today</subtask>
+        <subtask>AVG / DAY = 0 when no entries this week</subtask>
+        <subtask>Empty BREAKDOWN: "No tasks tracked today"</subtask>
+        <subtask>Deleted tasks show with task_name snapshot</subtask>
+      </task>
+      <task id="7" ac="1-8">Write unit tests for useTimeInsights hook
+        <subtask>Test totalToday calculation</subtask>
+        <subtask>Test totalWeek calculation</subtask>
+        <subtask>Test avgPerDay calculation (avoid NaN)</subtask>
+        <subtask>Test byTask grouping and sorting</subtask>
+        <subtask>Test week boundary edge cases</subtask>
+        <subtask>Test deleted tasks (null task_id)</subtask>
+      </task>
+      <task id="8" ac="1-4">Write component tests for InsightCard
+        <subtask>Test renders label, value, sublabel</subtask>
+        <subtask>Test accessibility</subtask>
+        <subtask>Test long values (no overflow)</subtask>
+      </task>
+      <task id="9" ac="1-8">Manual browser testing
+        <subtask>Run through Frontend Test Gate checklist</subtask>
+        <subtask>Test with various time entry combinations</subtask>
+        <subtask>Verify calculations match expected values</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">When I open the Insights modal, I see two summary cards at the top: "TODAY" card showing total time tracked today (format: "Xh Ym") and "AVG / DAY" card showing average daily time this week (format: "Xh Ym")</criterion>
+    <criterion id="2">When I have tracked 3h 42m today, the TODAY card displays "3h 42m" with "tracked" label below</criterion>
+    <criterion id="3">When I have no time tracked today, the TODAY card displays "0h 0m" with "tracked" label</criterion>
+    <criterion id="4">When I have tracked time on 3 days this week totaling 12h 36m, the AVG / DAY card displays "4h 12m" (12h 36m / 3 days) with "this week" label</criterion>
+    <criterion id="5">Below the cards, I see a "BREAKDOWN" section showing time per task for today</criterion>
+    <criterion id="6">Each task row in breakdown shows: task name (left) + duration (right, format "Xh Ym")</criterion>
+    <criterion id="7">Tasks in breakdown are sorted by duration descending (most time first)</criterion>
+    <criterion id="8">The BREAKDOWN section header shows task count: "BREAKDOWN (X tasks)"</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Time Insights Dashboard</title>
+        <section>Detailed Design - Services and Modules</section>
+        <snippet>useTimeInsights hook aggregates time entries into summary metrics. Inputs: TimeEntry[] from IndexedDB. Outputs: TimeInsights object with totals, breakdowns, entries.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Time Insights Dashboard</title>
+        <section>Data Models and Contracts</section>
+        <snippet>TimeInsights interface: totalToday (ms), totalWeek (ms), avgPerDay (ms), byTask array, byDate array, recentEntries (limited to 20).</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Time Insights Dashboard</title>
+        <section>Acceptance Criteria AC3 - Summary Cards Display</section>
+        <snippet>TODAY card shows total time tracked today in "Xh Ym" format. AVG/DAY card shows average: totalWeek / number of days with tracked time this week.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Time Insights Dashboard</title>
+        <section>Acceptance Criteria AC4 - Task Breakdown Section</section>
+        <snippet>BREAKDOWN section shows task count in parentheses. Tasks sorted by duration descending. Deleted tasks still display snapshotted task_name.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Today - Time Tracking Feature Architecture</title>
+        <section>ADR-TT-004: Client-Side Insights Aggregation</section>
+        <snippet>Fetch entries once, aggregate in JavaScript with useMemo. Expected data volume small (&lt; 1000 entries/year). Client-side enables offline access.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Today - Time Tracking UX Design Specification</title>
+        <section>6.1 Component Strategy - InsightCard</section>
+        <snippet>InsightCard: Display summary metric (e.g., "Today: 3h 42m"). Anatomy: Label, Value, Sublabel. States: Default (shows data), Empty (shows "0h 0m"), Loading (skeleton).</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Today - Time Tracking UX Design Specification</title>
+        <section>2.3 Insights Modal Structure</section>
+        <snippet>Summary cards at top: TODAY and AVG/DAY. BREAKDOWN section below with task count. RECENT ENTRIES section at bottom.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Today - Time Tracking Feature Epic Breakdown</title>
+        <section>Story 2.2: Time Summary Cards</section>
+        <snippet>Covers FR14 (view total time today), FR15 (time breakdown by task), FR16 (total time for week), FR17 (daily totals for week).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeInsightsModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeInsightsModal</symbol>
+        <lines>1-96</lines>
+        <reason>MODIFY: Replace placeholder cards and breakdown with real data from useTimeInsights hook</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeTrackingDb.ts</path>
+        <kind>service</kind>
+        <symbol>getTimeEntries</symbol>
+        <lines>126-147</lines>
+        <reason>REUSE: Query time entries with optional date range filter for aggregation</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDurationSummary</symbol>
+        <lines>39-62</lines>
+        <reason>REUSE: Format milliseconds to "Xh Ym" display format for cards and breakdown</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>TimeEntry</symbol>
+        <lines>17-31</lines>
+        <reason>REUSE: TimeEntry interface for aggregation - includes duration, date, task_id, task_name</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeTracking</symbol>
+        <reason>REFERENCE: Pattern for state management hook with IndexedDB loading</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeInsightsModal.test.tsx</path>
+        <kind>test</kind>
+        <symbol>TimeInsightsModal tests</symbol>
+        <reason>UPDATE: May need to update tests after replacing placeholders with real data</reason>
+      </file>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="react" version="^19.2.0">Component framework, hooks, useMemo</package>
+        <package name="date-fns" version="^4.1.0">startOfWeek, format, isToday date calculations</package>
+        <package name="dexie" version="^4.2.1">IndexedDB queries via getTimeEntries</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.15">Modal component base</package>
+        <package name="lucide-react" version="^0.562.0">Icons if needed</package>
+      </npm>
+      <devDependencies>
+        <package name="vitest" version="^3.2.4">Test runner</package>
+        <package name="@testing-library/react" version="^16.3.1">Component testing</package>
+        <package name="fake-indexeddb" version="^6.2.5">IndexedDB mocking for tests</package>
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="ADR-TT-004">Use useMemo for aggregation calculations to prevent recalculation on every render</constraint>
+    <constraint source="NFR3">Insights calculations must complete in &lt; 500ms for up to 1 year of data</constraint>
+    <constraint source="Architecture">Duration stored as milliseconds, display as "Xh Ym" using formatDurationSummary</constraint>
+    <constraint source="Architecture">Week starts on Sunday - use date-fns startOfWeek with weekStartsOn: 0</constraint>
+    <constraint source="Architecture">avgPerDay = totalWeek / distinctDaysWithEntries (not calendar days)</constraint>
+    <constraint source="Tech Spec">Limit recent entries to 20 for performance</constraint>
+    <constraint source="UX Spec">InsightCard styling: 8px border-radius, shadow-sm, surface-muted background</constraint>
+    <constraint source="Story 2.1">TimeInsightsModal uses Radix Dialog pattern - maintain consistency</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useTimeInsights</name>
+      <kind>React hook</kind>
+      <signature>function useTimeInsights(): { insights: TimeInsights | null; isLoading: boolean; error: Error | null; refetch: () => void }</signature>
+      <path>today-app/src/hooks/useTimeInsights.ts</path>
+    </interface>
+    <interface>
+      <name>TimeInsights</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface TimeInsights { totalToday: number; totalWeek: number; avgPerDay: number; byTask: Array&lt;{ taskId: string | null; taskName: string; duration: number }&gt;; byDate: Array&lt;{ date: string; duration: number }&gt;; recentEntries: TimeEntry[] }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+    <interface>
+      <name>InsightCardProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface InsightCardProps { label: string; value: string; sublabel: string }</signature>
+      <path>today-app/src/components/time-tracking/InsightCard.tsx</path>
+    </interface>
+    <interface>
+      <name>getTimeEntries</name>
+      <kind>async function</kind>
+      <signature>async function getTimeEntries(dateRange?: { start: string; end: string }): Promise&lt;TimeEntry[]&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+    </interface>
+    <interface>
+      <name>formatDurationSummary</name>
+      <kind>function</kind>
+      <signature>function formatDurationSummary(ms: number): string</signature>
+      <path>today-app/src/lib/timeFormatters.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use Vitest as test runner with @testing-library/react for component tests. Follow existing patterns: describe/it/expect structure. Use fake-indexeddb for IndexedDB mocking in hook tests. Component tests should verify rendering, accessibility (ARIA labels), and interaction behavior. Unit tests for pure functions should cover edge cases (zero, negative, boundary values).</standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/**/*.test.tsx</location>
+      <location>today-app/src/hooks/useTimeInsights.test.ts (CREATE)</location>
+      <location>today-app/src/components/time-tracking/InsightCard.test.tsx (CREATE)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test useTimeInsights returns correct totalToday when entries exist for today</idea>
+      <idea ac="2">Test InsightCard displays "3h 42m" when passed value="3h 42m"</idea>
+      <idea ac="3">Test useTimeInsights returns totalToday=0 when no entries for today</idea>
+      <idea ac="4">Test avgPerDay calculation: 12h36m / 3 days = 4h12m (756000000ms / 3 = 252000000ms)</idea>
+      <idea ac="5">Test byTask array contains only today's entries grouped by task_id</idea>
+      <idea ac="6">Test breakdown row renders task name and formatted duration</idea>
+      <idea ac="7">Test byTask array is sorted by duration descending</idea>
+      <idea ac="8">Test breakdown section header shows correct task count</idea>
+      <idea edge="avgPerDay-zero">Test avgPerDay returns 0 (not NaN) when no entries this week</idea>
+      <idea edge="deleted-task">Test byTask includes entries with null task_id using task_name snapshot</idea>
+      <idea edge="week-boundary">Test week calculation correctly excludes entries before startOfWeek</idea>
+    </ideas>
+  </tests>
+</story-context>

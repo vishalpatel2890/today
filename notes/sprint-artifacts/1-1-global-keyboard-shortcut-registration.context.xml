@@ -1,0 +1,226 @@
+<story-context id="bmm/story-context" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Global Keyboard Shortcut Registration</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-1-global-keyboard-shortcut-registration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>to press Cmd+Shift+T from anywhere in the app</iWant>
+    <soThat>I can quickly access time tracking without navigating menus</soThat>
+    <tasks>
+      <task id="1" ac="1-6">Create TypeScript types for time tracking
+        <subtask>Create src/types/timeTracking.ts with ActiveSession and related interfaces</subtask>
+        <subtask>Export types for use across time tracking components</subtask>
+      </task>
+      <task id="2" ac="1,2,3,4,5,6">Implement useTimeTrackingHotkeys hook
+        <subtask>Create src/hooks/useTimeTrackingHotkeys.ts</subtask>
+        <subtask>Add document.addEventListener('keydown') in useEffect</subtask>
+        <subtask>Detect Cmd/Ctrl + Shift + T combination</subtask>
+        <subtask>Call e.preventDefault() to block browser default behavior</subtask>
+        <subtask>Check if activeElement is input/textarea and skip if so</subtask>
+        <subtask>Implement double-tap detection with 300ms threshold using useRef for timing</subtask>
+        <subtask>Use setTimeout for single-tap delayed callback</subtask>
+        <subtask>Accept onOpenTracking and onOpenInsights callbacks as parameters</subtask>
+        <subtask>Clean up event listener in useEffect cleanup</subtask>
+      </task>
+      <task id="3" ac="1,3">Create placeholder TimeTrackingModal component
+        <subtask>Create src/components/time-tracking/TimeTrackingModal.tsx</subtask>
+        <subtask>Use Radix Dialog for modal shell (consistent with existing modals)</subtask>
+        <subtask>Accept isOpen and onClose props</subtask>
+        <subtask>Add placeholder content for now (full UI in Story 1.2)</subtask>
+      </task>
+      <task id="4" ac="1,3">Integrate hotkey hook in App.tsx
+        <subtask>Add modal open state: const [isTimeTrackingOpen, setIsTimeTrackingOpen] = useState(false)</subtask>
+        <subtask>Call useTimeTrackingHotkeys with toggle callbacks</subtask>
+        <subtask>Render TimeTrackingModal component conditionally</subtask>
+      </task>
+      <task id="5" ac="1,2,4,5,6">Write unit tests for hotkey detection
+        <subtask>Test Cmd+Shift+T detection on Mac</subtask>
+        <subtask>Test Ctrl+Shift+T detection on Windows</subtask>
+        <subtask>Test preventDefault is called</subtask>
+        <subtask>Test input field exclusion logic</subtask>
+        <subtask>Test double-tap detection timing</subtask>
+        <subtask>Test single-tap delayed callback</subtask>
+      </task>
+      <task id="6" ac="1,2,3,4">Manual browser testing across browsers
+        <subtask>Test in Chrome</subtask>
+        <subtask>Test in Safari</subtask>
+        <subtask>Test in Firefox</subtask>
+        <subtask>Verify browser default (reopen tab) is blocked</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Pressing Cmd+Shift+T (Mac) or Ctrl+Shift+T (Windows) opens the Time Tracking modal from any view in the app</criterion>
+    <criterion id="2">The shortcut is prevented from triggering browser default behavior (e.g., reopen closed tab)</criterion>
+    <criterion id="3">If the modal is already open, pressing the shortcut closes it (toggle behavior)</criterion>
+    <criterion id="4">The shortcut works regardless of focus state, except when in text input fields (input/textarea)</criterion>
+    <criterion id="5">Double-tap detection: If second T keypress occurs within 300ms of Cmd+Shift+T, the insights callback is triggered instead</criterion>
+    <criterion id="6">Single tap: If no second T within 300ms, the tracking modal opens</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Feature Architecture</title>
+        <section>ADR-TT-003: Native Keyboard Shortcut Hook</section>
+        <snippet>Custom hook using native document.addEventListener('keydown') with timing logic. No additional dependencies, full control over double-tap threshold (300ms).</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Feature Architecture</title>
+        <section>Implementation Patterns - Hook Patterns</section>
+        <snippet>useTimeTrackingHotkeys with lastTriggerRef for timing, detecting metaKey/ctrlKey + shiftKey + 't'. Uses setTimeout for delayed single-tap callback.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Time Tracking Foundation</title>
+        <section>AC1: Global Keyboard Shortcut and AC7: Double-Tap Detection</section>
+        <snippet>AC1.1-AC1.4 cover hotkey detection, browser default blocking, toggle behavior, and focus state handling. AC7.1-AC7.2 cover double-tap infrastructure for insights modal.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design Specification</title>
+        <section>7.2 Hotkey Implementation</section>
+        <snippet>Primary Hotkey: Cmd+Shift+T opens tracking modal. Double-tap (within 300ms) opens insights modal. Fallback to Cmd+Shift+I if detection unreliable.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Feature Epic Breakdown</title>
+        <section>Story 1.1: Global Keyboard Shortcut Registration</section>
+        <snippet>FR1 requirement: Users can open the tracking modal via Cmd+Shift+T keyboard shortcut. First story in Epic 1 with no prerequisites.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>root-component</kind>
+        <symbol>AppContent, App</symbol>
+        <lines>1-130</lines>
+        <reason>Integration point - add useTimeTrackingHotkeys hook and TimeTrackingModal render here. Follow existing modal pattern (LinkEmailModal).</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/DeferModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>UpdateModal</symbol>
+        <lines>1-257</lines>
+        <reason>Reference implementation for Radix Dialog modal patterns - use same styling, animation, and structure for TimeTrackingModal.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/LinkEmailModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>LinkEmailModal</symbol>
+        <reason>Another modal reference - shows isOpen/onClose props pattern and Dialog.Root usage.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useAuth.ts</path>
+        <kind>hook</kind>
+        <symbol>useAuth</symbol>
+        <reason>Reference for custom hook patterns - uses useState, useEffect, useCallback. Follow same structure for useTimeTrackingHotkeys.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTasks.ts</path>
+        <kind>hook</kind>
+        <symbol>useTasks</symbol>
+        <reason>Provides today's tasks via filtering. Will be consumed by TaskSelector in Story 1.2 to populate dropdown.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/index.ts</path>
+        <kind>types</kind>
+        <symbol>Task, TaskNotes, NoteItem</symbol>
+        <lines>1-47</lines>
+        <reason>Existing type patterns. Create similar timeTracking.ts with ActiveSession interface following same conventions.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/db.ts</path>
+        <kind>database</kind>
+        <symbol>TodayDatabase, db</symbol>
+        <lines>1-97</lines>
+        <reason>Dexie IndexedDB setup. Will extend with activeSession store in Story 1.3 for session persistence.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0">Core framework - useState, useEffect, useRef, useCallback for hook implementation</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.15">Modal component primitives - Dialog.Root, Dialog.Portal, Dialog.Content, Dialog.Overlay</package>
+        <package name="lucide-react" version="^0.562.0">Icon library - X icon for close button</package>
+        <package name="dexie" version="^4.2.1">IndexedDB wrapper - for future activeSession persistence (Story 1.3)</package>
+        <package name="date-fns" version="^4.1.0">Date utilities - format() for timestamps</package>
+      </node>
+      <devDependencies>
+        <package name="vitest" version="^3.2.4">Test runner for unit tests</package>
+        <package name="@testing-library/react" version="^16.3.1">React testing utilities - renderHook for hook tests</package>
+        <package name="fake-indexeddb" version="^6.2.5">IndexedDB mock for tests</package>
+        <package name="jsdom" version="^27.0.1">DOM environment for tests</package>
+        <package name="typescript" version="~5.9.3">Type checking</package>
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Use native document.addEventListener('keydown') - no external keyboard libraries (ADR-TT-003)</constraint>
+    <constraint type="pattern">Check e.metaKey (Mac) OR e.ctrlKey (Windows) for cross-platform support</constraint>
+    <constraint type="pattern">Call e.preventDefault() immediately to block browser's reopen-tab behavior</constraint>
+    <constraint type="pattern">Use useRef for lastTriggerRef.current timestamp tracking (avoid state for timing)</constraint>
+    <constraint type="pattern">Double-tap threshold: 300ms between keypresses</constraint>
+    <constraint type="pattern">Skip hotkey when document.activeElement is INPUT, TEXTAREA, or has contenteditable</constraint>
+    <constraint type="pattern">Modal must use Radix Dialog with existing animation classes (data-[state=open]:animate-fade-in, animate-slide-up)</constraint>
+    <constraint type="pattern">Follow existing hook patterns: arrow functions, named exports, TypeScript</constraint>
+    <constraint type="naming">Component: TimeTrackingModal.tsx (PascalCase)</constraint>
+    <constraint type="naming">Hook: useTimeTrackingHotkeys.ts (camelCase with use prefix)</constraint>
+    <constraint type="naming">Types: timeTracking.ts with ActiveSession interface (PascalCase)</constraint>
+    <constraint type="location">New hooks in today-app/src/hooks/</constraint>
+    <constraint type="location">New components in today-app/src/components/time-tracking/</constraint>
+    <constraint type="location">New types in today-app/src/types/</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useTimeTrackingHotkeys</name>
+      <kind>React Hook</kind>
+      <signature>function useTimeTrackingHotkeys(onOpenTracking: () => void, onOpenInsights: () => void): void</signature>
+      <path>today-app/src/hooks/useTimeTrackingHotkeys.ts</path>
+    </interface>
+    <interface>
+      <name>TimeTrackingModal</name>
+      <kind>React Component</kind>
+      <signature>interface TimeTrackingModalProps { isOpen: boolean; onClose: () => void }</signature>
+      <path>today-app/src/components/time-tracking/TimeTrackingModal.tsx</path>
+    </interface>
+    <interface>
+      <name>ActiveSession</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface ActiveSession { taskId: string; taskName: string; startTime: string }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Unit tests with Vitest and @testing-library/react. Use renderHook for testing custom hooks. Mock document.addEventListener and KeyboardEvent for hotkey tests. Use Vitest's fake timers (vi.useFakeTimers, vi.advanceTimersByTime) for testing timing logic like double-tap detection.</standards>
+    <locations>
+      <location>today-app/src/hooks/useTimeTrackingHotkeys.test.ts</location>
+      <location>today-app/src/components/time-tracking/TimeTrackingModal.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test Cmd+Shift+T (metaKey) triggers onOpenTracking callback</idea>
+      <idea ac="1">Test Ctrl+Shift+T (ctrlKey) triggers onOpenTracking callback on Windows</idea>
+      <idea ac="2">Test e.preventDefault() is called when hotkey detected</idea>
+      <idea ac="3">Test modal toggle: open state false to true, then true to false</idea>
+      <idea ac="4">Test hotkey ignored when activeElement is input/textarea</idea>
+      <idea ac="4">Test hotkey ignored when activeElement has contenteditable</idea>
+      <idea ac="5">Test double-tap within 300ms triggers onOpenInsights, not onOpenTracking</idea>
+      <idea ac="6">Test single tap with 500ms delay triggers onOpenTracking</idea>
+      <idea ac="6">Test single tap timing: callback fires after DOUBLE_TAP_THRESHOLD</idea>
+    </ideas>
+  </tests>
+</story-context>

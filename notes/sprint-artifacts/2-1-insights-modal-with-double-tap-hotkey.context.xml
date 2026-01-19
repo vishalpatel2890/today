@@ -1,0 +1,196 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Insights Modal with Double-Tap Hotkey</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-1-insights-modal-with-double-tap-hotkey.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>double-tap Cmd+Shift+T T to open a dedicated insights view</iWant>
+    <soThat>I can quickly see my time tracking data without interfering with the tracking modal</soThat>
+    <tasks>
+      <task id="1" ac="1,7">Extend useTimeTrackingHotkeys hook with double-tap detection - ALREADY IMPLEMENTED, verify only</task>
+      <task id="2" ac="4,5,6">Create TimeInsightsModal component shell (420px, scrollable, "Time Insights" title)</task>
+      <task id="3" ac="2,3">Implement modal close behaviors (Escape, X, click outside, toggle)</task>
+      <task id="4" ac="1-3">Integrate TimeInsightsModal into App.tsx (replace console.log placeholder)</task>
+      <task id="5" ac="4,6">Add placeholder content for insights modal sections</task>
+      <task id="6" ac="1,7">Write unit tests for double-tap detection - ALREADY IMPLEMENTED, verify coverage</task>
+      <task id="7" ac="2,4,5,6">Write component tests for TimeInsightsModal</task>
+      <task id="8" ac="1-7">Manual browser testing via Frontend Test Gate</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Double-tap Cmd+Shift+T T (within 300ms) opens Insights modal instead of Tracking modal</criterion>
+    <criterion id="2">Escape, X button, or click outside closes modal and returns to main app</criterion>
+    <criterion id="3">Double-tap when modal open closes it (toggle behavior)</criterion>
+    <criterion id="4">Insights modal width is 420px (larger than 320px Tracking modal)</criterion>
+    <criterion id="5">Modal has title "Time Insights" with close button</criterion>
+    <criterion id="6">Modal is scrollable if content exceeds 80vh</criterion>
+    <criterion id="7">Single-tap Cmd+Shift+T continues to open Tracking modal after 300ms delay</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Architecture</title>
+        <section>ADR-TT-003 Native Keyboard Shortcut Hook</section>
+        <snippet>Double-tap detection uses lastTriggerRef with 300ms DOUBLE_TAP_THRESHOLD. Native document.addEventListener for minimal dependencies.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design</title>
+        <section>4.2 Modal Sizing</section>
+        <snippet>Insights Modal: 420px width (desktop), max-height 80vh with scrollable content. Position centered (desktop).</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design</title>
+        <section>5.3 Flow: View Insights</section>
+        <snippet>User presses Cmd+Shift+T T (double-tap). System shows insights modal with summary, breakdown, entries.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design</title>
+        <section>2.3 Interaction Model - Insights Modal Structure</section>
+        <snippet>Structure: Filter bar, TODAY/AVG cards, BREAKDOWN section, RECENT ENTRIES list. Title "Time Insights" with X close.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Epics</title>
+        <section>Story 2.1</section>
+        <snippet>FR13: Open insights via Cmd+Shift+T T. FR19: Close insights modal. Double-tap within 300ms threshold.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/1-4-view-active-tracking-and-stop-session.md</path>
+        <title>Previous Story 1.4</title>
+        <section>Dev Agent Record</section>
+        <snippet>131 tests passing. TimeEntry interface, timeFormatters.ts, timeTrackingDb v2 with getTimeEntries() all implemented.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/hooks/useTimeTrackingHotkeys.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeTrackingHotkeys</symbol>
+        <lines>1-115</lines>
+        <reason>ALREADY HAS double-tap detection implemented with 300ms DOUBLE_TAP_THRESHOLD. onOpenInsights callback ready. Just needs integration.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeTrackingHotkeys.test.ts</path>
+        <kind>test</kind>
+        <symbol>describe('Double-tap Detection')</symbol>
+        <lines>206-298</lines>
+        <reason>Complete test coverage for double-tap detection already exists. Verify AC1, AC7 coverage.</reason>
+      </file>
+      <file>
+        <path>today-app/src/App.tsx</path>
+        <kind>component</kind>
+        <symbol>handleOpenInsights</symbol>
+        <lines>36-40</lines>
+        <reason>PLACEHOLDER exists - currently just logs to console. REPLACE with actual modal open state.</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeTrackingModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeTrackingModal</symbol>
+        <lines>1-314</lines>
+        <reason>PATTERN to copy for TimeInsightsModal. Uses Radix Dialog, 320px width, close behaviors, Playfair title.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeTrackingDb.ts</path>
+        <kind>service</kind>
+        <symbol>getTimeEntries</symbol>
+        <lines>126-147</lines>
+        <reason>Ready for Story 2.2/2.3 - retrieves time entries with optional date range filter.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDurationSummary</symbol>
+        <reason>Ready for Story 2.2 - formats duration as "Xh Ym" for display in insights.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>TimeEntry, ActiveSession</symbol>
+        <lines>1-31</lines>
+        <reason>Type definitions for time tracking data structures.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="@radix-ui/react-dialog" version="^1.1.15">Modal primitives - use for TimeInsightsModal</package>
+        <package name="lucide-react" version="^0.562.0">Icons - X for close button</package>
+        <package name="date-fns" version="^4.1.0">Date utilities for insights calculations (Story 2.2)</package>
+        <package name="dexie" version="^4.2.1">IndexedDB wrapper - time entries storage</package>
+        <package name="react" version="^19.2.0">React framework</package>
+      </node>
+      <devNode>
+        <package name="vitest" version="^3.2.4">Test runner</package>
+        <package name="@testing-library/react" version="^16.3.1">Component testing</package>
+        <package name="fake-indexeddb" version="^6.2.5">IndexedDB mocking for tests</package>
+      </devNode>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture">Use Radix Dialog for modal - same pattern as TimeTrackingModal</constraint>
+    <constraint source="architecture">No additional dependencies - keep bundle small (ADR-TT-003)</constraint>
+    <constraint source="ux">Modal width: 420px desktop, full-width minus padding mobile</constraint>
+    <constraint source="ux">Max-height: 80vh with overflow-y: auto for scrolling</constraint>
+    <constraint source="ux">Title: "Time Insights" with Playfair Display 18px font-semibold</constraint>
+    <constraint source="ux">Position: Centered (desktop), bottom sheet (mobile)</constraint>
+    <constraint source="pattern">Named exports (not default) for components</constraint>
+    <constraint source="pattern">Arrow function syntax for components</constraint>
+    <constraint source="pattern">Tailwind for all styling</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useTimeTrackingHotkeys</name>
+      <kind>hook</kind>
+      <signature>useTimeTrackingHotkeys(onOpenTracking: () => void, onOpenInsights: () => void): void</signature>
+      <path>today-app/src/hooks/useTimeTrackingHotkeys.ts</path>
+    </interface>
+    <interface>
+      <name>TimeInsightsModal (to create)</name>
+      <kind>component</kind>
+      <signature>TimeInsightsModal({ isOpen: boolean, onClose: () => void }): JSX.Element</signature>
+      <path>today-app/src/components/time-tracking/TimeInsightsModal.tsx</path>
+    </interface>
+    <interface>
+      <name>getTimeEntries</name>
+      <kind>function</kind>
+      <signature>getTimeEntries(dateRange?: { start: string; end: string }): Promise&lt;TimeEntry[]&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use Vitest with @testing-library/react for component tests. Use vi.useFakeTimers() for timing tests. Mock IndexedDB with fake-indexeddb. Follow existing patterns in useTimeTrackingHotkeys.test.ts.</standards>
+    <locations>
+      <location>today-app/src/hooks/*.test.ts</location>
+      <location>today-app/src/components/**/*.test.tsx</location>
+      <location>today-app/src/lib/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="1,7">Verify existing double-tap tests cover all ACs (already implemented)</idea>
+      <idea ac="4">Test TimeInsightsModal renders with correct width (420px)</idea>
+      <idea ac="5">Test modal renders with title "Time Insights" and X close button</idea>
+      <idea ac="2">Test Escape key closes modal via Radix default behavior</idea>
+      <idea ac="2">Test X button click calls onClose</idea>
+      <idea ac="2">Test click outside (overlay) calls onClose</idea>
+      <idea ac="3">Test toggle behavior - open modal, trigger again, modal closes</idea>
+      <idea ac="6">Test modal content is scrollable when content exceeds container</idea>
+    </ideas>
+  </tests>
+</story-context>

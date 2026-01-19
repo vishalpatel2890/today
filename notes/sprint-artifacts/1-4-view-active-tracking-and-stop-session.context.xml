@@ -1,0 +1,289 @@
+<story-context id="1-4-view-active-tracking-and-stop-session" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>View Active Tracking and Stop Session</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-4-view-active-tracking-and-stop-session.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>power user</asA>
+    <iWant>to reopen the tracking modal while tracking to see elapsed time and stop</iWant>
+    <soThat>I can end my tracking session and save the time entry</soThat>
+    <tasks>
+      <task id="1" ac="6,7,10,11">Implement stopTracking() function in useTimeTracking hook
+        <subtask>Calculate end_time = new Date().toISOString()</subtask>
+        <subtask>Calculate duration = new Date(end_time).getTime() - new Date(startTime).getTime()</subtask>
+        <subtask>Create TimeEntry object with all fields including date: format(new Date(), 'yyyy-MM-dd')</subtask>
+        <subtask>Generate unique ID with crypto.randomUUID()</subtask>
+        <subtask>Call saveTimeEntry(entry) to IndexedDB</subtask>
+        <subtask>Call clearActiveSession() to remove active session</subtask>
+        <subtask>Return the created TimeEntry for UI feedback</subtask>
+        <subtask>Handle case where task_id may not exist (set to null)</subtask>
+      </task>
+      <task id="2" ac="7">Extend timeTrackingDb with time entries store
+        <subtask>Add timeEntries table to Dexie schema: 'id, date, task_id, [user_id+date]'</subtask>
+        <subtask>Implement saveTimeEntry(entry: TimeEntry): Promise&lt;void&gt;</subtask>
+        <subtask>Implement getTimeEntries(dateRange?): Promise&lt;TimeEntry[]&gt; (for Epic 2)</subtask>
+        <subtask>Write unit tests for new IndexedDB operations</subtask>
+      </task>
+      <task id="3" ac="7">Create TimeEntry TypeScript interface - ALREADY EXISTS at src/types/timeTracking.ts</task>
+      <task id="4" ac="3,8">Create duration formatting utilities
+        <subtask>Create formatDuration(ms: number): string -> "HH:MM:SS" or "MM:SS" - ALREADY EXISTS in TimeTrackingModal.tsx</subtask>
+        <subtask>Create formatDurationSummary(ms: number): string -> "Xh Ym" or "Xm"</subtask>
+        <subtask>Export from src/lib/timeFormatters.ts or add to timeTrackingDb.ts</subtask>
+        <subtask>Write unit tests for edge cases (0, &lt;1min, &lt;1hr, &gt;1hr, &gt;24hr)</subtask>
+      </task>
+      <task id="5" ac="1,2,3,4,5">Update TimeTrackingModal active state UI
+        <subtask>Verify active state renders when isTracking === true (already exists from 1.3)</subtask>
+        <subtask>Ensure "Currently tracking:" label and task name display</subtask>
+        <subtask>Verify elapsed time display uses derived calculation</subtask>
+        <subtask>Style Stop button with muted stone color: bg-stone-200 hover:bg-stone-300 text-stone-700</subtask>
+        <subtask>Ensure elapsed time format switches at 1 hour threshold</subtask>
+      </task>
+      <task id="6" ac="6,8,9">Implement Stop button functionality and success feedback
+        <subtask>Connect Stop button onClick to stopTracking()</subtask>
+        <subtask>Add Enter key handler to trigger Stop when in active state</subtask>
+        <subtask>Create success feedback state: showFeedback: boolean, lastEntry: TimeEntry | null</subtask>
+        <subtask>After stopTracking completes, show feedback for 1.5 seconds</subtask>
+        <subtask>After 1.5s, clear feedback and reset modal to idle state</subtask>
+        <subtask>Style feedback with muted colors: slate gray check icon, light gray background</subtask>
+      </task>
+      <task id="7" ac="6,7,10,11">Write tests for stopTracking and time entry creation
+        <subtask>Test stopTracking() creates TimeEntry with correct fields</subtask>
+        <subtask>Test duration calculation accuracy</subtask>
+        <subtask>Test entry saved to IndexedDB (mock with fake-indexeddb)</subtask>
+        <subtask>Test active session cleared after stop</subtask>
+        <subtask>Test entry created with task_id = null when task deleted</subtask>
+        <subtask>Test multiple entries created for same task</subtask>
+      </task>
+      <task id="8" ac="1-5,8,9">Write component tests for active state and feedback
+        <subtask>Test modal renders active state when isTracking === true</subtask>
+        <subtask>Test Stop button click triggers stopTracking</subtask>
+        <subtask>Test success feedback displays after stop</subtask>
+        <subtask>Test modal resets to idle after feedback timeout</subtask>
+      </task>
+      <task id="9" ac="1-11">Manual browser testing
+        <subtask>Run through Frontend Test Gate checklist</subtask>
+        <subtask>Test in Chrome and Safari</subtask>
+        <subtask>Test 1+ hour session (verify HH:MM:SS format)</subtask>
+        <subtask>Test stopping after task deletion</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">When tracking is active, opening the modal shows the "Active State" view (not idle state)</criterion>
+    <criterion id="2">Active state displays: "Currently tracking:" label with the task name</criterion>
+    <criterion id="3">Active state displays a live elapsed time that updates every second in format HH:MM:SS (or MM:SS if under 1 hour)</criterion>
+    <criterion id="4">Elapsed time is calculated from persisted startTime (no drift over long sessions)</criterion>
+    <criterion id="5">Active state displays a "Stop" button with muted stone color styling per UX spec</criterion>
+    <criterion id="6">Clicking "Stop" or pressing Enter stops the timer and saves a time entry to IndexedDB</criterion>
+    <criterion id="7">Time entry includes: id, task_id, task_name, start_time, end_time, duration, date</criterion>
+    <criterion id="8">Success feedback "Saved: Xh Ym on [task name]" displays for 1.5 seconds with muted styling</criterion>
+    <criterion id="9">Modal resets to idle state after success feedback dismisses</criterion>
+    <criterion id="10">If tracked task was deleted, time entry is saved with task_name snapshot and task_id = null</criterion>
+    <criterion id="11">Multiple tracking sessions on the same task create separate time entries (FR12)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Time Tracking Foundation</title>
+        <section>AC4, AC5 - View active tracking and stop tracking criteria</section>
+        <snippet>Time entry must include all fields per schema. Success feedback 1.5s with muted styling. Modal resets to idle automatically after feedback.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-time-tracking.md</path>
+        <title>Time Tracking Feature Epic Breakdown</title>
+        <section>Story 1.4: View Active Tracking and Stop Session</section>
+        <snippet>Users can reopen the tracking modal to see elapsed time and stop to save time entry with full metadata.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-time-tracking.md</path>
+        <title>Time Tracking Feature Architecture</title>
+        <section>ADR-TT-005: Derived Timer Display</section>
+        <snippet>Calculate elapsed time as Date.now() - startTime on each render. No accumulated drift. setInterval only runs when modal open.</snippet>
+      </doc>
+      <doc>
+        <path>notes/ux-design-time-tracking.md</path>
+        <title>Time Tracking UX Design Specification</title>
+        <section>5.2 Flow: Stop Tracking</section>
+        <snippet>User clicks Stop, system stops timer, saves time entry. Brief success message 1.5s, then auto-reset to idle state.</snippet>
+      </doc>
+      <doc>
+        <path>notes/PRD-time-tracking.md</path>
+        <title>Time Tracking Feature PRD</title>
+        <section>FR5-FR8, FR11, FR12</section>
+        <snippet>Users can view tracking status, stop tracking, save entries. Handle deleted tasks with name snapshot. Multiple entries per task allowed.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeTracking, stopTracking</symbol>
+        <lines>99-115</lines>
+        <reason>Contains stopTracking placeholder - needs full implementation with TimeEntry creation</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeTrackingDb.ts</path>
+        <kind>database</kind>
+        <symbol>TimeTrackingDatabase, saveActiveSession, loadActiveSession, clearActiveSession</symbol>
+        <lines>all</lines>
+        <reason>Needs extension with timeEntries store and saveTimeEntry function</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/timeTracking.ts</path>
+        <kind>types</kind>
+        <symbol>ActiveSession, TimeEntry</symbol>
+        <lines>all</lines>
+        <reason>TimeEntry interface already defined - use as-is for creating entries</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeTrackingModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeTrackingModal, ElapsedTimeDisplay, formatDuration</symbol>
+        <lines>all</lines>
+        <reason>Modal already shows active state with elapsed time. Needs Stop button functionality and success feedback.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.test.ts</path>
+        <kind>test</kind>
+        <symbol>useTimeTracking tests</symbol>
+        <lines>all</lines>
+        <reason>Has 25 tests. Extend with stopTracking and TimeEntry creation tests.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeTrackingDb.test.ts</path>
+        <kind>test</kind>
+        <symbol>timeTrackingDb tests</symbol>
+        <lines>all</lines>
+        <reason>Has session operation tests. Extend with timeEntries store tests.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>Component framework, useState, useEffect, useCallback</usage>
+      </node>
+      <node>
+        <package>@radix-ui/react-dialog</package>
+        <version>^1.1.15</version>
+        <usage>Modal component for TimeTrackingModal</usage>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+        <usage>format() for YYYY-MM-DD date strings</usage>
+      </node>
+      <node>
+        <package>dexie</package>
+        <version>^4.2.1</version>
+        <usage>IndexedDB wrapper for timeEntries store</usage>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>^0.562.0</version>
+        <usage>Check icon for success feedback</usage>
+      </node>
+      <devnode>
+        <package>vitest</package>
+        <version>^3.2.4</version>
+        <usage>Test runner</usage>
+      </devnode>
+      <devnode>
+        <package>fake-indexeddb</package>
+        <version>^6.2.5</version>
+        <usage>Mock IndexedDB for tests</usage>
+      </devnode>
+      <devnode>
+        <package>@testing-library/react</package>
+        <version>^16.3.1</version>
+        <usage>Component tests</usage>
+      </devnode>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">IndexedDB write for TimeEntry must complete before modal shows success feedback (crash-resistant per ADR-TT-001)</constraint>
+    <constraint type="architecture">Elapsed time derived from startTime on each render - no accumulated state (ADR-TT-005)</constraint>
+    <constraint type="architecture">TimeEntry.task_id must be nullable to handle deleted tasks (FR11)</constraint>
+    <constraint type="pattern">Use existing Dexie pattern - extend TimeTrackingDatabase class with new store</constraint>
+    <constraint type="pattern">Follow existing logging pattern: console.log('[Today] TimeTracking:', ...)</constraint>
+    <constraint type="style">Stop button uses muted stone color: bg-stone-200 hover:bg-stone-300 text-stone-700</constraint>
+    <constraint type="style">Success feedback uses muted slate tones, not bright green</constraint>
+    <constraint type="testing">All new functions must have unit tests using vitest and fake-indexeddb</constraint>
+    <constraint type="performance">Timer updates only when modal is open (NFR4 battery impact)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>stopTracking</name>
+      <kind>function</kind>
+      <signature>stopTracking(): Promise&lt;TimeEntry | null&gt;</signature>
+      <path>today-app/src/hooks/useTimeTracking.ts</path>
+      <notes>Update return type to return the created TimeEntry for feedback display</notes>
+    </interface>
+    <interface>
+      <name>saveTimeEntry</name>
+      <kind>function</kind>
+      <signature>saveTimeEntry(entry: TimeEntry): Promise&lt;void&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+      <notes>New function to persist completed time entries to IndexedDB</notes>
+    </interface>
+    <interface>
+      <name>getTimeEntries</name>
+      <kind>function</kind>
+      <signature>getTimeEntries(dateRange?: { start: string; end: string }): Promise&lt;TimeEntry[]&gt;</signature>
+      <path>today-app/src/lib/timeTrackingDb.ts</path>
+      <notes>New function for Epic 2 insights. Implement basic version now.</notes>
+    </interface>
+    <interface>
+      <name>formatDurationSummary</name>
+      <kind>function</kind>
+      <signature>formatDurationSummary(ms: number): string</signature>
+      <path>today-app/src/lib/timeFormatters.ts (new) or timeTrackingDb.ts</path>
+      <notes>Formats duration as "Xh Ym" for success feedback and insights</notes>
+    </interface>
+    <interface>
+      <name>TimeEntry</name>
+      <kind>interface</kind>
+      <signature>interface TimeEntry { id, user_id, task_id, task_name, start_time, end_time, duration, date, created_at, updated_at }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+      <notes>Already defined - use as-is</notes>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest as test runner. Component tests use @testing-library/react with jsdom environment.
+      IndexedDB operations mock with fake-indexeddb. Follow existing test patterns in useTimeTracking.test.ts.
+      All hooks and utility functions require unit tests. Component tests cover key states and user interactions.
+      Test files colocated with source: *.test.ts next to *.ts files.
+    </standards>
+    <locations>
+      <location>today-app/src/hooks/useTimeTracking.test.ts</location>
+      <location>today-app/src/lib/timeTrackingDb.test.ts</location>
+      <location>today-app/src/components/time-tracking/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="6">Test stopTracking() calculates correct end_time and duration</idea>
+      <idea ac="7">Test TimeEntry has all required fields populated correctly</idea>
+      <idea ac="7">Test saveTimeEntry persists to IndexedDB timeEntries store</idea>
+      <idea ac="10">Test entry created with task_id=null when original task doesn't exist</idea>
+      <idea ac="11">Test multiple stopTracking calls create separate entries for same task</idea>
+      <idea ac="8">Test success feedback displays with correct duration and task name</idea>
+      <idea ac="9">Test modal resets to idle state after 1.5s feedback timeout</idea>
+      <idea ac="3">Test elapsed time format switches from MM:SS to HH:MM:SS at 1 hour</idea>
+      <idea ac="4">Test formatDurationSummary returns "Xh Ym" format correctly</idea>
+    </ideas>
+  </tests>
+</story-context>

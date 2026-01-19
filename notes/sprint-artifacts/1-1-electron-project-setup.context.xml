@@ -1,0 +1,222 @@
+<story-context id="1-1-electron-project-setup" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Electron Project Setup</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/1-1-electron-project-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>Electron dependencies and configuration added to the existing project</iWant>
+    <soThat>I can build an Electron app alongside the existing web app</soThat>
+    <tasks>
+      <task id="1" ac="1.1">Install Electron dependencies
+        <subtask id="1.1">Add electron as devDependency</subtask>
+        <subtask id="1.2">Add electron-vite as devDependency</subtask>
+        <subtask id="1.3">Add @electron-toolkit/preload as devDependency</subtask>
+        <subtask id="1.4">Add @electron-toolkit/utils as devDependency</subtask>
+        <subtask id="1.5">Run npm install and verify no errors</subtask>
+      </task>
+      <task id="2" ac="1.2">Create Electron directory structure
+        <subtask id="2.1">Create electron/ directory in today-app/</subtask>
+        <subtask id="2.2">Create electron/main.ts with basic BrowserWindow setup</subtask>
+        <subtask id="2.3">Create electron/preload.ts with empty contextBridge stub</subtask>
+      </task>
+      <task id="3" ac="1.3">Create electron.vite.config.ts
+        <subtask id="3.1">Create electron.vite.config.ts at project root</subtask>
+        <subtask id="3.2">Configure main process build (externalizeDepsPlugin)</subtask>
+        <subtask id="3.3">Configure preload process build</subtask>
+        <subtask id="3.4">Configure renderer process build (reuse Vite React config)</subtask>
+      </task>
+      <task id="4" ac="1.1,1.6">Update package.json
+        <subtask id="4.1">Add "main": "dist-electron/main/main.js" entry</subtask>
+        <subtask id="4.2">Verify existing "dev" script is unchanged</subtask>
+        <subtask id="4.3">Add placeholder scripts for future stories (dev:electron, build:electron)</subtask>
+      </task>
+      <task id="5" ac="1.3">Update .gitignore
+        <subtask id="5.1">Add dist-electron/ to .gitignore</subtask>
+        <subtask id="5.2">Add release/ to .gitignore</subtask>
+      </task>
+      <task id="6" ac="1.4,1.5,1.6">Verify web app continuity
+        <subtask id="6.1">Confirm vite.config.ts has no changes</subtask>
+        <subtask id="6.2">Run tsc -b and verify TypeScript compiles without errors</subtask>
+        <subtask id="6.3">Run npm run dev and verify web app works at localhost:5173</subtask>
+        <subtask id="6.4">Smoke test existing task management features in browser</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1.1">Running npm install installs electron, electron-vite, and @electron-toolkit packages without errors</ac>
+    <ac id="1.2">An electron/ directory exists with main.ts and preload.ts files</ac>
+    <ac id="1.3">An electron.vite.config.ts file exists at project root</ac>
+    <ac id="1.4">The existing vite.config.ts remains unchanged</ac>
+    <ac id="1.5">TypeScript compiles without errors (tsc -b passes)</ac>
+    <ac id="1.6">Existing npm run dev still works and serves web app at localhost:5173</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-1-electron.md</path>
+        <title>Epic Technical Specification: Electron Foundation &amp; Dual Build</title>
+        <section>AC1: Electron Project Setup</section>
+        <snippet>Defines dependencies to install (electron, electron-vite, @electron-toolkit/*), file structure (electron/main.ts, electron/preload.ts), and security requirements (contextIsolation: true, nodeIntegration: false).</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Project Structure, Technology Stack Details</section>
+        <snippet>Defines dual-target build system with electron-vite 2.x. Project structure shows electron/ directory with main.ts, preload.ts. ADR-006 recommends electron-vite over Electron Forge.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 1.1: Electron Project Setup</section>
+        <snippet>Install electron, electron-vite, @electron-toolkit/preload, @electron-toolkit/utils. Create electron/main.ts with basic BrowserWindow setup. Add "main" field to package.json.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document</title>
+        <section>Build &amp; Development Pipeline</section>
+        <snippet>FR1-FR5 define build requirements. Developer can run web app independently of Electron (FR2). Electron-specific code must not be bundled into web build (FR9).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/package.json</path>
+        <kind>config</kind>
+        <symbol>package.json</symbol>
+        <reason>Must be updated to add Electron devDependencies and "main" field pointing to dist-electron/main/main.js</reason>
+      </file>
+      <file>
+        <path>today-app/vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>vite.config.ts</symbol>
+        <reason>Reference for existing Vite configuration. Must remain UNCHANGED per AC1.4. electron.vite.config.ts will be created separately.</reason>
+      </file>
+      <file>
+        <path>today-app/tsconfig.json</path>
+        <kind>config</kind>
+        <symbol>tsconfig.json</symbol>
+        <reason>TypeScript config using project references. May need to include electron/ directory for compilation.</reason>
+      </file>
+      <file>
+        <path>today-app/.gitignore</path>
+        <kind>config</kind>
+        <symbol>.gitignore</symbol>
+        <reason>Must be updated to ignore dist-electron/ and release/ directories per Task 5.</reason>
+      </file>
+      <file>
+        <path>today-app/src/test/setup.ts</path>
+        <kind>test-setup</kind>
+        <symbol>test setup</symbol>
+        <reason>Reference for existing test setup. Electron setup should not break existing test configuration.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <existing>
+          <dep name="react" version="^19.2.0" />
+          <dep name="react-dom" version="^19.2.0" />
+          <dep name="dexie" version="^4.2.1" />
+          <dep name="@supabase/supabase-js" version="^2.89.0" />
+          <dep name="date-fns" version="^4.1.0" />
+          <dep name="lucide-react" version="^0.562.0" />
+        </existing>
+        <existing-dev>
+          <dep name="vite" version="^7.2.4" />
+          <dep name="@vitejs/plugin-react" version="^5.1.1" />
+          <dep name="typescript" version="~5.9.3" />
+          <dep name="vitest" version="^3.2.4" />
+          <dep name="tailwindcss" version="^4.1.18" />
+          <dep name="vite-plugin-pwa" version="^1.2.0" />
+        </existing-dev>
+        <to-install>
+          <dep name="electron" version="^33.x" type="devDependency" />
+          <dep name="electron-vite" version="^2.x" type="devDependency" />
+          <dep name="@electron-toolkit/preload" version="latest" type="devDependency" />
+          <dep name="@electron-toolkit/utils" version="latest" type="devDependency" />
+        </to-install>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture">ADR-006: Use electron-vite over Electron Forge for native Vite integration</constraint>
+    <constraint source="architecture">ADR-010: No code signing for MVP (personal use only)</constraint>
+    <constraint source="tech-spec">BrowserWindow security: contextIsolation: true, nodeIntegration: false, sandbox: true</constraint>
+    <constraint source="story">Web app must work identically after this story - zero regression</constraint>
+    <constraint source="story">vite.config.ts must remain unchanged</constraint>
+    <constraint source="story">TypeScript should compile both src/ and electron/ without errors</constraint>
+    <constraint source="story">npm run dev command should remain unchanged (web only)</constraint>
+    <constraint source="story">Electron dev mode (npm run dev:electron) is NOT expected to work until Story 1.2</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>electron/main.ts BrowserWindow</name>
+      <kind>Electron main process</kind>
+      <signature>
+new BrowserWindow({
+  width: 1200,
+  height: 800,
+  title: 'Today',
+  webPreferences: {
+    preload: path.join(__dirname, '../preload/preload.js'),
+    contextIsolation: true,
+    nodeIntegration: false,
+    sandbox: true,
+  },
+});
+      </signature>
+      <path>today-app/electron/main.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>electron/preload.ts contextBridge</name>
+      <kind>Electron preload script</kind>
+      <signature>
+contextBridge.exposeInMainWorld('electronAPI', {
+  // Methods will be added in Story 2.2
+});
+      </signature>
+      <path>today-app/electron/preload.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>electron.vite.config.ts</name>
+      <kind>Build configuration</kind>
+      <signature>
+defineConfig({
+  main: { plugins: [externalizeDepsPlugin()], build: { outDir: 'dist-electron/main' } },
+  preload: { plugins: [externalizeDepsPlugin()], build: { outDir: 'dist-electron/preload' } },
+  renderer: { plugins: [react()], build: { outDir: 'dist-electron/renderer' } },
+});
+      </signature>
+      <path>today-app/electron.vite.config.ts (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Testing uses Vitest with jsdom environment. Tests are colocated with source files using .test.ts/.test.tsx naming convention. Setup file at src/test/setup.ts provides fake-indexeddb, @testing-library/jest-dom, and mocks for ResizeObserver, scrollIntoView, and pointer capture APIs. This story focuses on infrastructure setup, so testing is primarily manual verification that existing tests still pass and npm run dev still works.</standards>
+    <locations>
+      <location>today-app/src/**/*.test.ts</location>
+      <location>today-app/src/**/*.test.tsx</location>
+      <location>today-app/src/test/setup.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="1.1">Verify npm install completes without errors and electron packages are in node_modules</idea>
+      <idea ac="1.2">Verify electron/ directory exists with main.ts and preload.ts files</idea>
+      <idea ac="1.3">Verify electron.vite.config.ts exists and exports valid config</idea>
+      <idea ac="1.4">Compare vite.config.ts before and after - must be identical</idea>
+      <idea ac="1.5">Run tsc -b and verify exit code 0</idea>
+      <idea ac="1.6">Run npm run dev, verify Vite starts on port 5173, load in browser</idea>
+      <idea ac="all">Run existing test suite: npm run test:run - all tests should pass</idea>
+    </ideas>
+  </tests>
+</story-context>

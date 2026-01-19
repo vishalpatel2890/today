@@ -1,0 +1,152 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Conditional UI Rendering</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/2-3-conditional-ui-rendering.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>desktop-only UI elements to appear only in Electron</iWant>
+    <soThat>the web app looks unchanged while Electron has extra features</soThat>
+    <tasks>
+      <task id="1" ac="3.3, 3.4">Create ViewActivityButton component
+        <subtask>1.1: Create src/components/time-tracking/ViewActivityButton.tsx</subtask>
+        <subtask>1.2: Use lucide-react Activity icon for button content</subtask>
+        <subtask>1.3: Style with existing Tailwind ghost button pattern (match Edit/Delete buttons)</subtask>
+        <subtask>1.4: Accept timeEntryId: string prop for future Epic 4 use</subtask>
+        <subtask>1.5: Implement onClick handler that logs "[Epic 2] View Activity clicked - modal in Epic 4"</subtask>
+        <subtask>1.6: Add tooltip text "View Activity" for accessibility</subtask>
+      </task>
+      <task id="2" ac="3.1, 3.2">Integrate ViewActivityButton into time entry UI
+        <subtask>2.1: Identify the correct component where time entry actions are rendered</subtask>
+        <subtask>2.2: Import isElectron from @/lib/platform</subtask>
+        <subtask>2.3: Add conditional rendering: {isElectron() and ViewActivityButton}</subtask>
+        <subtask>2.4: Only show button for entries with endTime (completed entries)</subtask>
+        <subtask>2.5: Position button consistently with other action buttons (Edit, Delete)</subtask>
+      </task>
+      <task id="3" ac="3.5, 3.6">Verify web build isolation
+        <subtask>3.1: Run npm run build and verify successful completion</subtask>
+        <subtask>3.2: Run grep -r "electronAPI" dist/ - expect no matches</subtask>
+        <subtask>3.3: Run grep -r "ViewActivity" dist/ - expect no matches</subtask>
+        <subtask>3.4: Run grep -r "activity:start" dist/ - expect no matches (IPC channels)</subtask>
+        <subtask>3.5: Compare dist/ folder size before and after (should be unchanged)</subtask>
+      </task>
+      <task id="4" ac="3.1, 3.2">Test in both environments
+        <subtask>4.1: Run npm run dev:electron - verify button appears on completed entries</subtask>
+        <subtask>4.2: Run npm run dev in browser - verify button does NOT appear</subtask>
+        <subtask>4.3: Click button in Electron - verify console log appears</subtask>
+        <subtask>4.4: Verify no TypeScript or runtime errors in either environment</subtask>
+        <subtask>4.5: Run existing test suite - ensure no regressions</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.1">In Electron, completed time entries show a "View Activity" button</ac>
+    <ac id="3.2">In web browser, the same time entries do NOT show a "View Activity" button</ac>
+    <ac id="3.3">The button uses existing Tailwind design patterns (consistent styling with other buttons)</ac>
+    <ac id="3.4">Clicking the button logs a placeholder message (no modal yet - Epic 4)</ac>
+    <ac id="3.5">Web build bundle size is unchanged (no Electron code included)</ac>
+    <ac id="3.6">Running `grep -r "electronAPI" dist/` returns no matches</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/sprint-artifacts/tech-spec-epic-2-electron.md" title="Epic 2 Technical Specification" section="AC3: Conditional UI Rendering">
+        Defines AC3.1-3.6 for conditional UI rendering. ViewActivityButton shows only in Electron for completed time entries. Web build must exclude all Electron code.
+      </doc>
+      <doc path="notes/architecture-electron-migration.md" title="Architecture - Electron Migration" section="Feature Detection Pattern">
+        Pattern: Use isElectron() from @/lib/platform to conditionally render desktop-only UI. All Electron features accessed via window.electronAPI.
+      </doc>
+      <doc path="notes/epics-electron-migration.md" title="Epics - Electron Migration" section="Story 2.3: Conditional UI Rendering">
+        Story definition: Create ViewActivityButton.tsx, use isElectron() guard, style with Tailwind, verify web build isolation with grep commands.
+      </doc>
+      <doc path="notes/prd-electron-migration.md" title="PRD - Electron Migration" section="FR7, FR8">
+        FR7: Conditional rendering of desktop-only UI. FR8: Web app functions identically when not in Electron.
+      </doc>
+      <doc path="notes/sprint-artifacts/2-2-ipc-bridge-setup.md" title="Story 2.2 - IPC Bridge Setup" section="Dev Agent Record">
+        Previous story completed. IPC bridge available, isElectron() verified working, 512 tests passing baseline. Use existing patterns.
+      </doc>
+    </docs>
+
+    <code>
+      <file path="today-app/src/lib/platform.ts" kind="utility" symbol="isElectron" lines="29-42" reason="Platform detection function to use for conditional rendering. Returns true in Electron, false in browser.">
+        <signature>export function isElectron(): boolean</signature>
+      </file>
+      <file path="today-app/src/components/time-tracking/InsightRow.tsx" kind="component" symbol="InsightRow" lines="45-231" reason="Target component for adding ViewActivityButton. Has Edit/Delete buttons pattern to follow. Receives TimeEntry with end_time field.">
+        <pattern>Uses lucide-react icons (Pencil, Trash2), Tailwind action button styling</pattern>
+        <props>entry: TimeEntry, onEdit, onDelete callbacks</props>
+      </file>
+      <file path="today-app/src/components/time-tracking/TimeInsightsModal.tsx" kind="component" symbol="TimeInsightsModal" lines="49-528" reason="Parent modal that renders InsightRow components. Entry passed as entry prop, has end_time when completed."/>
+      <file path="today-app/src/types/electron.d.ts" kind="types" symbol="ElectronAPI, IPCResponse, ActivityEntry" lines="1-56" reason="TypeScript definitions for window.electronAPI. Already complete from Story 2.2."/>
+      <file path="today-app/src/lib/electronBridge.ts" kind="utility" symbol="electronBridge" reason="Type-safe wrapper for IPC calls. Not needed for this story (only using isElectron for conditional render)."/>
+      <file path="today-app/electron/ipc/channels.ts" kind="constants" symbol="IPC_CHANNELS" reason="IPC channel name constants. Already exists from Story 2.2."/>
+    </code>
+
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="react" version="^19.2.0"/>
+          <package name="react-dom" version="^19.2.0"/>
+          <package name="lucide-react" version="^0.562.0"/>
+        </runtime>
+        <dev>
+          <package name="electron" version="^39.2.7"/>
+          <package name="electron-vite" version="^5.0.0"/>
+          <package name="typescript" version="~5.9.3"/>
+          <package name="tailwindcss" version="^4.1.18"/>
+          <package name="vitest" version="^3.2.4"/>
+          <package name="@testing-library/react" version="^16.3.1"/>
+        </dev>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Use isElectron() from @/lib/platform for all Electron feature detection - ADR-007</constraint>
+    <constraint type="security">No direct Node.js access in renderer - contextIsolation: true enforced</constraint>
+    <constraint type="build">ViewActivityButton must NOT appear in web build - tree-shaking required</constraint>
+    <constraint type="build">Web bundle size must remain unchanged after implementation</constraint>
+    <constraint type="pattern">Follow existing button styling patterns in InsightRow (lucide-react icons, Tailwind classes)</constraint>
+    <constraint type="pattern">Conditional render pattern: {isElectron() and isCompleted and Component}</constraint>
+    <constraint type="testing">Maintain 512 test baseline - no regressions allowed</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="isElectron" kind="function" path="today-app/src/lib/platform.ts">
+      <signature>function isElectron(): boolean</signature>
+      <description>Returns true if running in Electron (window.electronAPI present), false otherwise</description>
+    </interface>
+    <interface name="TimeEntry" kind="type" path="today-app/src/types/timeTracking.ts">
+      <signature>interface TimeEntry { id: string; task_name: string; start_time: string; end_time?: string; duration: number; ... }</signature>
+      <description>Time entry data. end_time present means entry is completed.</description>
+    </interface>
+    <interface name="InsightRowProps" kind="interface" path="today-app/src/components/time-tracking/InsightRow.tsx">
+      <signature>interface InsightRowProps { entry: TimeEntry; onEdit?: (entry: TimeEntry) => void; onDelete?: (entry: TimeEntry) => void; ... }</signature>
+      <description>Props for InsightRow component - entry contains time entry data</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Vitest for unit tests with @testing-library/react for component testing. Tests colocated with components as *.test.tsx files. Mock window.electronAPI for Electron context tests. Use jsdom environment. Current baseline: 512 tests passing.
+    </standards>
+    <locations>
+      <location>today-app/src/components/time-tracking/*.test.tsx</location>
+      <location>today-app/src/lib/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="3.1">Test ViewActivityButton renders when isElectron() returns true</idea>
+      <idea ac="3.2">Test ViewActivityButton does NOT render when isElectron() returns false</idea>
+      <idea ac="3.3">Test button has correct Tailwind classes matching design system</idea>
+      <idea ac="3.4">Test onClick handler logs expected placeholder message</idea>
+      <idea ac="3.1, 3.2">Test conditional render only shows for entries with end_time (completed)</idea>
+      <idea ac="3.5, 3.6">Manual verification: grep commands on dist/ after build</idea>
+    </ideas>
+  </tests>
+</story-context>
