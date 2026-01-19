@@ -412,7 +412,7 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
                 <InsightCard
                   label="Days"
                   value={isLoading ? '--' : String(insights?.byDate.length ?? 0)}
-                  sublabel="tracked"
+                  sublabel="with entries"
                   isLoading={isLoading}
                 />
               ) : (
