@@ -56,12 +56,12 @@ development_status:
   3-1-macos-app-detection-module: done
   3-2-activity-polling-during-time-tracking: done
   3-3-activity-storage-in-indexeddb: done
-  3-4-auto-start-stop-activity-with-time-tracking: review
+  3-4-auto-start-stop-activity-with-time-tracking: done
   epic-3-retrospective: optional
 
   # Epic 4: Activity Viewing & Export
   epic-4: contexted
-  4-1-activity-log-retrieval: review
+  4-1-activity-log-retrieval: done
   4-2-activity-log-modal-ui: backlog
   4-3-activity-duration-summary: backlog
   4-4-activity-export-to-file: backlog

@@ -1,6 +1,6 @@
 # Story 4.1: Activity Log Retrieval
 
-Status: review
+Status: done
 
 ## Story
 
@@ -145,7 +145,7 @@ const entries = await db.activityLogs
 
 ### Learnings from Previous Story
 
-**From Story 3.4 (Status: review)**
+**From Story 3.4 (Status: done)**
 
 - **Activity lifecycle pattern** - Uses `electronBridge.activity.start/stop()` for type-safe IPC calls
 - **Files available for use:**
@@ -226,6 +226,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - **Architecture note**: Per ADR-008, IndexedDB runs in renderer; main process IPC handler is stub; bridge queries Dexie directly
 - ✅ Test Gate PASSED by Vishal (2026-01-18)
 
+### Completion
+**Completed:** 2026-01-19
+**Definition of Done:** All acceptance criteria met, code reviewed, tests passing
+
 ### File List
 
 **Modified:**
@@ -248,3 +252,4 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 | 2026-01-18 | Story drafted from epics, tech spec, and architecture | SM Agent |
 | 2026-01-18 | Verified implementation from Story 3.3 satisfies all ACs; added performance timing logs | Dev Agent |
 | 2026-01-18 | Test Gate PASSED; story marked for review | Dev Agent |
+| 2026-01-19 | Story approved and marked DONE | Dev Agent |

@@ -1,6 +1,6 @@
 # Story 3.4: Auto-Start/Stop Activity with Time Tracking
 
-Status: review
+Status: done
 
 ## Story
 
@@ -208,6 +208,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Error handling is silent to user - activity failures don't break time tracking
 - ✅ Test Gate PASSED by Vishal (2026-01-18)
 
+### Completion
+**Completed:** 2026-01-19
+**Definition of Done:** All acceptance criteria met, code reviewed, tests passing
+
 ### File List
 
 **Modified:**
@@ -221,3 +225,4 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 | 2026-01-18 | Story drafted from epics and architecture | SM Agent |
 | 2026-01-18 | Implementation complete - all tasks done, 609 tests passing | Dev Agent |
 | 2026-01-18 | Test Gate PASSED - story marked for review | Dev Agent |
+| 2026-01-19 | Story approved and marked DONE | Dev Agent |
