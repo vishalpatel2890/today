@@ -69,7 +69,7 @@ export const QuickFilterBar = ({
     <div
       role="radiogroup"
       aria-label="Date filter"
-      className="flex flex-wrap gap-2 mb-4"
+      className="flex flex-wrap lg:flex-nowrap gap-2 mb-4"
     >
       {PRESETS.map(({ value, label }) => {
         const isActive = activePreset === value
