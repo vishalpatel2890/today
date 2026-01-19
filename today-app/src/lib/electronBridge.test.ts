@@ -12,7 +12,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import 'fake-indexeddb/auto'
 import { electronBridge } from './electronBridge'
-import { db } from './db'
 
 // Mock the activityStore module
 vi.mock('./activityStore', () => ({

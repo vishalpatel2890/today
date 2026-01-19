@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import 'fake-indexeddb/auto'
-import { db, type ActivityLogEntry } from './db'
+import { db } from './db'
 import {
   saveActivityEntries,
   getActivityEntriesByTimeEntryId,

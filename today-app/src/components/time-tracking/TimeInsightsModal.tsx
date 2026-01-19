@@ -206,6 +206,7 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
   const getDatePresetLabel = (preset: DatePreset): string | null => {
     if (!preset) return null
     const labels: Record<Exclude<DatePreset, null>, string> = {
+      all: 'All Time',
       today: 'Today',
       yesterday: 'Yesterday',
       week: 'This Week',
