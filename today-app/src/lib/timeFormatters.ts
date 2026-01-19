@@ -132,7 +132,7 @@ export function formatRelativeTimestamp(isoString: string): string {
  * Source: notes/architecture-time-tracking.md#ADR-TT-004
  */
 export function getDateRangeForPreset(preset: DatePreset): DateRange | null {
-  if (preset === null) return null
+  if (preset === null || preset === 'all') return null
 
   const now = new Date()
 

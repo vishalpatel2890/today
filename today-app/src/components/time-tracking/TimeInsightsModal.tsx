@@ -397,18 +397,24 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
 
             {/* Summary Cards Section */}
             {/* Cards adapt based on whether a date filter is active:
-                - No filter: TOTAL (week), TODAY, AVG/DAY (week)
+                - No filter / All Time: TOTAL, TODAY, AVG/DAY
                 - Date filter: TOTAL (range), DAYS (count), AVG/DAY (range) */}
             <div className="grid grid-cols-3 gap-3">
               {/* TOTAL card - always shows total for current context */}
               <InsightCard
                 label="Total"
                 value={isLoading ? '--' : formatDisplay(insights?.totalWeek ?? 0)}
-                sublabel={datePreset || customRange ? 'in range' : 'this week'}
+                sublabel={
+                  datePreset === 'all'
+                    ? 'all time'
+                    : datePreset || customRange
+                      ? 'in range'
+                      : 'this week'
+                }
                 isLoading={isLoading}
               />
-              {/* Middle card: TODAY (no filter) or DAYS (with filter) */}
-              {datePreset || customRange ? (
+              {/* Middle card: TODAY (no filter/all time) or DAYS (with date filter) */}
+              {(datePreset && datePreset !== 'all') || customRange ? (
                 <InsightCard
                   label="Days"
                   value={isLoading ? '--' : String(insights?.byDate.length ?? 0)}
@@ -427,7 +433,13 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
               <InsightCard
                 label="Avg / Day"
                 value={isLoading ? '--' : formatDisplay(insights?.avgPerDay ?? 0)}
-                sublabel={datePreset || customRange ? 'in range' : 'this week'}
+                sublabel={
+                  datePreset === 'all'
+                    ? 'all time'
+                    : datePreset || customRange
+                      ? 'in range'
+                      : 'this week'
+                }
                 isLoading={isLoading}
               />
             </div>

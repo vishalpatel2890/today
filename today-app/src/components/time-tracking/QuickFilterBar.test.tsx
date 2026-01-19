@@ -5,10 +5,11 @@ import type { DatePreset } from '../../types/timeTracking'
 
 describe('QuickFilterBar', () => {
   describe('Rendering (AC-3.1.1)', () => {
-    it('should render 5 pills with correct labels', () => {
+    it('should render 6 pills with correct labels', () => {
       const onPresetSelect = vi.fn()
       render(<QuickFilterBar activePreset={null} onPresetSelect={onPresetSelect} />)
 
+      expect(screen.getByText('All Time')).toBeTruthy()
       expect(screen.getByText('Today')).toBeTruthy()
       expect(screen.getByText('Yesterday')).toBeTruthy()
       expect(screen.getByText('This Week')).toBeTruthy()
@@ -21,7 +22,7 @@ describe('QuickFilterBar', () => {
       render(<QuickFilterBar activePreset={null} onPresetSelect={onPresetSelect} />)
 
       const radios = screen.getAllByRole('radio')
-      expect(radios.length).toBe(5) // Today, Yesterday, This Week, This Month, Custom
+      expect(radios.length).toBe(6) // All Time, Today, Yesterday, This Week, This Month, Custom
     })
 
     it('should have radiogroup role on container', () => {
@@ -119,6 +120,7 @@ describe('QuickFilterBar', () => {
 
     it('should call onPresetSelect for each preset correctly', () => {
       const presets: Array<{ text: string; value: Exclude<DatePreset, null> }> = [
+        { text: 'All Time', value: 'all' },
         { text: 'Today', value: 'today' },
         { text: 'Yesterday', value: 'yesterday' },
         { text: 'This Week', value: 'week' },

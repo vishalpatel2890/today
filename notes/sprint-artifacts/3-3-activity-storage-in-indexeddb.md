@@ -1,6 +1,6 @@
 # Story 3.3: Activity Storage in IndexedDB
 
-Status: review
+Status: done
 
 ## Story
 
@@ -214,6 +214,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - **Task 5**: Implemented renderer-side persistence (Option A) - simpler than IPC round-trip.
 - **Task 6**: Created 15 new tests for activityStore, updated 4 tests in electronBridge. All 598 tests pass.
 - ✅ Test Gate PASSED by Vishal (2026-01-18)
+
+### Completion Notes
+**Completed:** 2026-01-18
+**Definition of Done:** All acceptance criteria met, code reviewed, tests passing
 
 ### File List
 

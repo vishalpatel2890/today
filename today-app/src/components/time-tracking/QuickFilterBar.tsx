@@ -20,6 +20,7 @@ interface PresetConfig {
 }
 
 const PRESETS: PresetConfig[] = [
+  { value: 'all', label: 'All Time' },
   { value: 'today', label: 'Today' },
   { value: 'yesterday', label: 'Yesterday' },
   { value: 'week', label: 'This Week' },

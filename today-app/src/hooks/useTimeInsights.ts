@@ -216,6 +216,7 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
     // When date filter active, summary cards should show totals for the filtered range
     // Source: notes/tech-spec-time-insights-filter-bug.md
     const hasDateFilter = dateRange !== null
+    const isAllTime = filters?.datePreset === 'all'
 
     // Summary calculations - use filtered entries when date filter active
     let totalToday: number
@@ -228,6 +229,12 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
       const filteredTotal = baseEntries.reduce((sum, e) => sum + e.duration, 0)
       totalToday = filteredTotal
       totalWeek = filteredTotal
+      entriesForAvg = baseEntries
+    } else if (isAllTime) {
+      // All Time filter: TOTAL shows all entries, TODAY shows today's entries
+      const todayEntries = baseEntries.filter((e) => e.date === today)
+      totalToday = todayEntries.reduce((sum, e) => sum + e.duration, 0)
+      totalWeek = baseEntries.reduce((sum, e) => sum + e.duration, 0)
       entriesForAvg = baseEntries
     } else {
       // No date filter: use original today/week logic
@@ -244,8 +251,8 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
     const avgPerDay = numDays > 0 ? Math.floor(totalWeek / numDays) : 0
 
     // Build byTask: group by task_id, aggregate duration
-    // When filter is active, use all filtered entries; otherwise use today's entries
-    const entriesForTaskBreakdown = hasDateFilter
+    // When filter is active or All Time, use all filtered entries; otherwise use today's entries
+    const entriesForTaskBreakdown = hasDateFilter || isAllTime
       ? baseEntries
       : baseEntries.filter((e) => e.date === today)
     const taskMap = new Map<string, { taskId: string | null; taskName: string; duration: number }>()

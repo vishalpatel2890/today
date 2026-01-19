@@ -7,7 +7,7 @@
  * Date preset for quick filtering in Insights modal
  * Source: notes/sprint-artifacts/tech-spec-epic-3-insights-filtering.md#Story 3.1
  */
-export type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | null
+export type DatePreset = 'all' | 'today' | 'yesterday' | 'week' | 'month' | null
 
 /**
  * Option for filter dropdowns (task/category filters)
