@@ -1,6 +1,6 @@
 # Story 3.4: Auto-Start/Stop Activity with Time Tracking
 
-Status: drafted
+Status: review
 
 ## Story
 
@@ -61,38 +61,38 @@ so that **I don't need to manually manage activity capture**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Add activity lifecycle hooks to useTimeTracking** (AC: 3.4.1, 3.4.2, 3.4.3)
-  - [ ] 1.1: Identify where time entry start/stop occurs in `useTimeTracking.ts`
-  - [ ] 1.2: Add `useEffect` that calls `electronAPI.activity.start(timeEntryId)` when tracking starts
-  - [ ] 1.3: Add `useEffect` cleanup that calls `electronAPI.activity.stop()` when tracking stops
-  - [ ] 1.4: Wrap all activity calls with `isElectron()` guard to prevent errors in web
-  - [ ] 1.5: Handle the case where `activeTimeEntry` changes (stop old, start new if applicable)
+- [x] **Task 1: Add activity lifecycle hooks to useTimeTracking** (AC: 3.4.1, 3.4.2, 3.4.3)
+  - [x] 1.1: Identify where time entry start/stop occurs in `useTimeTracking.ts`
+  - [x] 1.2: Add `useEffect` that calls `electronAPI.activity.start(timeEntryId)` when tracking starts
+  - [x] 1.3: Add `useEffect` cleanup that calls `electronAPI.activity.stop()` when tracking stops
+  - [x] 1.4: Wrap all activity calls with `isElectron()` guard to prevent errors in web
+  - [x] 1.5: Handle the case where `activeTimeEntry` changes (stop old, start new if applicable)
 
-- [ ] **Task 2: Handle app startup with existing active session** (AC: 3.4.4, 3.4.6)
-  - [ ] 2.1: In useTimeTracking initialization, check if there's an active time entry on mount
-  - [ ] 2.2: If active entry exists and `isElectron()`, call `electronAPI.activity.start(activeTimeEntry.id)`
-  - [ ] 2.3: Ensure this only runs once on mount (use `useEffect` dependency array correctly)
-  - [ ] 2.4: Add logging for startup activity initialization: `[Today] Resuming activity tracking for existing session`
+- [x] **Task 2: Handle app startup with existing active session** (AC: 3.4.4, 3.4.6)
+  - [x] 2.1: In useTimeTracking initialization, check if there's an active time entry on mount
+  - [x] 2.2: If active entry exists and `isElectron()`, call `electronAPI.activity.start(activeTimeEntry.id)`
+  - [x] 2.3: Ensure this only runs once on mount (use `useEffect` dependency array correctly)
+  - [x] 2.4: Add logging for startup activity initialization: `[Today] Resuming activity tracking for existing session`
 
-- [ ] **Task 3: Ensure web app remains unaffected** (AC: 3.4.3, 3.4.5)
-  - [ ] 3.1: Run web app (`npm run dev`) and verify no console errors related to activity
-  - [ ] 3.2: Verify `window.electronAPI` is undefined in web context
-  - [ ] 3.3: Ensure `isElectron()` returns false in web browser
-  - [ ] 3.4: Test time tracking start/stop in web - should work identically to before
+- [x] **Task 3: Ensure web app remains unaffected** (AC: 3.4.3, 3.4.5)
+  - [x] 3.1: Run web app (`npm run dev`) and verify no console errors related to activity
+  - [x] 3.2: Verify `window.electronAPI` is undefined in web context
+  - [x] 3.3: Ensure `isElectron()` returns false in web browser
+  - [x] 3.4: Test time tracking start/stop in web - should work identically to before
 
-- [ ] **Task 4: Add proper error handling for activity IPC calls** (AC: 3.4.1, 3.4.2)
-  - [ ] 4.1: Wrap activity.start() call in try-catch, log errors but don't fail time tracking
-  - [ ] 4.2: Wrap activity.stop() call in try-catch, log errors but don't fail time entry save
-  - [ ] 4.3: Activity failures should be silent to user (time tracking is primary feature)
-  - [ ] 4.4: Add dev-mode console warnings if activity operations fail
+- [x] **Task 4: Add proper error handling for activity IPC calls** (AC: 3.4.1, 3.4.2)
+  - [x] 4.1: Wrap activity.start() call in try-catch, log errors but don't fail time tracking
+  - [x] 4.2: Wrap activity.stop() call in try-catch, log errors but don't fail time entry save
+  - [x] 4.3: Activity failures should be silent to user (time tracking is primary feature)
+  - [x] 4.4: Add dev-mode console warnings if activity operations fail
 
-- [ ] **Task 5: Write tests for activity lifecycle integration** (AC: all)
-  - [ ] 5.1: Update `useTimeTracking.test.ts` with tests for activity integration
-  - [ ] 5.2: Test: starting tracking in Electron calls activity.start with correct timeEntryId
-  - [ ] 5.3: Test: stopping tracking in Electron calls activity.stop
-  - [ ] 5.4: Test: activity calls not made in web context (mock isElectron to return false)
-  - [ ] 5.5: Test: mount with active session triggers activity.start
-  - [ ] 5.6: Ensure all existing useTimeTracking tests still pass
+- [x] **Task 5: Write tests for activity lifecycle integration** (AC: all)
+  - [x] 5.1: Update `useTimeTracking.test.ts` with tests for activity integration
+  - [x] 5.2: Test: starting tracking in Electron calls activity.start with correct timeEntryId
+  - [x] 5.3: Test: stopping tracking in Electron calls activity.stop
+  - [x] 5.4: Test: activity calls not made in web context (mock isElectron to return false)
+  - [x] 5.5: Test: mount with active session triggers activity.start
+  - [x] 5.6: Ensure all existing useTimeTracking tests still pass
 
 ## Dev Notes
 
@@ -187,20 +187,37 @@ invoke('activity:stop')
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `notes/sprint-artifacts/3-4-auto-start-stop-activity-with-time-tracking.context.xml`
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+- Implementation plan: Add single useEffect to watch activeSession state, use isElectron() guard, use electronBridge for type-safe IPC calls, silent error handling
+
 ### Completion Notes List
 
+- Added activity tracking lifecycle effect to useTimeTracking hook (lines 99-217)
+- Uses `isElectron()` guard to early-return in web context - web app completely unaffected
+- Uses `electronBridge.activity.start/stop()` for type-safe IPC calls with built-in error handling
+- Tracks session changes via `previousTaskIdRef` to properly stop old activity before starting new
+- Handles Electron startup with existing active session via `activityStartedForSessionRef`
+- All 609 tests pass (11 new tests added for Story 3.4, up from 598 baseline)
+- Error handling is silent to user - activity failures don't break time tracking
+- ✅ Test Gate PASSED by Vishal (2026-01-18)
+
 ### File List
+
+**Modified:**
+- `today-app/src/hooks/useTimeTracking.ts` - Added activity lifecycle effect (lines 10-11 imports, 67-69 refs, 99-217 effect)
+- `today-app/src/hooks/useTimeTracking.test.ts` - Added 11 tests for Story 3.4 activity integration
 
 ## Change Log
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-01-18 | Story drafted from epics and architecture | SM Agent |
+| 2026-01-18 | Implementation complete - all tasks done, 609 tests passing | Dev Agent |
+| 2026-01-18 | Test Gate PASSED - story marked for review | Dev Agent |

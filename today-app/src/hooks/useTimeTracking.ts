@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
 import type { ActiveSession, TimeEntry } from '../types/timeTracking'
 import {
@@ -7,6 +7,8 @@ import {
   clearActiveSession,
   saveTimeEntry,
 } from '../lib/timeTrackingDb'
+import { isElectron } from '../lib/platform'
+import { electronBridge } from '../lib/electronBridge'
 
 /**
  * Options for useTimeTracking hook
@@ -61,6 +63,11 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Track the previous session taskId to detect session changes
+  const previousTaskIdRef = useRef<string | null>(null)
+  // Track if initial activity tracking has been started for restored sessions
+  const activityStartedForSessionRef = useRef<string | null>(null)
+
   // Load active session from IndexedDB on mount
   // This restores tracking state after browser refresh (AC6.1, AC6.2)
   useEffect(() => {
@@ -88,6 +95,126 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
       mounted = false
     }
   }, [])
+
+  /**
+   * Activity tracking lifecycle management (Electron only)
+   *
+   * Story 3.4: Automatically starts/stops activity capture when time tracking state changes.
+   * This effect only runs in Electron context - web app is completely unaffected.
+   *
+   * Handles:
+   * - AC3.4.1: Activity starts when tracking starts
+   * - AC3.4.2: Activity stops when tracking stops
+   * - AC3.4.3: Web app unaffected (early return if not Electron)
+   * - AC3.4.4/AC3.4.6: Resumes activity when Electron opens with existing session
+   *
+   * Error handling: Activity failures are logged but don't affect time tracking.
+   * Activity is an enhancement, not core functionality.
+   */
+  useEffect(() => {
+    // Early return if not in Electron - web app completely unaffected (AC3.4.3)
+    if (!isElectron()) {
+      return
+    }
+
+    // Don't start activity tracking while still loading session
+    if (isLoading) {
+      return
+    }
+
+    const currentTaskId = activeSession?.taskId ?? null
+    const previousTaskId = previousTaskIdRef.current
+
+    // Helper function to start activity tracking with error handling
+    const startActivityTracking = async (taskId: string) => {
+      // Skip if we've already started activity for this session
+      if (activityStartedForSessionRef.current === taskId) {
+        return
+      }
+
+      try {
+        const result = await electronBridge.activity.start(taskId)
+        if (result.success) {
+          activityStartedForSessionRef.current = taskId
+          if (import.meta.env.DEV) {
+            console.log(`[Electron/Activity] Started tracking for: ${taskId}`)
+          }
+        } else {
+          // Log error but don't fail time tracking (AC3.4.1 - activity is enhancement)
+          if (import.meta.env.DEV) {
+            console.warn('[Electron/Activity] Failed to start:', result.error)
+          }
+        }
+      } catch (error) {
+        // Catch unexpected errors, log but don't fail time tracking
+        if (import.meta.env.DEV) {
+          console.error('[Electron/Activity] Error starting activity tracking:', error)
+        }
+      }
+    }
+
+    // Helper function to stop activity tracking with error handling
+    const stopActivityTracking = async () => {
+      // Only stop if we actually started activity tracking
+      if (activityStartedForSessionRef.current === null) {
+        return
+      }
+
+      try {
+        const result = await electronBridge.activity.stop()
+        if (result.success) {
+          if (import.meta.env.DEV) {
+            console.log(
+              `[Electron/Activity] Stopped tracking, ${result.data?.entriesRecorded ?? 0} entries recorded`
+            )
+          }
+        } else {
+          // Log error but don't fail time entry save (AC3.4.2 - activity is enhancement)
+          if (import.meta.env.DEV) {
+            console.warn('[Electron/Activity] Failed to stop:', result.error)
+          }
+        }
+      } catch (error) {
+        // Catch unexpected errors, log but don't fail time tracking
+        if (import.meta.env.DEV) {
+          console.error('[Electron/Activity] Error stopping activity tracking:', error)
+        }
+      } finally {
+        activityStartedForSessionRef.current = null
+      }
+    }
+
+    // Session state change detection
+    if (currentTaskId !== previousTaskId) {
+      // If there was a previous session, stop its activity tracking first
+      if (previousTaskId !== null) {
+        stopActivityTracking()
+      }
+
+      // If there's a new session, start activity tracking
+      if (currentTaskId !== null) {
+        startActivityTracking(currentTaskId)
+      }
+    }
+    // Handle case where Electron opens with existing session (AC3.4.4, AC3.4.6)
+    // This happens when isLoading just finished and we have an active session
+    else if (currentTaskId !== null && activityStartedForSessionRef.current !== currentTaskId) {
+      if (import.meta.env.DEV) {
+        console.log('[Electron/Activity] Resuming activity tracking for existing session')
+      }
+      startActivityTracking(currentTaskId)
+    }
+
+    // Update the previous task ID reference
+    previousTaskIdRef.current = currentTaskId
+
+    // Cleanup: Stop activity tracking when component unmounts
+    return () => {
+      if (activityStartedForSessionRef.current !== null) {
+        stopActivityTracking()
+      }
+    }
+  }, [activeSession, isLoading])
 
   /**
    * Start tracking a task

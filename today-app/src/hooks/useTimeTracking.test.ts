@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTimeTracking } from './useTimeTracking'
 import * as timeTrackingDb from '../lib/timeTrackingDb'
+import * as platform from '../lib/platform'
+import * as electronBridgeModule from '../lib/electronBridge'
 import type { ActiveSession } from '../types/timeTracking'
 
 // Mock the timeTrackingDb module
@@ -12,6 +14,21 @@ vi.mock('../lib/timeTrackingDb', () => ({
   saveTimeEntry: vi.fn(),
 }))
 
+// Mock the platform module
+vi.mock('../lib/platform', () => ({
+  isElectron: vi.fn(),
+}))
+
+// Mock the electronBridge module
+vi.mock('../lib/electronBridge', () => ({
+  electronBridge: {
+    activity: {
+      start: vi.fn(),
+      stop: vi.fn(),
+    },
+  },
+}))
+
 describe('useTimeTracking', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -20,6 +37,14 @@ describe('useTimeTracking', () => {
     vi.mocked(timeTrackingDb.saveActiveSession).mockResolvedValue(undefined)
     vi.mocked(timeTrackingDb.clearActiveSession).mockResolvedValue(undefined)
     vi.mocked(timeTrackingDb.saveTimeEntry).mockResolvedValue(undefined)
+    // Default: not in Electron (web context)
+    vi.mocked(platform.isElectron).mockReturnValue(false)
+    // Default: activity bridge methods succeed
+    vi.mocked(electronBridgeModule.electronBridge.activity.start).mockResolvedValue({ success: true })
+    vi.mocked(electronBridgeModule.electronBridge.activity.stop).mockResolvedValue({
+      success: true,
+      data: { entriesRecorded: 5, entries: [] },
+    })
   })
 
   afterEach(() => {
@@ -558,6 +583,291 @@ describe('useTimeTracking', () => {
           user_id: 'local',
         })
       )
+    })
+  })
+
+  /**
+   * Story 3.4: Auto-Start/Stop Activity with Time Tracking
+   *
+   * Tests for activity tracking lifecycle integration.
+   * Activity tracking is Electron-only - web app should be completely unaffected.
+   */
+  describe('Story 3.4: Activity tracking integration', () => {
+    describe('in Electron context', () => {
+      beforeEach(() => {
+        // Enable Electron context for these tests
+        vi.mocked(platform.isElectron).mockReturnValue(true)
+      })
+
+      it('should call activity.start when tracking starts (AC3.4.1)', async () => {
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        await act(async () => {
+          await result.current.startTracking('task-activity-1', 'Activity Test Task')
+        })
+
+        // Wait for the effect to run
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalledWith('task-activity-1')
+        })
+      })
+
+      it('should call activity.stop when tracking stops (AC3.4.2)', async () => {
+        const mockSession: ActiveSession = {
+          taskId: 'task-activity-2',
+          taskName: 'Activity Stop Test',
+          startTime: new Date(Date.now() - 5000).toISOString(),
+        }
+        vi.mocked(timeTrackingDb.loadActiveSession).mockResolvedValue(mockSession)
+
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isTracking).toBe(true)
+        })
+
+        // Wait for activity to start for the restored session
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalledWith('task-activity-2')
+        })
+
+        // Clear mock to track stop call
+        vi.mocked(electronBridgeModule.electronBridge.activity.stop).mockClear()
+
+        await act(async () => {
+          await result.current.stopTracking()
+        })
+
+        // Wait for the activity.stop to be called
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.stop).toHaveBeenCalled()
+        })
+      })
+
+      it('should start activity tracking when Electron opens with existing session (AC3.4.4, AC3.4.6)', async () => {
+        const mockSession: ActiveSession = {
+          taskId: 'existing-session-task',
+          taskName: 'Restored Session',
+          startTime: '2026-01-10T10:00:00.000Z',
+        }
+        vi.mocked(timeTrackingDb.loadActiveSession).mockResolvedValue(mockSession)
+
+        renderHook(() => useTimeTracking())
+
+        // Wait for activity tracking to start for the restored session
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalledWith('existing-session-task')
+        })
+      })
+
+      it('should not fail time tracking if activity.start fails (error handling)', async () => {
+        vi.mocked(electronBridgeModule.electronBridge.activity.start).mockResolvedValue({
+          success: false,
+          error: 'Activity tracking unavailable',
+        })
+
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        // Time tracking should still work even if activity fails
+        await act(async () => {
+          await result.current.startTracking('task-fail-activity', 'Task with failing activity')
+        })
+
+        // Verify time tracking worked
+        expect(result.current.isTracking).toBe(true)
+        expect(result.current.activeSession?.taskId).toBe('task-fail-activity')
+      })
+
+      it('should not fail time entry save if activity.stop fails (error handling)', async () => {
+        const mockSession: ActiveSession = {
+          taskId: 'task-stop-fail',
+          taskName: 'Stop Fail Task',
+          startTime: new Date(Date.now() - 1000).toISOString(),
+        }
+        vi.mocked(timeTrackingDb.loadActiveSession).mockResolvedValue(mockSession)
+        vi.mocked(electronBridgeModule.electronBridge.activity.stop).mockResolvedValue({
+          success: false,
+          error: 'Activity stop failed',
+        })
+
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isTracking).toBe(true)
+        })
+
+        // Wait for activity to start
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalled()
+        })
+
+        let entry
+        await act(async () => {
+          entry = await result.current.stopTracking()
+        })
+
+        // Time entry should still be saved despite activity.stop failure
+        expect(entry).not.toBeNull()
+        expect(timeTrackingDb.saveTimeEntry).toHaveBeenCalled()
+      })
+
+      it('should not fail if activity.start throws an exception', async () => {
+        vi.mocked(electronBridgeModule.electronBridge.activity.start).mockRejectedValue(
+          new Error('IPC channel broken')
+        )
+
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        // Should not throw - time tracking should still work
+        await act(async () => {
+          await result.current.startTracking('task-exception', 'Exception Task')
+        })
+
+        expect(result.current.isTracking).toBe(true)
+      })
+
+      it('should stop old activity and start new when session changes', async () => {
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        // Start first tracking session
+        await act(async () => {
+          await result.current.startTracking('task-first', 'First Task')
+        })
+
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalledWith('task-first')
+        })
+
+        // Stop first session
+        vi.mocked(electronBridgeModule.electronBridge.activity.stop).mockClear()
+        vi.mocked(electronBridgeModule.electronBridge.activity.start).mockClear()
+
+        await act(async () => {
+          await result.current.stopTracking()
+        })
+
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.stop).toHaveBeenCalled()
+        })
+
+        // Start second session
+        await act(async () => {
+          await result.current.startTracking('task-second', 'Second Task')
+        })
+
+        await waitFor(() => {
+          expect(electronBridgeModule.electronBridge.activity.start).toHaveBeenCalledWith('task-second')
+        })
+      })
+    })
+
+    describe('in web context (AC3.4.3)', () => {
+      beforeEach(() => {
+        // Ensure web context (not Electron)
+        vi.mocked(platform.isElectron).mockReturnValue(false)
+      })
+
+      it('should NOT call activity.start when tracking starts in web', async () => {
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        await act(async () => {
+          await result.current.startTracking('web-task', 'Web Task')
+        })
+
+        // Give time for any async operations
+        await new Promise((resolve) => setTimeout(resolve, 50))
+
+        // Activity should never be called in web context
+        expect(electronBridgeModule.electronBridge.activity.start).not.toHaveBeenCalled()
+      })
+
+      it('should NOT call activity.stop when tracking stops in web', async () => {
+        const mockSession: ActiveSession = {
+          taskId: 'web-task-stop',
+          taskName: 'Web Stop Task',
+          startTime: new Date(Date.now() - 1000).toISOString(),
+        }
+        vi.mocked(timeTrackingDb.loadActiveSession).mockResolvedValue(mockSession)
+
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isTracking).toBe(true)
+        })
+
+        await act(async () => {
+          await result.current.stopTracking()
+        })
+
+        // Activity should never be called in web context
+        expect(electronBridgeModule.electronBridge.activity.start).not.toHaveBeenCalled()
+        expect(electronBridgeModule.electronBridge.activity.stop).not.toHaveBeenCalled()
+      })
+
+      it('should work identically to before in web - no errors (AC3.4.5)', async () => {
+        const { result } = renderHook(() => useTimeTracking())
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false)
+        })
+
+        // Start tracking
+        await act(async () => {
+          await result.current.startTracking('web-normal-task', 'Normal Web Task')
+        })
+
+        expect(result.current.isTracking).toBe(true)
+        expect(result.current.activeSession?.taskId).toBe('web-normal-task')
+
+        // Stop tracking
+        const entry = await act(async () => {
+          return await result.current.stopTracking()
+        })
+
+        expect(entry).not.toBeNull()
+        expect(result.current.isTracking).toBe(false)
+
+        // No activity calls made
+        expect(electronBridgeModule.electronBridge.activity.start).not.toHaveBeenCalled()
+        expect(electronBridgeModule.electronBridge.activity.stop).not.toHaveBeenCalled()
+      })
+
+      it('should NOT call activity when Electron opens with existing session in web', async () => {
+        const mockSession: ActiveSession = {
+          taskId: 'web-existing',
+          taskName: 'Web Existing Session',
+          startTime: '2026-01-10T10:00:00.000Z',
+        }
+        vi.mocked(timeTrackingDb.loadActiveSession).mockResolvedValue(mockSession)
+
+        renderHook(() => useTimeTracking())
+
+        // Give time for any async operations
+        await new Promise((resolve) => setTimeout(resolve, 50))
+
+        // No activity calls in web context
+        expect(electronBridgeModule.electronBridge.activity.start).not.toHaveBeenCalled()
+      })
     })
   })
 })

@@ -135,6 +135,9 @@ export const electronBridge = {
 
       try {
         // Query IndexedDB directly (renderer-side) per ADR-008
+        if (import.meta.env.DEV) {
+          console.time('[Today/IPC] activity:get-log query')
+        }
         const entries = await getActivityEntriesByTimeEntryId(timeEntryId)
 
         // Convert ActivityLogEntry to ActivityEntry format
@@ -148,6 +151,7 @@ export const electronBridge = {
         }))
 
         if (import.meta.env.DEV) {
+          console.timeEnd('[Today/IPC] activity:get-log query')
           console.log(
             `[Today] electronBridge: Retrieved ${activityEntries.length} entries for timeEntryId: ${timeEntryId}`
           )

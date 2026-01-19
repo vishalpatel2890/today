@@ -1,0 +1,121 @@
+<story-context id="bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Activity Log Retrieval</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-1-activity-log-retrieval.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system</asA>
+    <iWant>to retrieve activity logs for a specific time entry</iWant>
+    <soThat>users can view their activity history</soThat>
+    <tasks>
+      <task id="1" title="Implement activity:get-log IPC handler" acs="4.1.1, 4.1.6">
+        <subtask id="1.1">Open electron/ipc/handlers.ts and locate the activity:get-log handler stub</subtask>
+        <subtask id="1.2">Implement handler to receive timeEntryId parameter</subtask>
+        <subtask id="1.3">Return IPCResponse format: { success: true, data: ActivityEntry[] } or { success: false, error: string }</subtask>
+        <subtask id="1.4">Add try-catch error handling with proper error message formatting</subtask>
+      </task>
+      <task id="2" title="Query activity logs from IndexedDB" acs="4.1.2, 4.1.3, 4.1.4">
+        <subtask id="2.1">Use existing activityStore.getEntriesForTimeEntry(timeEntryId) from src/lib/activityStore.ts</subtask>
+        <subtask id="2.2">Ensure query uses the timeEntryId index for O(log n) performance</subtask>
+        <subtask id="2.3">Sort results by timestamp ascending (oldest first)</subtask>
+        <subtask id="2.4">Return empty array [] when no entries found (not an error)</subtask>
+        <subtask id="2.5">Verify each entry includes: id, timeEntryId, timestamp, appName, windowTitle</subtask>
+      </task>
+      <task id="3" title="Performance optimization" acs="4.1.5">
+        <subtask id="3.1">Verify Dexie index on timeEntryId exists (from Story 3.3)</subtask>
+        <subtask id="3.2">Use indexed query: db.activityLogs.where('timeEntryId').equals(id).sortBy('timestamp')</subtask>
+        <subtask id="3.3">Test query performance with ~1000 entries - should be less than 100ms</subtask>
+        <subtask id="3.4">Add dev-mode timing logs: console.time('[Electron/IPC] activity:get-log query')</subtask>
+      </task>
+      <task id="4" title="Write tests for getLog handler" acs="all">
+        <subtask id="4.1">Test: handler returns correct response format { success: true, data: [] }</subtask>
+        <subtask id="4.2">Test: handler returns entries sorted by timestamp ascending</subtask>
+        <subtask id="4.3">Test: handler returns empty array for non-existent timeEntryId</subtask>
+        <subtask id="4.4">Test: handler returns proper error format on database errors</subtask>
+        <subtask id="4.5">Ensure all existing tests still pass (baseline: 609 tests)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="4.1.1">Calling window.electronAPI.activity.getLog(timeEntryId) returns an array of ActivityEntry objects</ac>
+    <ac id="4.1.2">Entries are sorted chronologically (oldest timestamp first)</ac>
+    <ac id="4.1.3">Each entry includes: id, timeEntryId, timestamp, appName, windowTitle</ac>
+    <ac id="4.1.4">If no activity exists for the timeEntryId, an empty array is returned (not an error)</ac>
+    <ac id="4.1.5">Query completes in less than 100ms for sessions up to 8 hours (~1000 entries)</ac>
+    <ac id="4.1.6">Response follows IPCResponse pattern: { success: true, data: ActivityEntry[] }</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="notes/architecture-electron-migration.md" title="Electron Migration Architecture" section="ADR-007, ADR-008" snippet="IPC-only communication pattern; activity data stored in IndexedDB, keyed by timeEntryId; renderer owns Dexie database" />
+      <doc path="notes/sprint-artifacts/tech-spec-epic-4-electron.md" title="Epic 4 Tech Spec" section="AC1.1-1.6, Detailed Design" snippet="activity:get-log IPC handler returns ActivityEntry[]; query pattern uses Dexie indexed query; performance target less than 100ms" />
+      <doc path="notes/epics-electron-migration.md" title="Electron Migration Epics" section="Epic 4, Story 4.1" snippet="FR18 (Activity keyed to entry IDs), FR21 (Chronological display with timestamps)" />
+      <doc path="notes/prd-electron-migration.md" title="PRD" section="FR18-FR22" snippet="Activity logs stored locally in IndexedDB; activity data keyed to time entry IDs for retrieval; never synced to remote" />
+    </docs>
+    <code>
+      <file path="today-app/electron/ipc/handlers.ts" kind="ipc-handler" symbol="ACTIVITY_GET_LOG handler" lines="43-47" reason="Current stub implementation returns { success: true, data: [] }; needs real implementation to query IndexedDB" />
+      <file path="today-app/src/lib/activityStore.ts" kind="data-store" symbol="getActivityEntriesByTimeEntryId" lines="80-96" reason="EXISTING function that queries IndexedDB using compound index [timeEntryId+timestamp]; returns ActivityLogEntry[]; already handles empty results" />
+      <file path="today-app/src/lib/electronBridge.ts" kind="ipc-bridge" symbol="electronBridge.activity.getLog" lines="131-162" reason="EXISTING renderer-side implementation that queries IndexedDB directly and converts to ActivityEntry format; this is the actual implementation - IPC handler may just be a stub" />
+      <file path="today-app/src/lib/db.ts" kind="database" symbol="activityLogs table" lines="82-106" reason="Dexie database schema with activityLogs table; compound index [timeEntryId+timestamp] for ordered retrieval" />
+      <file path="today-app/electron/ipc/channels.ts" kind="constants" symbol="IPC_CHANNELS.ACTIVITY_GET_LOG" lines="18" reason="IPC channel constant 'activity:get-log'" />
+      <file path="today-app/electron/activity/types.ts" kind="types" symbol="ActivityEntry" lines="13-28" reason="ActivityEntry interface with id, timeEntryId, appName, windowTitle, timestamp fields" />
+      <file path="today-app/src/lib/platform.ts" kind="utility" symbol="isElectron" reason="Feature detection for conditional Electron functionality" />
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="electron" version="^39.2.7" dev="true" />
+        <dependency name="electron-vite" version="^5.0.0" dev="true" />
+        <dependency name="dexie" version="^4.2.1" />
+        <dependency name="vitest" version="^3.2.4" dev="true" />
+        <dependency name="@testing-library/react" version="^16.3.1" dev="true" />
+        <dependency name="fake-indexeddb" version="^6.2.5" dev="true" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">All IPC methods return IPCResponse shape { success, data?, error? } per ADR-007</constraint>
+    <constraint type="architecture">Activity data stored in IndexedDB (renderer process), never synced to Supabase (FR19)</constraint>
+    <constraint type="architecture">Main process handlers cannot access IndexedDB directly; existing electronBridge.activity.getLog already queries renderer-side Dexie</constraint>
+    <constraint type="performance">Query must complete in less than 100ms for 8-hour sessions (~1000 entries); use indexed queries</constraint>
+    <constraint type="testing">Maintain 609 test baseline; use Vitest with fake-indexeddb for database tests</constraint>
+    <constraint type="pattern">Error handling should be silent to user - activity failures should not break time tracking</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="activity:get-log" kind="IPC endpoint" signature="invoke('activity:get-log', timeEntryId: string) => IPCResponse&lt;ActivityEntry[]&gt;" path="today-app/electron/ipc/handlers.ts" />
+    <interface name="getActivityEntriesByTimeEntryId" kind="function" signature="(timeEntryId: string) => Promise&lt;ActivityLogEntry[]&gt;" path="today-app/src/lib/activityStore.ts" />
+    <interface name="electronBridge.activity.getLog" kind="bridge method" signature="(timeEntryId: string) => Promise&lt;IPCResponse&lt;ActivityEntry[]&gt;&gt;" path="today-app/src/lib/electronBridge.ts" />
+    <interface name="ActivityEntry" kind="type" signature="{ id: string, timeEntryId: string, appName: string, windowTitle: string, timestamp: string }" path="today-app/electron/activity/types.ts" />
+    <interface name="IPCResponse" kind="type" signature="{ success: boolean, data?: T, error?: string }" path="today-app/src/types/electron.d.ts" />
+  </interfaces>
+
+  <tests>
+    <standards>Tests use Vitest with @testing-library/react for component tests and fake-indexeddb for IndexedDB mocking. Test files are co-located with source files using .test.ts suffix. All IPC and database operations should be tested in isolation with proper mocking.</standards>
+    <locations>
+      <location>today-app/src/lib/*.test.ts</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="4.1.1">Test that window.electronAPI.activity.getLog returns { success: true, data: ActivityEntry[] }</idea>
+      <idea ac="4.1.2">Test that returned entries are sorted by timestamp ascending</idea>
+      <idea ac="4.1.3">Test that each entry has all required fields: id, timeEntryId, timestamp, appName, windowTitle</idea>
+      <idea ac="4.1.4">Test that non-existent timeEntryId returns { success: true, data: [] } not an error</idea>
+      <idea ac="4.1.5">Test query performance with large dataset (use console.time/timeEnd in dev mode)</idea>
+      <idea ac="4.1.6">Test error handling returns { success: false, error: message } on database errors</idea>
+    </ideas>
+  </tests>
+
+  <implementationNotes>
+    <note type="critical">IMPORTANT: The electronBridge.activity.getLog() at lines 131-162 ALREADY implements the full retrieval logic - it queries IndexedDB directly from the renderer. The IPC handler in handlers.ts (lines 43-47) is a stub that currently returns empty array. The actual implementation may just need to verify the bridge works correctly, OR the IPC handler stub can remain since the bridge bypasses it.</note>
+    <note type="clarification">Review whether the IPC handler needs a real implementation or if electronBridge.activity.getLog() already satisfies AC4.1.1 by querying IndexedDB directly from renderer.</note>
+    <note type="learnings">From Story 3.4: Uses electronBridge.activity.start/stop() for type-safe IPC calls; error handling is silent to user; test baseline is 609 tests.</note>
+  </implementationNotes>
+</story-context>

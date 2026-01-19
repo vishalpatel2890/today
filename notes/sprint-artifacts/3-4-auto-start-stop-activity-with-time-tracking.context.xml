@@ -1,0 +1,220 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Auto-Start/Stop Activity with Time Tracking</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/3-4-auto-start-stop-activity-with-time-tracking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>activity tracking to automatically start and stop with time tracking</iWant>
+    <soThat>I don't need to manually manage activity capture</soThat>
+    <tasks>
+      <task id="1" title="Add activity lifecycle hooks to useTimeTracking" ac="3.4.1, 3.4.2, 3.4.3">
+        <subtask>1.1: Identify where time entry start/stop occurs in useTimeTracking.ts</subtask>
+        <subtask>1.2: Add useEffect that calls electronAPI.activity.start(timeEntryId) when tracking starts</subtask>
+        <subtask>1.3: Add useEffect cleanup that calls electronAPI.activity.stop() when tracking stops</subtask>
+        <subtask>1.4: Wrap all activity calls with isElectron() guard to prevent errors in web</subtask>
+        <subtask>1.5: Handle the case where activeTimeEntry changes (stop old, start new if applicable)</subtask>
+      </task>
+      <task id="2" title="Handle app startup with existing active session" ac="3.4.4, 3.4.6">
+        <subtask>2.1: In useTimeTracking initialization, check if there's an active time entry on mount</subtask>
+        <subtask>2.2: If active entry exists and isElectron(), call electronAPI.activity.start(activeTimeEntry.id)</subtask>
+        <subtask>2.3: Ensure this only runs once on mount (use useEffect dependency array correctly)</subtask>
+        <subtask>2.4: Add logging for startup activity initialization</subtask>
+      </task>
+      <task id="3" title="Ensure web app remains unaffected" ac="3.4.3, 3.4.5">
+        <subtask>3.1: Run web app and verify no console errors related to activity</subtask>
+        <subtask>3.2: Verify window.electronAPI is undefined in web context</subtask>
+        <subtask>3.3: Ensure isElectron() returns false in web browser</subtask>
+        <subtask>3.4: Test time tracking start/stop in web - should work identically to before</subtask>
+      </task>
+      <task id="4" title="Add proper error handling for activity IPC calls" ac="3.4.1, 3.4.2">
+        <subtask>4.1: Wrap activity.start() call in try-catch, log errors but don't fail time tracking</subtask>
+        <subtask>4.2: Wrap activity.stop() call in try-catch, log errors but don't fail time entry save</subtask>
+        <subtask>4.3: Activity failures should be silent to user</subtask>
+        <subtask>4.4: Add dev-mode console warnings if activity operations fail</subtask>
+      </task>
+      <task id="5" title="Write tests for activity lifecycle integration" ac="all">
+        <subtask>5.1: Update useTimeTracking.test.ts with tests for activity integration</subtask>
+        <subtask>5.2: Test: starting tracking in Electron calls activity.start with correct timeEntryId</subtask>
+        <subtask>5.3: Test: stopping tracking in Electron calls activity.stop</subtask>
+        <subtask>5.4: Test: activity calls not made in web context (mock isElectron to return false)</subtask>
+        <subtask>5.5: Test: mount with active session triggers activity.start</subtask>
+        <subtask>5.6: Ensure all existing useTimeTracking tests still pass</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC3.4.1">When I click "Start" on a task to begin time tracking in Electron, activity capture begins automatically (no extra button click)</criterion>
+    <criterion id="AC3.4.2">When I click "Stop" on an active time tracking session in Electron, activity capture stops and data is saved automatically</criterion>
+    <criterion id="AC3.4.3">This automatic behavior only happens in Electron (web is unaffected - no errors, no activity calls)</criterion>
+    <criterion id="AC3.4.4">If I start tracking in web browser and later open Electron, activity capture starts from that point forward</criterion>
+    <criterion id="AC3.4.5">The existing time tracking UI is unchanged (no new buttons, same visual behavior)</criterion>
+    <criterion id="AC3.4.6">If Electron is opened with an existing active time entry, activity tracking starts automatically for that entry</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Integration Points</section>
+        <snippet>Time Tracking Hook integrates with Activity Tracker via IPC: activity:start, activity:stop. Uses isElectron() guard in JSX for conditional rendering.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Implementation Patterns - Feature Detection Pattern</section>
+        <snippet>All Electron-only UI MUST use isElectron() pattern: import from @/lib/platform, conditionally render desktop-only features.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>API Contracts - IPC Contracts</section>
+        <snippet>activity:start takes timeEntryId string, returns {success: true} or {success: false, error: string}. activity:stop returns {success: true, entriesRecorded: number}.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Today - Product Requirements Document (Electron Migration)</title>
+        <section>Functional Requirements - Activity Tracking - Capture</section>
+        <snippet>FR13: Activity capture starts automatically when user starts time tracking. FR14: Activity capture stops automatically when user stops time tracking.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 3.4: Auto-Start/Stop Activity with Time Tracking</section>
+        <snippet>Hook into existing useTimeTracking hook. Add effect that calls electronAPI.activity.start/stop when tracking state changes. Use isElectron() guard.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/3-3-activity-storage-in-indexeddb.md</path>
+        <title>Story 3.3: Activity Storage in IndexedDB</title>
+        <section>Completion Notes</section>
+        <snippet>Renderer-side persistence pattern used. electronBridge.stop() saves entries to IndexedDB. All 598 tests pass after 3.3.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeTracking</symbol>
+        <lines>1-206</lines>
+        <reason>Primary file to modify. Contains startTracking() and stopTracking() functions that need activity lifecycle integration.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/platform.ts</path>
+        <kind>utility</kind>
+        <symbol>isElectron</symbol>
+        <lines>29-42</lines>
+        <reason>Platform detection function to use for guarding activity calls in web context.</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/electronBridge.ts</path>
+        <kind>service</kind>
+        <symbol>electronBridge.activity</symbol>
+        <lines>39-209</lines>
+        <reason>Type-safe wrapper for activity IPC calls. Use electronBridge.activity.start() and electronBridge.activity.stop().</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/activityStore.ts</path>
+        <kind>store</kind>
+        <symbol>saveActivityEntries, getActivityEntriesByTimeEntryId</symbol>
+        <reason>Activity persistence layer. Called by electronBridge internally - no direct usage needed in this story.</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeTracking.test.ts</path>
+        <kind>test</kind>
+        <symbol>useTimeTracking tests</symbol>
+        <reason>Test file to extend with activity lifecycle integration tests.</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/electron.d.ts</path>
+        <kind>types</kind>
+        <symbol>IPCResponse, ActivityEntry, ActivityStopResponse</symbol>
+        <reason>TypeScript types for IPC responses and activity data structures.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="react" version="^19.2.0">UI framework - hooks system</package>
+        <package name="electron" version="^39.2.7">Desktop framework (dev dependency)</package>
+        <package name="electron-vite" version="^5.0.0">Build tooling for Electron</package>
+        <package name="vitest" version="^3.2.4">Test framework</package>
+        <package name="@testing-library/react" version="^16.3.1">React hook testing utilities</package>
+        <package name="dexie" version="^4.2.1">IndexedDB wrapper for activity storage</package>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">All activity IPC calls MUST be wrapped with isElectron() guard to prevent errors in web context</constraint>
+    <constraint type="pattern">Use electronBridge.activity.start/stop() not window.electronAPI directly - provides type safety and error handling</constraint>
+    <constraint type="pattern">Activity failures should be silent to user - time tracking is primary feature, activity is enhancement</constraint>
+    <constraint type="pattern">Error handling: wrap IPC calls in try-catch, log errors in dev mode, never throw or fail time tracking operations</constraint>
+    <constraint type="pattern">Maintain existing 598+ tests passing - no regressions allowed</constraint>
+    <constraint type="architecture">Per ADR-007: IPC communication only via contextBridge with contextIsolation: true</constraint>
+    <constraint type="architecture">Per ADR-008: Activity data stored in IndexedDB (renderer process), never synced to Supabase</constraint>
+    <constraint type="ui">No UI changes - activity tracking is invisible enhancement to existing time tracking flow</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>electronBridge.activity.start</name>
+      <kind>IPC function</kind>
+      <signature>start(timeEntryId: string): Promise&lt;IPCResponse&gt;</signature>
+      <path>today-app/src/lib/electronBridge.ts:55-60</path>
+    </interface>
+    <interface>
+      <name>electronBridge.activity.stop</name>
+      <kind>IPC function</kind>
+      <signature>stop(): Promise&lt;IPCResponse&lt;ActivityStopResponse&gt;&gt;</signature>
+      <path>today-app/src/lib/electronBridge.ts:80-106</path>
+    </interface>
+    <interface>
+      <name>isElectron</name>
+      <kind>utility function</kind>
+      <signature>isElectron(): boolean</signature>
+      <path>today-app/src/lib/platform.ts:29-42</path>
+    </interface>
+    <interface>
+      <name>useTimeTracking</name>
+      <kind>React hook</kind>
+      <signature>useTimeTracking(options?: UseTimeTrackingOptions): UseTimeTrackingReturn</signature>
+      <path>today-app/src/hooks/useTimeTracking.ts:59-205</path>
+    </interface>
+    <interface>
+      <name>ActiveSession</name>
+      <kind>type</kind>
+      <signature>{ taskId: string; taskName: string; startTime: string }</signature>
+      <path>today-app/src/types/timeTracking.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing uses Vitest with @testing-library/react for hook testing. Tests should mock external dependencies (timeTrackingDb, platform.ts).
+      Use vi.mock() for module mocking, renderHook() for testing hooks, act() for state updates, waitFor() for async assertions.
+      Pattern: Describe blocks for features, individual it() tests for specific behaviors. Mock isElectron() to test both Electron and web paths.
+    </standards>
+    <locations>
+      <location>today-app/src/hooks/useTimeTracking.test.ts</location>
+      <location>today-app/src/lib/platform.test.ts</location>
+      <location>today-app/src/lib/electronBridge.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="AC3.4.1">Test: when isElectron()=true and startTracking is called, electronBridge.activity.start is called with the new time entry ID</idea>
+      <idea ac="AC3.4.2">Test: when isElectron()=true and stopTracking is called, electronBridge.activity.stop is called before clearing session</idea>
+      <idea ac="AC3.4.3">Test: when isElectron()=false, activity.start/stop are never called regardless of tracking state changes</idea>
+      <idea ac="AC3.4.4">Test: mounting with existing activeSession when isElectron()=true triggers activity.start</idea>
+      <idea ac="AC3.4.5">Test: existing useTimeTracking behavior unchanged - all prior tests should still pass</idea>
+      <idea ac="AC3.4.6">Test: when hook mounts, checks for existing active session and starts activity tracking if present</idea>
+      <idea ac="error-handling">Test: activity.start failure does not prevent time tracking from starting</idea>
+      <idea ac="error-handling">Test: activity.stop failure does not prevent time entry from being saved</idea>
+    </ideas>
+  </tests>
+</story-context>
