@@ -396,26 +396,27 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
             </div>
 
             {/* Summary Cards Section */}
+            {/* Labels/sublabels adapt when date filter is active */}
             <div className="grid grid-cols-3 gap-3">
               {/* TOTAL card */}
               <InsightCard
                 label="Total"
                 value={isLoading ? '--' : formatDisplay(insights?.totalWeek ?? 0)}
-                sublabel="this week"
+                sublabel={datePreset || customRange ? 'in range' : 'this week'}
                 isLoading={isLoading}
               />
-              {/* TODAY card */}
+              {/* TODAY card - shows "Total" label when date filter active since values are same */}
               <InsightCard
-                label="Today"
+                label={datePreset || customRange ? 'Today' : 'Today'}
                 value={isLoading ? '--' : formatDisplay(insights?.totalToday ?? 0)}
-                sublabel="tracked"
+                sublabel={datePreset || customRange ? 'in range' : 'tracked'}
                 isLoading={isLoading}
               />
               {/* AVG / DAY card */}
               <InsightCard
                 label="Avg / Day"
                 value={isLoading ? '--' : formatDisplay(insights?.avgPerDay ?? 0)}
-                sublabel="this week"
+                sublabel={datePreset || customRange ? 'in range' : 'this week'}
                 isLoading={isLoading}
               />
             </div>
