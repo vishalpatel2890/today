@@ -61,7 +61,7 @@ development_status:
 
   # Epic 4: Activity Viewing & Export
   epic-4: contexted
-  4-1-activity-log-retrieval: in-progress
+  4-1-activity-log-retrieval: review
   4-2-activity-log-modal-ui: backlog
   4-3-activity-duration-summary: backlog
   4-4-activity-export-to-file: backlog

@@ -1,6 +1,6 @@
 # Story 4.1: Activity Log Retrieval
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -224,6 +224,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - **Test baseline maintained**: All 609 tests passing
 - **Added**: Performance timing logs in dev mode for AC4.1.5 verification
 - **Architecture note**: Per ADR-008, IndexedDB runs in renderer; main process IPC handler is stub; bridge queries Dexie directly
+- ✅ Test Gate PASSED by Vishal (2026-01-18)
 
 ### File List
 
@@ -246,3 +247,4 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 |------|--------|--------|
 | 2026-01-18 | Story drafted from epics, tech spec, and architecture | SM Agent |
 | 2026-01-18 | Verified implementation from Story 3.3 satisfies all ACs; added performance timing logs | Dev Agent |
+| 2026-01-18 | Test Gate PASSED; story marked for review | Dev Agent |
