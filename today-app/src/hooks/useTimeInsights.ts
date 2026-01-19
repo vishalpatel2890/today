@@ -212,26 +212,42 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
       })
     }
 
-    // Filter entries for today (from filtered base if filter active)
-    const todayEntries = baseEntries.filter((e) => e.date === today)
+    // Determine if a date filter is active
+    // When date filter active, summary cards should show totals for the filtered range
+    // Source: notes/tech-spec-time-insights-filter-bug.md
+    const hasDateFilter = dateRange !== null
 
-    // Filter entries for this week (from Sunday to today) (from filtered base if filter active)
-    const weekEntries = baseEntries.filter((e) => e.date >= weekStart && e.date <= today)
+    // Summary calculations - use filtered entries when date filter active
+    let totalToday: number
+    let totalWeek: number
+    let entriesForAvg: TimeEntry[]
 
-    // Calculate totalToday
-    const totalToday = todayEntries.reduce((sum, e) => sum + e.duration, 0)
+    if (hasDateFilter) {
+      // Date filter active: all summaries use filtered baseEntries
+      // This ensures TOTAL, TODAY, and AVG/DAY reflect the user's selected date range
+      const filteredTotal = baseEntries.reduce((sum, e) => sum + e.duration, 0)
+      totalToday = filteredTotal
+      totalWeek = filteredTotal
+      entriesForAvg = baseEntries
+    } else {
+      // No date filter: use original today/week logic
+      const todayEntries = baseEntries.filter((e) => e.date === today)
+      const weekEntries = baseEntries.filter((e) => e.date >= weekStart && e.date <= today)
+      totalToday = todayEntries.reduce((sum, e) => sum + e.duration, 0)
+      totalWeek = weekEntries.reduce((sum, e) => sum + e.duration, 0)
+      entriesForAvg = weekEntries
+    }
 
-    // Calculate totalWeek
-    const totalWeek = weekEntries.reduce((sum, e) => sum + e.duration, 0)
-
-    // Calculate avgPerDay: totalWeek / distinct days with entries
-    const daysWithEntries = new Set(weekEntries.map((e) => e.date))
+    // Calculate avgPerDay using appropriate entries based on filter state
+    const daysWithEntries = new Set(entriesForAvg.map((e) => e.date))
     const numDays = daysWithEntries.size
     const avgPerDay = numDays > 0 ? Math.floor(totalWeek / numDays) : 0
 
     // Build byTask: group by task_id, aggregate duration
     // When filter is active, use all filtered entries; otherwise use today's entries
-    const entriesForTaskBreakdown = dateRange ? baseEntries : todayEntries
+    const entriesForTaskBreakdown = hasDateFilter
+      ? baseEntries
+      : baseEntries.filter((e) => e.date === today)
     const taskMap = new Map<string, { taskId: string | null; taskName: string; duration: number }>()
     for (const entry of entriesForTaskBreakdown) {
       // Use task_id as key, but fallback to task_name for null task_id (deleted tasks)
@@ -250,9 +266,10 @@ export function useTimeInsights(userId: string | null, filters?: InsightFilters)
     // Sort by duration descending
     const byTask = Array.from(taskMap.values()).sort((a, b) => b.duration - a.duration)
 
-    // Build byDate for the week: group by date, aggregate duration
+    // Build byDate for the week (or filtered range): group by date, aggregate duration
+    // Uses entriesForAvg which respects active date filter
     const dateMap = new Map<string, number>()
-    for (const entry of weekEntries) {
+    for (const entry of entriesForAvg) {
       dateMap.set(entry.date, (dateMap.get(entry.date) ?? 0) + entry.duration)
     }
     // Sort by date ascending

@@ -1090,4 +1090,226 @@ describe('useTimeInsights', () => {
       expect(result.current.entries).toHaveLength(2)
     })
   })
+
+  describe('summary calculations with date filters (filter bug fix)', () => {
+    it('should calculate totalWeek from ALL filtered entries when custom date range active', async () => {
+      // Setup: entries spanning multiple weeks (some outside current week)
+      const today = new Date()
+      const twoWeeksAgo = subDays(today, 14)
+      const oneWeekAgo = subDays(today, 7)
+      const todayStr = format(today, 'yyyy-MM-dd')
+      const twoWeeksAgoStr = format(twoWeeksAgo, 'yyyy-MM-dd')
+      const oneWeekAgoStr = format(oneWeekAgo, 'yyyy-MM-dd')
+
+      // Entry from 2 weeks ago (outside current week)
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Old Entry',
+          duration: 3600000, // 1 hour
+          date: twoWeeksAgoStr,
+          start_time: twoWeeksAgo.toISOString(),
+          end_time: twoWeeksAgo.toISOString(),
+        })
+      )
+      // Entry from 1 week ago
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Mid Entry',
+          duration: 7200000, // 2 hours
+          date: oneWeekAgoStr,
+          start_time: oneWeekAgo.toISOString(),
+          end_time: oneWeekAgo.toISOString(),
+        })
+      )
+      // Entry from today
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Today Entry',
+          duration: 1800000, // 30 min
+          date: todayStr,
+          start_time: today.toISOString(),
+          end_time: today.toISOString(),
+        })
+      )
+
+      // Apply custom date range covering all 3 entries
+      const customRange = {
+        start: twoWeeksAgo,
+        end: today,
+      }
+
+      const { result } = renderHook(() => useTimeInsights('local', { customRange }))
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      // BUG FIX: totalWeek should include ALL filtered entries (1h + 2h + 30m = 12,600,000ms)
+      // Before fix: would only show current week entries
+      expect(result.current.insights?.totalWeek).toBe(3600000 + 7200000 + 1800000)
+    })
+
+    it('should calculate totalToday same as totalWeek when date filter active', async () => {
+      const today = new Date()
+      const yesterday = subDays(today, 1)
+      const todayStr = format(today, 'yyyy-MM-dd')
+      const yesterdayStr = format(yesterday, 'yyyy-MM-dd')
+
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Yesterday Entry',
+          duration: 3600000,
+          date: yesterdayStr,
+          start_time: yesterday.toISOString(),
+          end_time: yesterday.toISOString(),
+        })
+      )
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Today Entry',
+          duration: 1800000,
+          date: todayStr,
+          start_time: today.toISOString(),
+          end_time: today.toISOString(),
+        })
+      )
+
+      // Apply date preset covering yesterday and today
+      const { result } = renderHook(() => useTimeInsights('local', { datePreset: 'week' }))
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      // When date filter active, totalToday should equal totalWeek (both show filtered total)
+      expect(result.current.insights?.totalToday).toBe(result.current.insights?.totalWeek)
+    })
+
+    it('should preserve original today/week logic when only category filter active (no date filter)', async () => {
+      const today = new Date()
+      const twoWeeksAgo = subDays(today, 14)
+      const todayStr = format(today, 'yyyy-MM-dd')
+      const twoWeeksAgoStr = format(twoWeeksAgo, 'yyyy-MM-dd')
+
+      // Entry from 2 weeks ago (outside current week) - category: Work
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Old Work Entry',
+          duration: 3600000, // 1 hour
+          date: twoWeeksAgoStr,
+          start_time: twoWeeksAgo.toISOString(),
+          end_time: twoWeeksAgo.toISOString(),
+        })
+      )
+      // Entry from today - category: Work
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Today Work Entry',
+          duration: 1800000, // 30 min
+          date: todayStr,
+          start_time: today.toISOString(),
+          end_time: today.toISOString(),
+        })
+      )
+
+      const taskCategories = new Map<string, string | null>([
+        ['task-1', 'Work'],
+      ])
+
+      // Apply ONLY category filter (no date filter)
+      const { result } = renderHook(() => useTimeInsights('local', { category: 'Work', taskCategories }))
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      // Without date filter, should use original logic:
+      // - totalToday = only today's entries (30 min)
+      // - totalWeek = only this week's entries (30 min, since 2 weeks ago is outside)
+      expect(result.current.insights?.totalToday).toBe(1800000)
+      expect(result.current.insights?.totalWeek).toBe(1800000)
+      // Old entry from 2 weeks ago should NOT be included in totalWeek
+    })
+
+    it('should calculate avgPerDay correctly with date filter across multiple days', async () => {
+      const today = new Date()
+      const day1 = subDays(today, 10)
+      const day2 = subDays(today, 8)
+      const day3 = subDays(today, 6)
+      const day4 = subDays(today, 4)
+      const day5 = today
+
+      // Add entries on 5 distinct days, total 10 hours
+      const entries = [
+        { date: day1, duration: 7200000 },  // 2h
+        { date: day2, duration: 7200000 },  // 2h
+        { date: day3, duration: 7200000 },  // 2h
+        { date: day4, duration: 7200000 },  // 2h
+        { date: day5, duration: 7200000 },  // 2h
+      ]
+
+      for (const entry of entries) {
+        await timeTrackingDb.timeEntries.add(
+          createEntry({
+            task_id: 'task-1',
+            task_name: 'Test Entry',
+            duration: entry.duration,
+            date: format(entry.date, 'yyyy-MM-dd'),
+            start_time: entry.date.toISOString(),
+            end_time: entry.date.toISOString(),
+          })
+        )
+      }
+
+      // Apply custom date range covering all 5 days
+      const customRange = {
+        start: day1,
+        end: day5,
+      }
+
+      const { result } = renderHook(() => useTimeInsights('local', { customRange }))
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      // Total: 10 hours (36,000,000ms), 5 days
+      // avgPerDay = 36,000,000 / 5 = 7,200,000ms (2 hours)
+      expect(result.current.insights?.totalWeek).toBe(36000000)
+      expect(result.current.insights?.avgPerDay).toBe(7200000)
+    })
+
+    it('should show 0 for all summary values when filter results in empty set', async () => {
+      const today = format(new Date(), 'yyyy-MM-dd')
+
+      // Add entry with task-1
+      await timeTrackingDb.timeEntries.add(
+        createEntry({
+          task_id: 'task-1',
+          task_name: 'Test Entry',
+          duration: 3600000,
+          date: today,
+        })
+      )
+
+      // Filter by task-2 which has no entries
+      const { result } = renderHook(() => useTimeInsights('local', { taskIds: ['task-2'] }))
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      // All values should be 0
+      expect(result.current.insights?.totalToday).toBe(0)
+      expect(result.current.insights?.totalWeek).toBe(0)
+      expect(result.current.insights?.avgPerDay).toBe(0)
+    })
+  })
 })
