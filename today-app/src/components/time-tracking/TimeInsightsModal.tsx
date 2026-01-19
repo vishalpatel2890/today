@@ -396,22 +396,33 @@ export const TimeInsightsModal = ({ isOpen, onClose, userId, tasks = [] }: TimeI
             </div>
 
             {/* Summary Cards Section */}
-            {/* Labels/sublabels adapt when date filter is active */}
+            {/* Cards adapt based on whether a date filter is active:
+                - No filter: TOTAL (week), TODAY, AVG/DAY (week)
+                - Date filter: TOTAL (range), DAYS (count), AVG/DAY (range) */}
             <div className="grid grid-cols-3 gap-3">
-              {/* TOTAL card */}
+              {/* TOTAL card - always shows total for current context */}
               <InsightCard
                 label="Total"
                 value={isLoading ? '--' : formatDisplay(insights?.totalWeek ?? 0)}
                 sublabel={datePreset || customRange ? 'in range' : 'this week'}
                 isLoading={isLoading}
               />
-              {/* TODAY card - shows "Total" label when date filter active since values are same */}
-              <InsightCard
-                label={datePreset || customRange ? 'Today' : 'Today'}
-                value={isLoading ? '--' : formatDisplay(insights?.totalToday ?? 0)}
-                sublabel={datePreset || customRange ? 'in range' : 'tracked'}
-                isLoading={isLoading}
-              />
+              {/* Middle card: TODAY (no filter) or DAYS (with filter) */}
+              {datePreset || customRange ? (
+                <InsightCard
+                  label="Days"
+                  value={isLoading ? '--' : String(insights?.byDate.length ?? 0)}
+                  sublabel="tracked"
+                  isLoading={isLoading}
+                />
+              ) : (
+                <InsightCard
+                  label="Today"
+                  value={isLoading ? '--' : formatDisplay(insights?.totalToday ?? 0)}
+                  sublabel="tracked"
+                  isLoading={isLoading}
+                />
+              )}
               {/* AVG / DAY card */}
               <InsightCard
                 label="Avg / Day"
