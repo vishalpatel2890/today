@@ -39,12 +39,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke(IPC_CHANNELS.ACTIVITY_GET_LOG, timeEntryId),
 
     /**
-     * Export activity log to file
-     * @param timeEntryId - The ID of the time entry
-     * @param format - Export format ('json' or 'csv')
+     * Export activity log to file (Story 4.4)
+     * @param request - Export request with entries, format, and taskName
+     * @param request.entries - Activity entries to export (from renderer's IndexedDB query)
+     * @param request.format - Export format ('json' or 'csv')
+     * @param request.taskName - Task name for default filename
      */
-    export: (timeEntryId: string, format: 'json' | 'csv') =>
-      ipcRenderer.invoke(IPC_CHANNELS.ACTIVITY_EXPORT, timeEntryId, format),
+    export: (request: {
+      entries: Array<{
+        id: string
+        timeEntryId: string
+        timestamp: string
+        appName: string
+        windowTitle: string
+        durationMs: number
+      }>
+      format: 'json' | 'csv'
+      taskName: string
+    }) => ipcRenderer.invoke(IPC_CHANNELS.ACTIVITY_EXPORT, request),
 
     /**
      * Get current activity (for testing/debugging)

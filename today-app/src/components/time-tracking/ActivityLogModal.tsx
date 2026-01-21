@@ -1,9 +1,13 @@
+import { useState, useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Activity } from 'lucide-react'
+import { X, Activity, Download } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { useActivityLog } from '../../hooks/useActivityLog'
 import { ActivityLogList } from './ActivityLogList'
 import { ActivitySummary } from './ActivitySummary'
+import { electronBridge } from '../../lib/electronBridge'
+import { isElectron } from '../../lib/platform'
+import { useToast } from '../../contexts/ToastContext'
 
 /**
  * Props for ActivityLogModal component
@@ -56,9 +60,11 @@ function formatSessionRange(startTime: string, endTime: string): string {
  * - Scrollable list for long sessions (AC4.2.6)
  * - Close via X, Escape, or backdrop click (AC4.2.7)
  * - Empty state when no activity recorded (AC4.2.9)
+ * - Export to JSON/CSV with native file dialog (AC4.4.1-4.4.6) [Story 4.4]
  *
  * Source: notes/sprint-artifacts/4-2-activity-log-modal-ui.md#Task-2
  * Source: notes/architecture-electron-migration.md#Activity-Viewing
+ * Source: notes/sprint-artifacts/4-4-activity-export-to-file.md [Story 4.4]
  */
 export const ActivityLogModal = ({
   isOpen,
@@ -70,9 +76,56 @@ export const ActivityLogModal = ({
 }: ActivityLogModalProps) => {
   // Fetch activity entries with duration calculations and summary
   const { entries, summary, totalDurationFormatted, isLoading, error } = useActivityLog(timeEntryId, endTime)
+  const { addToast } = useToast()
+  const [isExporting, setIsExporting] = useState(false)
 
   // Format header subtitle
   const sessionRange = formatSessionRange(startTime, endTime)
+
+  /**
+   * Handle export to JSON or CSV (Story 4.4)
+   * AC4.4.1: Opens native file save dialog
+   * AC4.4.2/AC4.4.3: Saves JSON or CSV file
+   * AC4.4.5: Shows success toast
+   * AC4.4.6: Shows error toast on failure
+   */
+  const handleExport = useCallback(
+    async (format: 'json' | 'csv') => {
+      if (entries.length === 0 || isExporting) return
+
+      setIsExporting(true)
+      try {
+        const result = await electronBridge.activity.export({
+          entries: entries.map((e) => ({
+            id: e.id,
+            timeEntryId: e.timeEntryId,
+            timestamp: e.timestamp,
+            appName: e.appName,
+            windowTitle: e.windowTitle,
+            durationMs: e.durationMs,
+          })),
+          format,
+          taskName,
+        })
+
+        if (result.success) {
+          addToast('Activity exported successfully', { type: 'success' })
+        } else if (result.error !== 'Export cancelled') {
+          // Don't show error toast for user cancellation
+          addToast(result.error || 'Failed to export activity', { type: 'error' })
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to export activity'
+        addToast(message, { type: 'error' })
+      } finally {
+        setIsExporting(false)
+      }
+    },
+    [entries, taskName, addToast, isExporting]
+  )
+
+  // Check if export is available (Electron only and has entries)
+  const canExport = isElectron() && entries.length > 0 && !isLoading && !error
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -147,6 +200,39 @@ export const ActivityLogModal = ({
               </>
             )}
           </div>
+
+          {/* Footer with Export Buttons (Story 4.4: AC4.4.1) */}
+          {canExport && (
+            <div className="flex-shrink-0 pt-4 mt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleExport('json')}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-foreground bg-surface-muted hover:bg-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Export as JSON"
+                  >
+                    <Download className="h-4 w-4" />
+                    JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExport('csv')}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-foreground bg-surface-muted hover:bg-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Export as CSV"
+                  >
+                    <Download className="h-4 w-4" />
+                    CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

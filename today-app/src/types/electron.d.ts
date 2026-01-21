@@ -29,6 +29,23 @@ export interface ActivityEntry {
 }
 
 /**
+ * Activity entry with duration for export (Story 4.4)
+ * Includes durationMs calculated by renderer
+ */
+export interface ActivityEntryForExport extends ActivityEntry {
+  durationMs: number
+}
+
+/**
+ * Export request payload for activity:export IPC (Story 4.4)
+ */
+export interface ActivityExportRequest {
+  entries: ActivityEntryForExport[]
+  format: 'json' | 'csv'
+  taskName: string
+}
+
+/**
  * Current activity snapshot (for getCurrent)
  */
 export interface CurrentActivity {
@@ -55,7 +72,8 @@ export interface ElectronActivityAPI {
   /** Stop tracking and return captured entries for persistence (Story 3.3) */
   stop: () => Promise<IPCResponse<ActivityStopResponse>>
   getLog: (timeEntryId: string) => Promise<IPCResponse<ActivityEntry[]>>
-  export: (timeEntryId: string, format: 'json' | 'csv') => Promise<IPCResponse<{ filePath: string }>>
+  /** Export activity entries to file (Story 4.4) - entries passed from renderer since main can't access IndexedDB */
+  export: (request: ActivityExportRequest) => Promise<IPCResponse<{ filePath: string }>>
   getCurrent: () => Promise<IPCResponse<CurrentActivity>>
 }
 

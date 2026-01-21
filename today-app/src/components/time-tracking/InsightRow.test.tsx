@@ -2,11 +2,27 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { InsightRow } from './InsightRow'
 import type { TimeEntry } from '../../types/timeTracking'
+import { ToastProvider } from '../../contexts/ToastContext'
 
 // Mock the platform module for Electron detection tests
 vi.mock('../../lib/platform', () => ({
   isElectron: vi.fn(() => false), // Default to browser (non-Electron)
 }))
+
+// Mock the electronBridge module
+vi.mock('../../lib/electronBridge', () => ({
+  electronBridge: {
+    activity: {
+      getLog: vi.fn().mockResolvedValue({ success: true, data: [] }),
+      export: vi.fn().mockResolvedValue({ success: true, data: { filePath: '/test' } }),
+    },
+  },
+}))
+
+// Wrapper component to provide required context
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 describe('InsightRow', () => {
   // Use a fixed local date for consistent testing
@@ -256,7 +272,7 @@ describe('InsightRow', () => {
       const entry = createEntry({
         end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
       })
-      render(<InsightRow entry={entry} />)
+      renderWithProviders(<InsightRow entry={entry} />)
 
       expect(screen.queryByRole('button', { name: 'View Activity' })).toBeNull()
     })
@@ -268,7 +284,7 @@ describe('InsightRow', () => {
       const entry = createEntry({
         end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
       })
-      render(<InsightRow entry={entry} />)
+      renderWithProviders(<InsightRow entry={entry} />)
 
       // Use hidden: true because the button is inside aria-hidden container (swipe actions hidden by default)
       expect(screen.getByRole('button', { name: 'View Activity', hidden: true })).toBeTruthy()
@@ -281,7 +297,7 @@ describe('InsightRow', () => {
       const entry = createEntry({
         end_time: '', // Entry without end_time (incomplete)
       })
-      render(<InsightRow entry={entry} />)
+      renderWithProviders(<InsightRow entry={entry} />)
 
       expect(screen.queryByRole('button', { name: 'View Activity' })).toBeNull()
     })
@@ -293,7 +309,7 @@ describe('InsightRow', () => {
       const entry = createEntry({
         end_time: toISOLocal(2026, 0, 10, 15, 0), // Completed entry
       })
-      render(<InsightRow entry={entry} />)
+      renderWithProviders(<InsightRow entry={entry} />)
 
       const listitem = screen.getByRole('listitem')
       // Action area is the first child div with absolute positioning
@@ -308,7 +324,7 @@ describe('InsightRow', () => {
       const entry = createEntry({
         end_time: toISOLocal(2026, 0, 10, 15, 0),
       })
-      render(<InsightRow entry={entry} />)
+      renderWithProviders(<InsightRow entry={entry} />)
 
       const listitem = screen.getByRole('listitem')
       const actionArea = listitem.firstElementChild as HTMLElement

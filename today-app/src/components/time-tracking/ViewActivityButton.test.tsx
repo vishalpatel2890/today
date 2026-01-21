@@ -1,15 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ViewActivityButton } from './ViewActivityButton'
+import { ToastProvider } from '../../contexts/ToastContext'
 
 // Mock the electronBridge module
 vi.mock('../../lib/electronBridge', () => ({
   electronBridge: {
     activity: {
       getLog: vi.fn().mockResolvedValue({ success: true, data: [] }),
+      export: vi.fn().mockResolvedValue({ success: true, data: { filePath: '/test' } }),
     },
   },
 }))
+
+// Mock the platform module
+vi.mock('../../lib/platform', () => ({
+  isElectron: vi.fn().mockReturnValue(false),
+}))
+
+// Wrapper component to provide required context
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 describe('ViewActivityButton', () => {
   const defaultProps = {
@@ -24,7 +36,7 @@ describe('ViewActivityButton', () => {
   })
 
   it('renders with correct aria-label and title', () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     expect(button).toBeInTheDocument()
@@ -32,14 +44,14 @@ describe('ViewActivityButton', () => {
   })
 
   it('renders with correct styling classes', () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     expect(button).toHaveClass('flex-1', 'h-full', 'bg-blue-500', 'text-white')
   })
 
   it('opens modal on click (AC4.2.1)', async () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     fireEvent.click(button)
@@ -53,7 +65,7 @@ describe('ViewActivityButton', () => {
   it('stops event propagation on click', () => {
     const parentClickHandler = vi.fn()
 
-    render(
+    renderWithProviders(
       <div onClick={parentClickHandler}>
         <ViewActivityButton {...defaultProps} />
       </div>
@@ -66,21 +78,21 @@ describe('ViewActivityButton', () => {
   })
 
   it('renders with tabIndex 0 by default', () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     expect(button).toHaveAttribute('tabIndex', '0')
   })
 
   it('renders with custom tabIndex when provided', () => {
-    render(<ViewActivityButton {...defaultProps} tabIndex={-1} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} tabIndex={-1} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     expect(button).toHaveAttribute('tabIndex', '-1')
   })
 
   it('renders Activity icon', () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     // lucide-react Activity icon renders as SVG
@@ -90,7 +102,7 @@ describe('ViewActivityButton', () => {
   })
 
   it('displays formatted date and time range in modal header (AC4.2.2)', async () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     fireEvent.click(button)
@@ -104,7 +116,7 @@ describe('ViewActivityButton', () => {
   })
 
   it('modal can be closed via X button (AC4.2.7)', async () => {
-    render(<ViewActivityButton {...defaultProps} />)
+    renderWithProviders(<ViewActivityButton {...defaultProps} />)
 
     const button = screen.getByRole('button', { name: 'View Activity' })
     fireEvent.click(button)

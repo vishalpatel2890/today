@@ -64,5 +64,5 @@ development_status:
   4-1-activity-log-retrieval: done
   4-2-activity-log-modal-ui: done
   4-3-activity-duration-summary: done
-  4-4-activity-export-to-file: ready-for-dev
+  4-4-activity-export-to-file: done
   epic-4-retrospective: optional

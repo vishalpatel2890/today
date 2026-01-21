@@ -61,7 +61,11 @@ describe('electronBridge', () => {
     })
 
     it('activity.export returns error', async () => {
-      const result = await electronBridge.activity.export('test-id', 'json')
+      const result = await electronBridge.activity.export({
+        entries: [],
+        format: 'json',
+        taskName: 'Test Task',
+      })
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('Not in Electron')
@@ -187,13 +191,28 @@ describe('electronBridge', () => {
       expect(result.data).toEqual([])
     })
 
-    it('activity.export calls window.electronAPI.activity.export with format', async () => {
+    it('activity.export calls window.electronAPI.activity.export with request object', async () => {
       const expectedResponse = { success: true, data: { filePath: '/path/to/export.csv' } }
       mockElectronAPI.activity.export.mockResolvedValue(expectedResponse)
 
-      const result = await electronBridge.activity.export('entry-123', 'csv')
+      const exportRequest = {
+        entries: [
+          {
+            id: '1',
+            timeEntryId: 'entry-123',
+            timestamp: '2026-01-20T09:00:00Z',
+            appName: 'VS Code',
+            windowTitle: 'index.ts',
+            durationMs: 300000,
+          },
+        ],
+        format: 'csv' as const,
+        taskName: 'Fix login bug',
+      }
 
-      expect(mockElectronAPI.activity.export).toHaveBeenCalledWith('entry-123', 'csv')
+      const result = await electronBridge.activity.export(exportRequest)
+
+      expect(mockElectronAPI.activity.export).toHaveBeenCalledWith(exportRequest)
       expect(result).toEqual(expectedResponse)
     })
 
@@ -201,9 +220,24 @@ describe('electronBridge', () => {
       const expectedResponse = { success: true, data: { filePath: '/path/to/export.json' } }
       mockElectronAPI.activity.export.mockResolvedValue(expectedResponse)
 
-      const result = await electronBridge.activity.export('entry-123', 'json')
+      const exportRequest = {
+        entries: [
+          {
+            id: '1',
+            timeEntryId: 'entry-123',
+            timestamp: '2026-01-20T09:00:00Z',
+            appName: 'VS Code',
+            windowTitle: 'index.ts',
+            durationMs: 300000,
+          },
+        ],
+        format: 'json' as const,
+        taskName: 'Fix login bug',
+      }
 
-      expect(mockElectronAPI.activity.export).toHaveBeenCalledWith('entry-123', 'json')
+      const result = await electronBridge.activity.export(exportRequest)
+
+      expect(mockElectronAPI.activity.export).toHaveBeenCalledWith(exportRequest)
       expect(result).toEqual(expectedResponse)
     })
   })

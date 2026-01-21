@@ -1,6 +1,6 @@
 # Story 4.4: Activity Export to File
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -65,39 +65,39 @@ so that **I can keep records or analyze data externally**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Implement activity:export IPC handler in main process** (AC: 4.4.1, 4.4.2, 4.4.3, 4.4.4)
-  - [ ] 1.1: Add `ACTIVITY_EXPORT` channel to `electron/ipc/channels.ts`
-  - [ ] 1.2: Create export handler in `electron/ipc/handlers.ts` that accepts `{ timeEntryId, format, taskName }`
-  - [ ] 1.3: Use `dialog.showSaveDialog()` with appropriate filters for format
-  - [ ] 1.4: Generate default filename: `activity-${sanitizedTaskName}-${date}.${format}`
-  - [ ] 1.5: Fetch activity data from IndexedDB via renderer IPC call
-  - [ ] 1.6: For JSON: Use `JSON.stringify(entries, null, 2)` for pretty-printed output
-  - [ ] 1.7: For CSV: Generate with headers `timestamp,app_name,window_title,duration_seconds`, escape commas in window titles
-  - [ ] 1.8: Write file using `fs.writeFile`
-  - [ ] 1.9: Return `{ success: true, filePath }` or `{ success: false, error }`
+- [x] **Task 1: Implement activity:export IPC handler in main process** (AC: 4.4.1, 4.4.2, 4.4.3, 4.4.4)
+  - [x] 1.1: Add `ACTIVITY_EXPORT` channel to `electron/ipc/channels.ts`
+  - [x] 1.2: Create export handler in `electron/ipc/handlers.ts` that accepts `{ entries, format, taskName }` (modified from original spec - entries passed from renderer since main can't access IndexedDB)
+  - [x] 1.3: Use `dialog.showSaveDialog()` with appropriate filters for format
+  - [x] 1.4: Generate default filename: `activity-${sanitizedTaskName}-${date}.${format}`
+  - [x] 1.5: N/A - Activity data passed from renderer (IndexedDB is renderer-only)
+  - [x] 1.6: For JSON: Use `JSON.stringify(entries, null, 2)` for pretty-printed output
+  - [x] 1.7: For CSV: Generate with headers `timestamp,app_name,window_title,duration_seconds`, escape commas in window titles per RFC 4180
+  - [x] 1.8: Write file using `fs.writeFile`
+  - [x] 1.9: Return `{ success: true, filePath }` or `{ success: false, error }`
 
-- [ ] **Task 2: Update preload script with export method** (AC: 4.4.1)
-  - [ ] 2.1: Add `export` method to `window.electronAPI.activity` in `electron/preload.ts`
-  - [ ] 2.2: Update `src/types/electron.d.ts` with export method signature
-  - [ ] 2.3: Update `src/lib/electronBridge.ts` with typed wrapper for export
+- [x] **Task 2: Update preload script with export method** (AC: 4.4.1)
+  - [x] 2.1: Add `export` method to `window.electronAPI.activity` in `electron/preload.ts`
+  - [x] 2.2: Update `src/types/electron.d.ts` with export method signature (new ActivityExportRequest interface)
+  - [x] 2.3: Update `src/lib/electronBridge.ts` with typed wrapper for export
 
-- [ ] **Task 3: Create Export UI in Activity Log Modal** (AC: 4.4.1, 4.4.5, 4.4.6)
-  - [ ] 3.1: Add export button/dropdown to `ActivityLogModal.tsx` footer
-  - [ ] 3.2: Create format selection UI (JSON/CSV buttons or dropdown)
-  - [ ] 3.3: Style consistently with existing modal patterns (Tailwind, Radix)
-  - [ ] 3.4: Wire up click handler to call `window.electronAPI.activity.export()`
-  - [ ] 3.5: Pass timeEntryId, format, and taskName to export function
-  - [ ] 3.6: Show success toast on successful export
-  - [ ] 3.7: Show error toast on export failure with error message
+- [x] **Task 3: Create Export UI in Activity Log Modal** (AC: 4.4.1, 4.4.5, 4.4.6)
+  - [x] 3.1: Add export buttons to `ActivityLogModal.tsx` footer (JSON and CSV side by side)
+  - [x] 3.2: Create format selection UI (separate JSON/CSV buttons with icons)
+  - [x] 3.3: Style consistently with existing modal patterns (Tailwind)
+  - [x] 3.4: Wire up click handler to call `electronBridge.activity.export()`
+  - [x] 3.5: Pass entries array, format, and taskName to export function
+  - [x] 3.6: Show success toast on successful export
+  - [x] 3.7: Show error toast on export failure with error message (except for cancelled)
 
-- [ ] **Task 4: Write tests** (AC: all)
-  - [ ] 4.1: Unit test: CSV generation escapes commas in window titles
-  - [ ] 4.2: Unit test: CSV generation formats duration_seconds correctly
-  - [ ] 4.3: Unit test: JSON export includes all activity entry fields
-  - [ ] 4.4: Unit test: Filename sanitization removes invalid characters
-  - [ ] 4.5: Component test: Export button renders in modal footer
-  - [ ] 4.6: Component test: Export dropdown shows JSON and CSV options
-  - [ ] 4.7: Ensure all existing tests pass (baseline: 650 tests)
+- [x] **Task 4: Write tests** (AC: all)
+  - [x] 4.1: Unit test: CSV generation escapes commas in window titles
+  - [x] 4.2: Unit test: CSV generation formats duration_seconds correctly
+  - [x] 4.3: Unit test: JSON export includes all activity entry fields
+  - [x] 4.4: Unit test: Filename sanitization removes invalid characters
+  - [x] 4.5: Component test: Export button renders in modal footer
+  - [x] 4.6: Component test: Export buttons show JSON and CSV options
+  - [x] 4.7: Ensure all existing tests pass (baseline: 650 tests, current: 701 tests - 51 new tests added)
 
 ## Dev Notes
 
@@ -237,13 +237,38 @@ const result = await dialog.showSaveDialog({
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+N/A
+
 ### Completion Notes List
 
+1. **Architecture Change**: Original spec had main process fetching from IndexedDB, but IndexedDB is renderer-process only. Modified to pass entries array from renderer to main process.
+2. **Export Signature Change**: Changed from `(timeEntryId, format)` to `{ entries, format, taskName }` to support the architecture change.
+3. **Utility Module**: Created `src/lib/activityExport.ts` with pure functions for CSV/JSON generation and filename sanitization for testability.
+4. **Test Coverage**: Added 51 new tests (baseline 650 → 701) covering export utilities, modal UI, and IPC bridge.
+5. **RFC 4180 Compliance**: CSV escaping properly handles commas, quotes, and newlines in window titles.
+6. **User Cancel Handling**: Export cancelled by user doesn't show error toast (silent dismiss).
+
 ### File List
+
+**Created:**
+- `src/lib/activityExport.ts` - Pure utility functions for export
+- `src/lib/activityExport.test.ts` - Unit tests for export utilities
+- `src/components/time-tracking/ActivityLogModal.test.tsx` - Component tests for modal
+
+**Modified:**
+- `electron/ipc/channels.ts` - Added ACTIVITY_EXPORT channel
+- `electron/ipc/handlers.ts` - Added export IPC handler with dialog and file write
+- `electron/preload.ts` - Added export method to contextBridge
+- `src/types/electron.d.ts` - Added ActivityExportRequest, ActivityEntryForExport interfaces
+- `src/lib/electronBridge.ts` - Added typed export wrapper
+- `src/components/time-tracking/ActivityLogModal.tsx` - Added export UI with JSON/CSV buttons
+- `src/components/time-tracking/ViewActivityButton.test.tsx` - Added ToastProvider wrapper
+- `src/components/time-tracking/InsightRow.test.tsx` - Added ToastProvider and electronBridge mocks
+- `src/lib/electronBridge.test.ts` - Updated export tests for new signature
 
 ## Change Log
 

@@ -21,7 +21,13 @@
  */
 
 import { isElectron } from './platform'
-import type { IPCResponse, ActivityEntry, CurrentActivity, ActivityStopResponse } from '../types/electron'
+import type {
+  IPCResponse,
+  ActivityEntry,
+  CurrentActivity,
+  ActivityStopResponse,
+  ActivityExportRequest,
+} from '../types/electron'
 import { saveActivityEntries, getActivityEntriesByTimeEntryId } from './activityStore'
 import type { ActivityLogEntry } from './db'
 
@@ -166,28 +172,31 @@ export const electronBridge = {
     },
 
     /**
-     * Export activity log to file
+     * Export activity log to file (Story 4.4)
      *
-     * @param timeEntryId - The ID of the time entry
-     * @param format - Export format ('json' or 'csv')
+     * Sends activity entries to main process for file dialog and save.
+     * Entries are passed from renderer since main process cannot access IndexedDB.
+     *
+     * @param request - Export request containing entries, format, and taskName
      * @returns Promise resolving to file path or error
      *
      * @example
      * ```typescript
-     * const result = await electronBridge.activity.export('entry-123', 'csv');
+     * const result = await electronBridge.activity.export({
+     *   entries: activityEntries,
+     *   format: 'csv',
+     *   taskName: 'Fix login bug'
+     * });
      * if (result.success && result.data) {
      *   console.log(`Exported to: ${result.data.filePath}`);
      * }
      * ```
      */
-    export: async (
-      timeEntryId: string,
-      format: 'json' | 'csv'
-    ): Promise<IPCResponse<{ filePath: string }>> => {
+    export: async (request: ActivityExportRequest): Promise<IPCResponse<{ filePath: string }>> => {
       if (!isElectron()) {
         return { success: false, error: NOT_IN_ELECTRON_ERROR }
       }
-      return window.electronAPI!.activity.export(timeEntryId, format)
+      return window.electronAPI!.activity.export(request)
     },
 
     /**
