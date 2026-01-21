@@ -40,6 +40,7 @@ describe('exportService', () => {
         completed_at: null,
         updated_at: '2026-01-10T09:00:00Z',
         notes: null,
+        sort_order: Date.now(),
         _syncStatus: 'synced',
         _localUpdatedAt: '2026-01-10T09:00:00Z',
       }
@@ -49,7 +50,7 @@ describe('exportService', () => {
       const tasks = await getTasksForExport()
 
       expect(tasks).toHaveLength(1)
-      expect(tasks[0]).toEqual({
+      expect(tasks[0]).toMatchObject({
         id: 'task-1',
         text: 'Test task',
         createdAt: '2026-01-10T09:00:00Z',
@@ -58,6 +59,8 @@ describe('exportService', () => {
         completedAt: null,
         notes: null,
       })
+      // Should have sortOrder
+      expect(tasks[0]).toHaveProperty('sortOrder')
       // Should not have sync metadata
       expect(tasks[0]).not.toHaveProperty('_syncStatus')
       expect(tasks[0]).not.toHaveProperty('user_id')
@@ -67,10 +70,10 @@ describe('exportService', () => {
   describe('getCategoriesFromTasks', () => {
     it('returns unique categories sorted alphabetically', () => {
       const tasks = [
-        { id: '1', text: 'Task 1', createdAt: '', deferredTo: null, category: 'Work', completedAt: null, notes: null },
-        { id: '2', text: 'Task 2', createdAt: '', deferredTo: null, category: 'Personal', completedAt: null, notes: null },
-        { id: '3', text: 'Task 3', createdAt: '', deferredTo: null, category: 'Work', completedAt: null, notes: null },
-        { id: '4', text: 'Task 4', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null },
+        { id: '1', text: 'Task 1', createdAt: '', deferredTo: null, category: 'Work', completedAt: null, notes: null, sortOrder: 1000 },
+        { id: '2', text: 'Task 2', createdAt: '', deferredTo: null, category: 'Personal', completedAt: null, notes: null, sortOrder: 2000 },
+        { id: '3', text: 'Task 3', createdAt: '', deferredTo: null, category: 'Work', completedAt: null, notes: null, sortOrder: 3000 },
+        { id: '4', text: 'Task 4', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null, sortOrder: 4000 },
       ]
 
       const categories = getCategoriesFromTasks(tasks)
@@ -80,7 +83,7 @@ describe('exportService', () => {
 
     it('returns empty array when no categories', () => {
       const tasks = [
-        { id: '1', text: 'Task 1', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null },
+        { id: '1', text: 'Task 1', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null, sortOrder: 1000 },
       ]
 
       const categories = getCategoriesFromTasks(tasks)
@@ -308,6 +311,7 @@ describe('exportService', () => {
         completed_at: null,
         updated_at: '2026-01-10T09:00:00Z',
         notes: null,
+        sort_order: Date.now(),
         _syncStatus: 'synced',
         _localUpdatedAt: '2026-01-10T09:00:00Z',
       }

@@ -300,6 +300,7 @@ async function checkAndResolveConflict(
         completed_at: fullServerTask.completed_at,
         updated_at: fullServerTask.updated_at,
         notes: fullServerTask.notes,
+        sort_order: fullServerTask.sort_order ?? Date.parse(fullServerTask.created_at),
         _syncStatus: 'synced',
         _localUpdatedAt: fullServerTask.updated_at,
       }

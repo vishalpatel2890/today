@@ -78,6 +78,7 @@ function taskToLocalTask(task: Task, userId: string): LocalTask {
     completed_at: task.completedAt,
     updated_at: new Date().toISOString(),
     notes: task.notes,
+    sort_order: task.sortOrder ?? Date.now(),
     _syncStatus: 'pending',
     _localUpdatedAt: new Date().toISOString(),
   }

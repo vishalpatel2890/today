@@ -12,6 +12,7 @@ const createMockTask = (id: string, text: string): Task => ({
   category: null,
   completedAt: null,
   notes: null,
+  sortOrder: Date.now(),
 })
 
 const mockTasks: Task[] = [

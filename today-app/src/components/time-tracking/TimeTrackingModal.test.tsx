@@ -54,6 +54,7 @@ const mockTasks: Task[] = [
     completedAt: null,
     notes: null,
     createdAt: '2026-01-01T00:00:00.000Z',
+    sortOrder: 1000,
   },
   {
     id: 'task-2',
@@ -63,6 +64,7 @@ const mockTasks: Task[] = [
     completedAt: null,
     notes: null,
     createdAt: '2026-01-01T00:00:00.000Z',
+    sortOrder: 2000,
   },
   {
     id: 'task-completed',
@@ -72,6 +74,7 @@ const mockTasks: Task[] = [
     completedAt: '2026-01-10T00:00:00.000Z',
     notes: null,
     createdAt: '2026-01-01T00:00:00.000Z',
+    sortOrder: 3000,
   },
 ]
 

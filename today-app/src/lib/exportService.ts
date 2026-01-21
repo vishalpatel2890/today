@@ -24,6 +24,7 @@ const localTaskToTask = (localTask: LocalTask): Task => ({
   category: localTask.category,
   completedAt: localTask.completed_at,
   notes: localTask.notes,
+  sortOrder: localTask.sort_order ?? Date.parse(localTask.created_at),
 })
 
 /**

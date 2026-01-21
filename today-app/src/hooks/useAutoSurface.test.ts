@@ -13,6 +13,7 @@ const createTask = (overrides: Partial<Task> = {}): Task => ({
   category: null,
   completedAt: null,
   notes: null,
+  sortOrder: Date.now(),
   ...overrides,
 })
 

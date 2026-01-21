@@ -21,6 +21,7 @@ describe('CompletedTasksModal', () => {
     category: null,
     completedAt: null,
     notes: null,
+    sortOrder: Date.now(),
     ...overrides,
   })
 

@@ -65,6 +65,7 @@ describe('importService', () => {
             category: 'Work',
             completedAt: null,
             notes: null,
+            sortOrder: 1000,
           },
         ],
         categories: ['Work'],
@@ -223,8 +224,8 @@ describe('importService', () => {
         version: '1.0',
         exported_at: '2026-01-11T10:00:00Z',
         tasks: [
-          { id: 't1', text: 'Task 1', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null },
-          { id: 't2', text: 'Task 2', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null },
+          { id: 't1', text: 'Task 1', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null, sortOrder: 1000 },
+          { id: 't2', text: 'Task 2', createdAt: '', deferredTo: null, category: null, completedAt: null, notes: null, sortOrder: 2000 },
         ],
         categories: ['Work'],
         time_entries: [
