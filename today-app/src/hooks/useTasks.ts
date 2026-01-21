@@ -13,7 +13,7 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
  * Action types for task state management
  */
 type TaskAction =
-  | { type: 'ADD_TASK'; id: string; text: string }
+  | { type: 'ADD_TASK'; id: string; text: string; sortOrder: number }
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'UNCOMPLETE_TASK'; id: string; deferredTo: string }
   | { type: 'DELETE_TASK'; id: string }
@@ -23,6 +23,7 @@ type TaskAction =
   | { type: 'LOAD_STATE'; tasks: Task[] }
   | { type: 'SYNC_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; id: string }
+  | { type: 'REORDER_TASK'; id: string; sortOrder: number }
 
 const initialState: Task[] = []
 
@@ -39,6 +40,7 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
           category: null,
           completedAt: null,
           notes: null,
+          sortOrder: action.sortOrder,
         },
       ]
     case 'COMPLETE_TASK':
@@ -84,6 +86,12 @@ const taskReducer = (state: Task[], action: TaskAction): Task[] => {
       }
       return [...state, action.task]
     }
+    case 'REORDER_TASK':
+      return state.map(task =>
+        task.id === action.id
+          ? { ...task, sortOrder: action.sortOrder }
+          : task
+      )
     default:
       return state
   }
@@ -100,6 +108,7 @@ const rowToTask = (row: TaskRow): Task => ({
   category: row.category,
   completedAt: row.completed_at,
   notes: row.notes,
+  sortOrder: row.sort_order ?? Date.parse(row.created_at),
 })
 
 /**
@@ -119,6 +128,7 @@ const taskToLocalTask = (
   completed_at: task.completedAt,
   updated_at: new Date().toISOString(),
   notes: task.notes,
+  sort_order: task.sortOrder,
   _syncStatus: syncStatus,
   _localUpdatedAt: new Date().toISOString(),
 })
@@ -412,6 +422,8 @@ export const useTasks = (userId: string | null) => {
     const trimmedText = text.trim()
     const effectiveUserId = userId || ''
     const now = new Date().toISOString()
+    // Use timestamp-based sortOrder for new tasks (places at end when sorted)
+    const sortOrder = Date.now()
 
     // Optimistic local update
     setNewTaskIds(prev => new Set(prev).add(id))
@@ -425,7 +437,7 @@ export const useTasks = (userId: string | null) => {
     }, 250)
     timeoutRefs.current.set(id, timeoutId)
 
-    dispatch({ type: 'ADD_TASK', id, text: trimmedText })
+    dispatch({ type: 'ADD_TASK', id, text: trimmedText, sortOrder })
 
     // Create the task object for storage
     const todayDate = startOfDay(new Date()).toISOString()
@@ -437,6 +449,7 @@ export const useTasks = (userId: string | null) => {
       category: null,
       completedAt: null,
       notes: null,
+      sortOrder,
     }
 
     // Save to IndexedDB immediately with 'pending' sync status
@@ -450,6 +463,7 @@ export const useTasks = (userId: string | null) => {
         text: trimmedText,
         created_at: now,
         deferred_to: todayDate,
+        sort_order: sortOrder,
       }
 
       if (navigator.onLine) {
@@ -692,6 +706,49 @@ export const useTasks = (userId: string | null) => {
     }
   }, [userId, tasks])
 
+  /**
+   * Reorder a task by updating its sortOrder
+   * Uses fractional indexing for efficient reordering
+   */
+  const reorderTask = useCallback(async (id: string, newSortOrder: number) => {
+    const effectiveUserId = userId || ''
+
+    // Optimistic update
+    dispatch({ type: 'REORDER_TASK', id, sortOrder: newSortOrder })
+
+    // Find the task to update in IndexedDB
+    const task = tasks.find(t => t.id === id)
+    if (task) {
+      const updatedTask = { ...task, sortOrder: newSortOrder }
+      await saveTaskToIndexedDB(updatedTask, effectiveUserId, userId ? 'pending' : 'synced')
+    }
+
+    if (userId) {
+      const payload = { sort_order: newSortOrder }
+
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+        if (error) {
+          console.error('[Today] Failed to sync reorder task:', error)
+          // Queue for retry
+          await queueOperation('UPDATE', 'tasks', id, payload)
+        } else if (task) {
+          await saveTaskToIndexedDB({ ...task, sortOrder: newSortOrder }, userId, 'synced')
+        }
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('UPDATE', 'tasks', id, payload)
+        if (import.meta.env.DEV) {
+          console.log('[Today] Offline: queued reorder task', { id })
+        }
+      }
+    }
+  }, [userId, tasks])
+
   const addCategory = useCallback(async (name: string) => {
     const trimmedName = name.trim()
     if (!trimmedName) return
@@ -738,6 +795,7 @@ export const useTasks = (userId: string | null) => {
     deferTask,
     updateTask,
     updateNotes,
+    reorderTask,
     addCategory,
     newTaskIds,
     dispatch,

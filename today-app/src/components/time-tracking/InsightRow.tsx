@@ -201,6 +201,9 @@ export const InsightRow = ({
         {showActivityButton && (
           <ViewActivityButton
             timeEntryId={entry.id}
+            taskName={entry.task_name}
+            startTime={entry.start_time}
+            endTime={entry.end_time!}
             tabIndex={isActionVisible ? 0 : -1}
           />
         )}

@@ -1,0 +1,251 @@
+<story-context id="4-2-activity-log-modal-ui" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Activity Log Modal UI</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-19</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-2-activity-log-modal-ui.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to view my activity log in a modal when I click "View Activity"</iWant>
+    <soThat>I can see which apps I used during a time tracking session</soThat>
+    <tasks>
+      <task id="1" acs="4.2.3,4.2.4">Create useActivityLog hook
+        <subtask id="1.1">Create src/hooks/useActivityLog.ts</subtask>
+        <subtask id="1.2">Implement hook that calls electronBridge.activity.getLog(timeEntryId)</subtask>
+        <subtask id="1.3">Add loading state (isLoading: boolean)</subtask>
+        <subtask id="1.4">Add error state (error: string | null)</subtask>
+        <subtask id="1.5">Calculate duration for each entry (diff to next entry timestamp)</subtask>
+        <subtask id="1.6">Return ActivityLogData type: { entries, isLoading, error }</subtask>
+      </task>
+      <task id="2" acs="4.2.1,4.2.2,4.2.7,4.2.8">Create ActivityLogModal component
+        <subtask id="2.1">Create src/components/time-tracking/ActivityLogModal.tsx</subtask>
+        <subtask id="2.2">Use Radix Dialog (@radix-ui/react-dialog) for modal</subtask>
+        <subtask id="2.3">Implement modal header with task name and date/time range</subtask>
+        <subtask id="2.4">Format date/time using date-fns</subtask>
+        <subtask id="2.5">Add X close button in header</subtask>
+        <subtask id="2.6">Configure modal to close on Escape key and backdrop click</subtask>
+        <subtask id="2.7">Style with Tailwind classes matching existing app design</subtask>
+      </task>
+      <task id="3" acs="4.2.4,4.2.5,4.2.6,4.2.9">Create ActivityLogList component
+        <subtask id="3.1">Create src/components/time-tracking/ActivityLogList.tsx</subtask>
+        <subtask id="3.2">Render chronological list of activity entries</subtask>
+        <subtask id="3.3">Each row shows: time (format: "9:00:15 AM"), app name, window title, duration</subtask>
+        <subtask id="3.4">Make list scrollable with max-height and overflow-y-auto</subtask>
+        <subtask id="3.5">Truncate long window titles with ellipsis</subtask>
+        <subtask id="3.6">Implement empty state: "No activity recorded for this session"</subtask>
+      </task>
+      <task id="4" acs="4.2.1">Update ViewActivityButton to open modal
+        <subtask id="4.1">Open src/components/time-tracking/ViewActivityButton.tsx</subtask>
+        <subtask id="4.2">Add state: const [isModalOpen, setIsModalOpen] = useState(false)</subtask>
+        <subtask id="4.3">Render ActivityLogModal with isOpen={isModalOpen}</subtask>
+        <subtask id="4.4">Pass timeEntryId, taskName, startTime, endTime to modal</subtask>
+      </task>
+      <task id="5" acs="4.2.3">Implement loading state
+        <subtask id="5.1">Show loading spinner while useActivityLog.isLoading is true</subtask>
+        <subtask id="5.2">Use existing Loader component or animate-spin</subtask>
+        <subtask id="5.3">Center spinner in modal body</subtask>
+      </task>
+      <task id="6" acs="all">Write tests
+        <subtask id="6.1">Unit test: useActivityLog returns loading state initially</subtask>
+        <subtask id="6.2">Unit test: useActivityLog calculates durations correctly</subtask>
+        <subtask id="6.3">Component test: ActivityLogList renders entries with correct format</subtask>
+        <subtask id="6.4">Component test: ActivityLogList shows empty state when no entries</subtask>
+        <subtask id="6.5">Component test: ActivityLogModal renders header with task name and date</subtask>
+        <subtask id="6.6">Ensure all existing tests pass (baseline: 609 tests)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="4.2.1">Clicking "View Activity" button opens a modal dialog</ac>
+    <ac id="4.2.2">Modal header displays the task name and session date/time range</ac>
+    <ac id="4.2.3">Modal shows a loading spinner while fetching data</ac>
+    <ac id="4.2.4">Activity entries are displayed as a chronological list</ac>
+    <ac id="4.2.5">Each list row shows: time (HH:MM:SS AM/PM), app name, window title, duration</ac>
+    <ac id="4.2.6">The list is scrollable for sessions with many entries</ac>
+    <ac id="4.2.7">Modal can be closed via X button, Escape key, or clicking outside</ac>
+    <ac id="4.2.8">Modal uses existing design patterns (Radix Dialog, Tailwind classes)</ac>
+    <ac id="4.2.9">If no activity was recorded, modal shows "No activity recorded" message</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>Implementation Patterns - Feature Detection Pattern</section>
+        <snippet>All Electron-only UI MUST use isElectron() guard pattern. Platform detection via window.electronAPI presence check.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>FR Category to Architecture Mapping - Activity Viewing (FR20-23)</section>
+        <snippet>React components and useActivityLog hook map to ActivityLogModal.tsx in src/components/time-tracking/.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-4-electron.md</path>
+        <title>Tech Spec - Epic 4 Electron Activity Log</title>
+        <section>Story 4.2 - AC2</section>
+        <snippet>Modal UI specifications with component props interfaces and data flow diagram for ViewActivityButton → ActivityLogModal → useActivityLog.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Epics - Electron Migration</title>
+        <section>Epic 4 - Activity Log Viewing</section>
+        <snippet>Story 4.2 implements FR20-22: view activity log, chronological display with timestamps, shows app name and window title.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/4-1-activity-log-retrieval.md</path>
+        <title>Story 4.1 - Activity Log Retrieval</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>electronBridge.activity.getLog() implemented at src/lib/electronBridge.ts:131-165. Queries IndexedDB directly per ADR-008.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>today-app/src/components/time-tracking/ViewActivityButton.tsx</path>
+        <kind>component</kind>
+        <symbol>ViewActivityButton</symbol>
+        <lines>1-39</lines>
+        <reason>Component to be modified - add modal state and render ActivityLogModal</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/electronBridge.ts</path>
+        <kind>service</kind>
+        <symbol>electronBridge.activity.getLog</symbol>
+        <lines>131-166</lines>
+        <reason>API for fetching activity entries - already implemented in Story 4.1</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/platform.ts</path>
+        <kind>utility</kind>
+        <symbol>isElectron</symbol>
+        <reason>Platform detection function for Electron-only features</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/TimeInsightsModal.tsx</path>
+        <kind>component</kind>
+        <symbol>TimeInsightsModal</symbol>
+        <lines>1-554</lines>
+        <reason>Reference for Radix Dialog patterns, styling, and modal structure</reason>
+      </file>
+      <file>
+        <path>today-app/src/components/time-tracking/InsightRow.tsx</path>
+        <kind>component</kind>
+        <symbol>InsightRow</symbol>
+        <lines>50-252</lines>
+        <reason>Shows how ViewActivityButton is integrated into swipe actions</reason>
+      </file>
+      <file>
+        <path>today-app/src/types/electron.d.ts</path>
+        <kind>types</kind>
+        <symbol>ActivityEntry, IPCResponse</symbol>
+        <lines>1-77</lines>
+        <reason>Type definitions for activity entries returned by getLog()</reason>
+      </file>
+      <file>
+        <path>today-app/src/lib/timeFormatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDurationSummary</symbol>
+        <reason>Reference for duration formatting patterns (Xh Ym format)</reason>
+      </file>
+      <file>
+        <path>today-app/src/hooks/useTimeInsights.ts</path>
+        <kind>hook</kind>
+        <symbol>useTimeInsights</symbol>
+        <reason>Reference for hook pattern with loading/error states</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>@radix-ui/react-dialog</package>
+        <version>^1.1.15</version>
+        <usage>Modal component - use Dialog.Root, Portal, Overlay, Content, Title, Close</usage>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+        <usage>Date formatting - format(date, 'h:mm:ss a') for time display</usage>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>^0.562.0</version>
+        <usage>Icons - X for close button, Activity for header icon</usage>
+      </node>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>useState, useEffect, useMemo hooks</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Electron-only UI must use isElectron() guard from src/lib/platform.ts</constraint>
+    <constraint type="architecture">Activity data retrieval via electronBridge.activity.getLog() - no direct IPC calls</constraint>
+    <constraint type="architecture">Per ADR-008, activity data stored in IndexedDB (renderer-side), not SQLite</constraint>
+    <constraint type="pattern">Modal styling must match TimeInsightsModal - use Radix Dialog with Tailwind</constraint>
+    <constraint type="pattern">Duration calculation: diff between consecutive entry timestamps, last entry to session end</constraint>
+    <constraint type="testing">Maintain test baseline of 609 passing tests</constraint>
+    <constraint type="testing">Use vitest + @testing-library/react for component tests</constraint>
+    <constraint type="security">Never expose window.electronAPI directly - always use electronBridge wrapper</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>electronBridge.activity.getLog</name>
+      <kind>function</kind>
+      <signature>getLog(timeEntryId: string): Promise&lt;IPCResponse&lt;ActivityEntry[]&gt;&gt;</signature>
+      <path>today-app/src/lib/electronBridge.ts</path>
+    </interface>
+    <interface>
+      <name>ActivityEntry</name>
+      <kind>type</kind>
+      <signature>{ id: string; timeEntryId: string; timestamp: string; appName: string; windowTitle: string; }</signature>
+      <path>today-app/src/types/electron.d.ts</path>
+    </interface>
+    <interface>
+      <name>ActivityLogModalProps</name>
+      <kind>component-props</kind>
+      <signature>{ isOpen: boolean; onClose: () => void; timeEntryId: string; taskName: string; startTime: string; endTime: string; }</signature>
+      <path>To be created: today-app/src/components/time-tracking/ActivityLogModal.tsx</path>
+    </interface>
+    <interface>
+      <name>ActivityEntryWithDuration</name>
+      <kind>type</kind>
+      <signature>{ ...ActivityEntry; durationMs: number; durationFormatted: string; }</signature>
+      <path>To be created: today-app/src/hooks/useActivityLog.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use vitest with @testing-library/react. Tests located alongside components with .test.tsx suffix.
+      Mock electronBridge for component tests using vi.mock(). Use fake-indexeddb for IndexedDB mocking.
+      Follow existing patterns in ViewActivityButton.test.tsx and TimeInsightsModal.test.tsx.
+    </standards>
+    <locations>
+      <location>today-app/src/components/time-tracking/*.test.tsx</location>
+      <location>today-app/src/hooks/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="4.2.1">Test ViewActivityButton click opens modal (check isOpen state change)</idea>
+      <idea ac="4.2.2">Test modal header renders task name and formatted date range</idea>
+      <idea ac="4.2.3">Test loading spinner appears while isLoading is true</idea>
+      <idea ac="4.2.4">Test activity list renders entries in chronological order</idea>
+      <idea ac="4.2.5">Test each row displays time, app name, window title, duration with correct format</idea>
+      <idea ac="4.2.6">Test list has overflow-y-auto for scrollability</idea>
+      <idea ac="4.2.7">Test modal closes on Escape, X click, and backdrop click</idea>
+      <idea ac="4.2.9">Test empty state message when entries array is empty</idea>
+      <idea ac="hook">Test useActivityLog calculates durations correctly for consecutive entries</idea>
+      <idea ac="hook">Test useActivityLog returns loading state on initial mount</idea>
+    </ideas>
+  </tests>
+</story-context>

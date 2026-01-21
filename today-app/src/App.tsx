@@ -27,7 +27,7 @@ const AppContent = () => {
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false)
   const { user, isLoading: isAuthLoading, isLinked, linkEmail, linkingStatus, linkingError, resetLinkingStatus, otpStatus, otpError, pendingEmail, verifyOtp, resendOtp, resetOtpStatus } = useAuth()
-  const { tasks, categories, addTask, completeTask, uncompleteTask, deleteTask, updateTask, updateNotes, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
+  const { tasks, categories, addTask, completeTask, uncompleteTask, deleteTask, updateTask, updateNotes, reorderTask, addCategory, newTaskIds, storageError } = useTasks(user?.id ?? null)
   const { addToast } = useToast()
 
   // AC-4.2.5: Auto-surface tasks based on date on app load
@@ -92,6 +92,7 @@ const AppContent = () => {
             onUpdateTask={updateTask}
             onCreateCategory={addCategory}
             onNotesUpdate={updateNotes}
+            onReorderTask={reorderTask}
             newTaskIds={newTaskIds}
           />
         )

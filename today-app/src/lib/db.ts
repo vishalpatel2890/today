@@ -23,6 +23,7 @@ export interface LocalTask {
   completed_at: string | null
   updated_at: string
   notes: TaskNotes | null
+  sort_order: number
   // Sync tracking fields (prefixed with _ to indicate local-only)
   _syncStatus: SyncStatus
   _localUpdatedAt: string
@@ -101,6 +102,14 @@ class TodayDatabase extends Dexie {
     // NOTE: This table is NEVER synced to Supabase - local only (FR19, ADR-008)
     this.version(2).stores({
       tasks: 'id, user_id, _syncStatus',
+      syncQueue: 'id, createdAt',
+      activityLogs: '++id, timeEntryId, [timeEntryId+timestamp]',
+    })
+
+    // Version 3: Add sort_order field and index for drag-and-drop task reordering (Story 7.1)
+    // Index on sort_order enables efficient ordering queries
+    this.version(3).stores({
+      tasks: 'id, user_id, _syncStatus, sort_order',
       syncQueue: 'id, createdAt',
       activityLogs: '++id, timeEntryId, [timeEntryId+timestamp]',
     })

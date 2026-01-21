@@ -26,6 +26,7 @@ export interface Database {
           completed_at: string | null
           updated_at: string
           notes: TaskNotes | null
+          sort_order: number | null
         }
         Insert: {
           id?: string
@@ -37,6 +38,7 @@ export interface Database {
           completed_at?: string | null
           updated_at?: string
           notes?: TaskNotes | null
+          sort_order?: number | null
         }
         Update: {
           id?: string
@@ -48,6 +50,7 @@ export interface Database {
           completed_at?: string | null
           updated_at?: string
           notes?: TaskNotes | null
+          sort_order?: number | null
         }
         Relationships: []
       }

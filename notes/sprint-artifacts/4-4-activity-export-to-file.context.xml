@@ -1,0 +1,227 @@
+<story-context id="4-4-activity-export-to-file" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Activity Export to File</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-4-activity-export-to-file.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to export my activity log to a JSON or CSV file</iWant>
+    <soThat>I can keep records or analyze data externally</soThat>
+    <tasks>
+      <task id="1" acs="4.4.1,4.4.2,4.4.3,4.4.4">
+        Implement activity:export IPC handler in main process
+        <subtasks>
+          <subtask>1.1: Add ACTIVITY_EXPORT channel to electron/ipc/channels.ts</subtask>
+          <subtask>1.2: Create export handler in electron/ipc/handlers.ts that accepts { timeEntryId, format, taskName }</subtask>
+          <subtask>1.3: Use dialog.showSaveDialog() with appropriate filters for format</subtask>
+          <subtask>1.4: Generate default filename: activity-${sanitizedTaskName}-${date}.${format}</subtask>
+          <subtask>1.5: Fetch activity data from IndexedDB via renderer IPC call</subtask>
+          <subtask>1.6: For JSON: Use JSON.stringify(entries, null, 2) for pretty-printed output</subtask>
+          <subtask>1.7: For CSV: Generate with headers timestamp,app_name,window_title,duration_seconds, escape commas in window titles</subtask>
+          <subtask>1.8: Write file using fs.writeFile</subtask>
+          <subtask>1.9: Return { success: true, filePath } or { success: false, error }</subtask>
+        </subtasks>
+      </task>
+      <task id="2" acs="4.4.1">
+        Update preload script with export method
+        <subtasks>
+          <subtask>2.1: Add export method to window.electronAPI.activity in electron/preload.ts</subtask>
+          <subtask>2.2: Update src/types/electron.d.ts with export method signature</subtask>
+          <subtask>2.3: Update src/lib/electronBridge.ts with typed wrapper for export</subtask>
+        </subtasks>
+      </task>
+      <task id="3" acs="4.4.1,4.4.5,4.4.6">
+        Create Export UI in Activity Log Modal
+        <subtasks>
+          <subtask>3.1: Add export button/dropdown to ActivityLogModal.tsx footer</subtask>
+          <subtask>3.2: Create format selection UI (JSON/CSV buttons or dropdown)</subtask>
+          <subtask>3.3: Style consistently with existing modal patterns (Tailwind, Radix)</subtask>
+          <subtask>3.4: Wire up click handler to call window.electronAPI.activity.export()</subtask>
+          <subtask>3.5: Pass timeEntryId, format, and taskName to export function</subtask>
+          <subtask>3.6: Show success toast on successful export</subtask>
+          <subtask>3.7: Show error toast on export failure with error message</subtask>
+        </subtasks>
+      </task>
+      <task id="4" acs="all">
+        Write tests
+        <subtasks>
+          <subtask>4.1: Unit test: CSV generation escapes commas in window titles</subtask>
+          <subtask>4.2: Unit test: CSV generation formats duration_seconds correctly</subtask>
+          <subtask>4.3: Unit test: JSON export includes all activity entry fields</subtask>
+          <subtask>4.4: Unit test: Filename sanitization removes invalid characters</subtask>
+          <subtask>4.5: Component test: Export button renders in modal footer</subtask>
+          <subtask>4.6: Component test: Export dropdown shows JSON and CSV options</subtask>
+          <subtask>4.7: Ensure all existing tests pass (baseline: 650 tests)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="4.4.1">Given the activity log modal is open, when I click "Export" and select JSON format, then a native file save dialog appears</criterion>
+    <criterion id="4.4.2">Given I choose a location in the file save dialog, then a .json file is saved with the full activity array</criterion>
+    <criterion id="4.4.3">Given I click "Export" and select CSV format, then a .csv file is saved with headers: timestamp, app_name, window_title, duration_seconds</criterion>
+    <criterion id="4.4.4">Given I export a file, then the default filename includes the task name and date (e.g., "activity-TaskName-2026-01-20.json")</criterion>
+    <criterion id="4.4.5">Given the export is successful, then a toast notification confirms "Activity exported successfully"</criterion>
+    <criterion id="4.4.6">Given the export fails (e.g., permission denied), then an error toast shows the failure reason</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Architecture - Today Electron Migration</title>
+        <section>IPC Contracts - activity:export</section>
+        <snippet>IPC contract already defined: invoke('activity:export', timeEntryId, format) returns { success: true, filePath } or { success: false, error }. Uses native file dialog.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Today Electron Migration - Epic Breakdown</title>
+        <section>Story 4.4: Activity Export to File</section>
+        <snippet>Implements FR24-26: Export activity for single entry, JSON and CSV formats, native file save dialog.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/4-3-activity-duration-summary.md</path>
+        <title>Story 4.3: Activity Duration Summary</title>
+        <section>Dev Agent Record</section>
+        <snippet>Test baseline: 650 tests passing. ActivityLogModal has footer area. useActivityLog returns entries with duration data needed for export.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>electron/ipc/channels.ts</path>
+        <kind>ipc-channels</kind>
+        <symbol>IPC_CHANNELS</symbol>
+        <lines>1-29</lines>
+        <reason>Contains ACTIVITY_EXPORT channel already defined at line 21. Channels use domain:action kebab-case per ADR-007.</reason>
+      </file>
+      <file>
+        <path>electron/ipc/handlers.ts</path>
+        <kind>ipc-handlers</kind>
+        <symbol>registerIpcHandlers</symbol>
+        <lines>49-57</lines>
+        <reason>Contains STUB implementation for ACTIVITY_EXPORT handler. Must implement actual file dialog and write logic.</reason>
+      </file>
+      <file>
+        <path>electron/preload.ts</path>
+        <kind>preload</kind>
+        <symbol>electronAPI.activity.export</symbol>
+        <lines>45-47</lines>
+        <reason>Already exposes export method via contextBridge with correct signature.</reason>
+      </file>
+      <file>
+        <path>src/types/electron.d.ts</path>
+        <kind>types</kind>
+        <symbol>ElectronActivityAPI.export</symbol>
+        <lines>58</lines>
+        <reason>Type definition for export method already exists with correct signature.</reason>
+      </file>
+      <file>
+        <path>src/lib/electronBridge.ts</path>
+        <kind>bridge</kind>
+        <symbol>electronBridge.activity.export</symbol>
+        <lines>183-191</lines>
+        <reason>Typed wrapper already exists but delegates to IPC. May need to extend with taskName parameter.</reason>
+      </file>
+      <file>
+        <path>src/components/time-tracking/ActivityLogModal.tsx</path>
+        <kind>component</kind>
+        <symbol>ActivityLogModal</symbol>
+        <lines>63-154</lines>
+        <reason>Modal component where export button will be added. Currently has no footer - need to add export UI.</reason>
+      </file>
+      <file>
+        <path>src/hooks/useActivityLog.ts</path>
+        <kind>hook</kind>
+        <symbol>ActivityEntryWithDuration</symbol>
+        <lines>10-15</lines>
+        <reason>Interface for activity entries with durationMs field needed for CSV export.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="electron" version="^39.2.7" />
+        <package name="electron-vite" version="^5.0.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="dexie" version="^4.2.1" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="vitest" version="^3.2.4" />
+        <package name="@testing-library/react" version="^16.3.1" />
+      </node>
+      <electron-builtin>
+        <module name="dialog" usage="showSaveDialog() for native file picker" />
+        <module name="fs/promises" usage="writeFile() for saving exported files" />
+        <module name="path" usage="path manipulation for filenames" />
+      </electron-builtin>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture">IPC handlers must follow { success, data?, error? } response pattern per ADR-007</constraint>
+    <constraint source="architecture">Channel names follow domain:action kebab-case convention</constraint>
+    <constraint source="architecture">All Electron code must use contextIsolation=true, nodeIntegration=false</constraint>
+    <constraint source="architecture">Activity data never synced to remote - local only (FR19)</constraint>
+    <constraint source="coding-standards">No semicolons, single quotes, 2-space indentation</constraint>
+    <constraint source="coding-standards">Functional components only, useCallback/useMemo for performance</constraint>
+    <constraint source="testing">Tests co-located: Component.test.tsx next to Component.tsx</constraint>
+    <constraint source="testing">Mock Supabase to prevent network calls in tests</constraint>
+    <constraint source="previous-story">Test baseline: 650 tests - must maintain or increase</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>activity:export IPC</name>
+      <kind>IPC channel</kind>
+      <signature>invoke('activity:export', timeEntryId: string, format: 'json' | 'csv', taskName?: string) => Promise&lt;{ success: boolean, data?: { filePath: string }, error?: string }&gt;</signature>
+      <path>electron/ipc/handlers.ts</path>
+    </interface>
+    <interface>
+      <name>dialog.showSaveDialog</name>
+      <kind>Electron API</kind>
+      <signature>dialog.showSaveDialog({ defaultPath: string, filters: FileFilter[] }) => Promise&lt;{ filePath?: string, canceled: boolean }&gt;</signature>
+      <path>electron (built-in)</path>
+    </interface>
+    <interface>
+      <name>ActivityEntryWithDuration</name>
+      <kind>TypeScript interface</kind>
+      <signature>{ id: string, timeEntryId: string, timestamp: string, appName: string, windowTitle: string, durationMs: number, durationFormatted: string }</signature>
+      <path>src/hooks/useActivityLog.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Vitest 3.2.4 with jsdom environment. Testing Library React for component tests.
+      Tests use describe/it/expect syntax. Mock Supabase to prevent network calls.
+      Tests co-located with source files (*.test.tsx). fake-indexeddb for IndexedDB mocking.
+      Test setup at src/test/setup.ts provides ResizeObserver and pointer capture mocks.
+    </standards>
+    <locations>
+      <location>src/components/time-tracking/ActivityLogModal.test.tsx</location>
+      <location>src/hooks/useActivityLog.test.ts</location>
+      <location>electron/ipc/handlers.test.ts (if exists)</location>
+    </locations>
+    <ideas>
+      <idea ac="4.4.1">Test export button renders in modal footer when in Electron context</idea>
+      <idea ac="4.4.1">Test format selection dropdown shows JSON and CSV options</idea>
+      <idea ac="4.4.2">Test JSON export includes all activity entry fields</idea>
+      <idea ac="4.4.3">Test CSV generation has correct headers: timestamp,app_name,window_title,duration_seconds</idea>
+      <idea ac="4.4.3">Test CSV generation escapes commas and quotes in window titles</idea>
+      <idea ac="4.4.3">Test CSV duration_seconds is correctly calculated from durationMs</idea>
+      <idea ac="4.4.4">Test filename sanitization removes invalid characters (&lt;&gt;:"/\|?*)</idea>
+      <idea ac="4.4.4">Test default filename format: activity-{taskName}-{date}.{format}</idea>
+      <idea ac="4.4.5">Test success toast appears on successful export</idea>
+      <idea ac="4.4.6">Test error toast appears on export failure</idea>
+    </ideas>
+  </tests>
+</story-context>

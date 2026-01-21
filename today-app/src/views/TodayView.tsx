@@ -12,6 +12,7 @@ interface TodayViewProps {
   onUpdateTask: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
   onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
+  onReorderTask?: (taskId: string, newSortOrder: number) => void
   newTaskIds?: Set<string>
 }
 
@@ -20,8 +21,9 @@ interface TodayViewProps {
  * AC-4.2.1: Shows tasks deferred to today's date
  * AC-4.2.5: Tasks are pre-filtered by useAutoSurface hook in App.tsx
  * AC-4.2.6: Completed tasks already filtered out by hook
+ * Story 7.1: Supports drag-and-drop task reordering
  */
-export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onUpdateTask, onCreateCategory, onNotesUpdate, newTaskIds }: TodayViewProps) => {
+export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDeleteTask, onUpdateTask, onCreateCategory, onNotesUpdate, onReorderTask, newTaskIds }: TodayViewProps) => {
   // Tasks are now pre-filtered by useAutoSurface hook in App.tsx
   // No internal filtering needed - AC-4.2.5
 
@@ -49,6 +51,7 @@ export const TodayView = ({ tasks, categories, onAddTask, onCompleteTask, onDele
         onUpdate={onUpdateTask}
         onCreateCategory={onCreateCategory}
         onNotesUpdate={onNotesUpdate}
+        onReorder={onReorderTask}
       />
       {onAddTask && <AddTaskInput onAddTask={onAddTask} />}
     </div>

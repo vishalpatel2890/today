@@ -882,3 +882,53 @@ So that **I can see my total weekly time alongside daily metrics with better vis
 
 **Total Stories:** 1
 **Estimated Effort:** 1 story point
+
+---
+
+## Epic 7: Task Reordering
+
+**Goal:** Enable users to drag-and-drop reorder tasks in the Today view, with order persisting across sessions and syncing across devices.
+
+**User Value:** Users can prioritize their daily tasks according to their own workflow, not just creation order.
+
+**FRs Covered:** FR18 (previously marked as Growth, now implementing)
+
+**Slug:** `task-reorder`
+
+---
+
+### Story 7.1: Drag-and-Drop Task Reordering
+
+As a **user**,
+I want **to drag and drop tasks to reorder them in my Today view**,
+So that **I can prioritize my tasks according to my workflow**.
+
+**Acceptance Criteria:**
+
+**AC #1:** Given tasks in TodayView, when user drags a task to a new position, then the task moves to that position immediately
+**AC #2:** Given a reordered task list, when the app is refreshed, then tasks appear in the same order
+**AC #3:** Given a reordered task on device A, when device B syncs, then device B shows the same task order
+**AC #4:** Given no network connection, when user reorders tasks, then order persists locally and syncs when online
+**AC #5:** Given a task being dragged, then user sees the task lifted with shadow and a placeholder at the drop position
+
+**Prerequisites:** None (standalone enhancement)
+
+**Technical Notes:**
+- Add `sortOrder: number` field to Task type
+- Use fractional indexing for efficient reordering (no bulk updates)
+- Native HTML5 Drag and Drop API (no new dependencies)
+- Persist to IndexedDB + sync via Supabase
+- Visual feedback: lifted card (scale 1.02, shadow, opacity 0.8) + 4px placeholder line
+
+**Full Story:** [story-task-reorder-1.md](./sprint-artifacts/story-task-reorder-1.md)
+
+---
+
+### Epic 7 Summary
+
+| # | Story | Description | Status |
+|---|-------|-------------|--------|
+| 7.1 | Drag-and-Drop Reorder | Add drag-and-drop task reordering to TodayView | TODO |
+
+**Total Stories:** 1
+**Estimated Effort:** 3 story points

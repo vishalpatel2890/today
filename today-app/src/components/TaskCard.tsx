@@ -9,19 +9,41 @@ interface TaskCardProps {
   task: Task
   categories: string[]
   isNew?: boolean
+  isDragging?: boolean
+  draggable?: boolean
   onComplete: (id: string) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string, deferredTo: string | null, category: string | null) => void
   onCreateCategory: (name: string) => void
   onNotesUpdate?: (id: string, notes: TaskNotes | null) => void
+  onDragStart?: (e: React.DragEvent) => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDragEnd?: () => void
+  onDrop?: (e: React.DragEvent) => void
 }
 
 /**
  * TaskCard component
  * AC-4.3.2: Toast on delete
  * Update button opens modal to edit task name, date, category
+ * Supports drag-and-drop for task reordering (Story 7.1)
  */
-export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete, onUpdate, onCreateCategory, onNotesUpdate }: TaskCardProps) => {
+export const TaskCard = ({
+  task,
+  categories,
+  isNew = false,
+  isDragging = false,
+  draggable = false,
+  onComplete,
+  onDelete,
+  onUpdate,
+  onCreateCategory,
+  onNotesUpdate,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDrop,
+}: TaskCardProps) => {
   const [showCheck, setShowCheck] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
@@ -90,11 +112,21 @@ export const TaskCard = ({ task, categories, isNew = false, onComplete, onDelete
     }
   }
 
+  // Build class names for drag state
+  const dragClasses = isDragging
+    ? 'opacity-80 scale-[1.02] shadow-lg z-50'
+    : ''
+
   return (
     <>
       <div
-        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm cursor-pointer ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''}`}
+        className={`group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-all hover:shadow-sm cursor-pointer ${isNew ? 'animate-slide-in' : ''} ${isCompleting ? 'animate-task-complete' : ''} ${dragClasses}`}
         onDoubleClick={handleDoubleClick}
+        draggable={draggable}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+        onDrop={onDrop}
       >
         <button
           type="button"

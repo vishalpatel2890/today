@@ -16,6 +16,7 @@ const taskToLocalTask = (task: Task, userId: string): LocalTask => ({
   completed_at: task.completedAt,
   updated_at: task.createdAt, // Use createdAt as initial updated_at
   notes: task.notes,
+  sort_order: task.sortOrder,
   _syncStatus: 'pending', // Mark as pending to sync on next online
   _localUpdatedAt: new Date().toISOString(),
 })
@@ -138,4 +139,5 @@ export const localTaskToTask = (localTask: LocalTask): Task => ({
   category: localTask.category,
   completedAt: localTask.completed_at,
   notes: localTask.notes,
+  sortOrder: localTask.sort_order ?? Date.parse(localTask.created_at),
 })

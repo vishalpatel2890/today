@@ -34,6 +34,7 @@ export interface Task {
   category: string | null
   completedAt: string | null
   notes: TaskNotes | null
+  sortOrder: number
 }
 
 /**

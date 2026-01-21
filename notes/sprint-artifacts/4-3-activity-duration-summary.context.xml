@@ -1,0 +1,235 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>Activity Duration Summary</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>notes/sprint-artifacts/4-3-activity-duration-summary.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see a summary of time spent per application</iWant>
+    <soThat>I can quickly understand where my time went during a tracking session</soThat>
+    <tasks>
+      <task id="1" ac="4.3.2,4.3.3,4.3.6">
+        <title>Extend useActivityLog hook with summary aggregation</title>
+        <subtasks>
+          <subtask id="1.1">Add ActivitySummaryItem interface to useActivityLog.ts</subtask>
+          <subtask id="1.2">Create aggregateSummary() function that groups entries by appName</subtask>
+          <subtask id="1.3">Calculate totalDurationMs per app (sum of all entry durations)</subtask>
+          <subtask id="1.4">Sort summary items by totalDurationMs descending</subtask>
+          <subtask id="1.5">Calculate percentage = (appDuration / totalSessionDuration) * 100</subtask>
+          <subtask id="1.6">Format duration using existing formatActivityDuration() function</subtask>
+          <subtask id="1.7">Return summary: ActivitySummaryItem[] in hook return type</subtask>
+          <subtask id="1.8">Add totalDurationMs and totalDurationFormatted to hook return type</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="4.3.1,4.3.3,4.3.4">
+        <title>Create ActivitySummary component</title>
+        <subtasks>
+          <subtask id="2.1">Create src/components/time-tracking/ActivitySummary.tsx</subtask>
+          <subtask id="2.2">Accept props: items: ActivitySummaryItem[], totalDurationFormatted: string</subtask>
+          <subtask id="2.3">Render list of summary items with app name, duration, percentage</subtask>
+          <subtask id="2.4">Add progress bar for each item using Tailwind width classes</subtask>
+          <subtask id="2.5">Style consistently with existing app design patterns</subtask>
+          <subtask id="2.6">Handle empty state (no items = hide section or show "No activity")</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="4.3.1">
+        <title>Integrate summary into ActivityLogModal</title>
+        <subtasks>
+          <subtask id="3.1">Import ActivitySummary component in ActivityLogModal</subtask>
+          <subtask id="3.2">Update useActivityLog call to destructure summary data</subtask>
+          <subtask id="3.3">Render ActivitySummary above ActivityLogList</subtask>
+          <subtask id="3.4">Add visual separator between summary and list sections</subtask>
+          <subtask id="3.5">Ensure scrolling works correctly with both sections</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="all">
+        <title>Write tests</title>
+        <subtasks>
+          <subtask id="4.1">Unit test: aggregateSummary() groups entries by appName correctly</subtask>
+          <subtask id="4.2">Unit test: aggregateSummary() sums durations per app correctly</subtask>
+          <subtask id="4.3">Unit test: aggregateSummary() sorts by duration descending</subtask>
+          <subtask id="4.4">Unit test: aggregateSummary() calculates percentages correctly</subtask>
+          <subtask id="4.5">Unit test: aggregateSummary() handles empty entries array</subtask>
+          <subtask id="4.6">Component test: ActivitySummary renders items with progress bars</subtask>
+          <subtask id="4.7">Component test: ActivitySummary handles empty items array</subtask>
+          <subtask id="4.8">Ensure all existing tests pass (baseline: 627 tests)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC4.3.1">Modal displays a summary section above the chronological list</criterion>
+    <criterion id="AC4.3.2">Summary shows time spent per application, sorted by duration (most time first)</criterion>
+    <criterion id="AC4.3.3">Each summary row shows: app name, total duration, percentage of session</criterion>
+    <criterion id="AC4.3.4">A visual progress bar shows relative time percentages</criterion>
+    <criterion id="AC4.3.5">Summary section can be collapsed to show only the detailed list (optional enhancement)</criterion>
+    <criterion id="AC4.3.6">Duration is formatted human-readable: "Xh Ym" or "Ym Zs" as appropriate</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>notes/sprint-artifacts/tech-spec-epic-4-electron.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>AC3: Activity Duration Summary</section>
+        <snippet>Defines ActivitySummaryItem interface with appName, totalDurationMs, totalDurationFormatted, and percentage fields. Summary section shows time per app sorted by duration with progress bars.</snippet>
+      </doc>
+      <doc>
+        <path>notes/architecture-electron-migration.md</path>
+        <title>Electron Migration Architecture</title>
+        <section>Activity Viewing (FR20-23)</section>
+        <snippet>Defines component structure for ActivityLogModal, useActivityLog hook pattern, and duration calculation in renderer process.</snippet>
+      </doc>
+      <doc>
+        <path>notes/epics-electron-migration.md</path>
+        <title>Electron Migration Epic Breakdown</title>
+        <section>Story 4.3: Activity Duration Summary</section>
+        <snippet>User story and acceptance criteria for showing time spent per application with visual breakdown and percentages.</snippet>
+      </doc>
+      <doc>
+        <path>notes/prd-electron-migration.md</path>
+        <title>Electron Migration PRD</title>
+        <section>FR23: Duration per app</section>
+        <snippet>User can see duration spent in each app during the session. Supports time logging verification and corrections.</snippet>
+      </doc>
+      <doc>
+        <path>notes/sprint-artifacts/4-2-activity-log-modal-ui.md</path>
+        <title>Previous Story: Activity Log Modal UI</title>
+        <section>Dev Agent Record</section>
+        <snippet>Created useActivityLog hook with formatActivityDuration(), ActivityLogModal with Radix Dialog, ActivityLogList component. 627 tests passing baseline.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>today-app/src/hooks/useActivityLog.ts</path>
+        <kind>hook</kind>
+        <symbol>useActivityLog, formatActivityDuration, calculateDurations, ActivityEntryWithDuration</symbol>
+        <lines>1-183</lines>
+        <reason>Primary modification target - add aggregateSummary() function and extend return type with summary array</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/hooks/useActivityLog.test.ts</path>
+        <kind>test</kind>
+        <symbol>useActivityLog tests</symbol>
+        <reason>Add unit tests for aggregateSummary() function covering grouping, sorting, percentage calculation</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/components/time-tracking/ActivityLogModal.tsx</path>
+        <kind>component</kind>
+        <symbol>ActivityLogModal</symbol>
+        <lines>1-136</lines>
+        <reason>Integrate ActivitySummary component above ActivityLogList, update useActivityLog destructuring</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/components/time-tracking/ActivityLogList.tsx</path>
+        <kind>component</kind>
+        <symbol>ActivityLogList, ActivityLogListProps</symbol>
+        <lines>1-90</lines>
+        <reason>Reference for styling patterns and Tailwind classes to maintain consistency in new ActivitySummary component</reason>
+      </artifact>
+      <artifact>
+        <path>today-app/src/lib/electronBridge.ts</path>
+        <kind>service</kind>
+        <symbol>electronBridge.activity.getLog</symbol>
+        <reason>Activity data retrieval - already implemented, no changes needed for this story</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="react" version="^19.2.0" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="lucide-react" version="^0.562.0" />
+        <package name="tailwindcss" version="^4.1.18" />
+        <package name="vitest" version="^3.2.4" />
+        <package name="@testing-library/react" version="^16.3.1" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">All computation (grouping, aggregation, percentage calculation) must happen in the useActivityLog hook, not in components</constraint>
+    <constraint type="architecture">Use existing formatActivityDuration() function for duration formatting - do not create new formatting logic</constraint>
+    <constraint type="testing">Maintain 627 tests passing baseline from Story 4.2</constraint>
+    <constraint type="testing">Add unit tests for aggregateSummary() covering edge cases (empty array, single entry, multiple apps)</constraint>
+    <constraint type="styling">Match existing app design patterns - use Tailwind classes consistent with ActivityLogList and ActivityLogModal</constraint>
+    <constraint type="performance">Summary aggregation should be O(n) single pass with Map-based grouping</constraint>
+    <constraint type="web-isolation">ActivitySummary component must only render in Electron context (already gated by parent modal)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ActivitySummaryItem</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface ActivitySummaryItem {
+  appName: string;
+  totalDurationMs: number;
+  totalDurationFormatted: string;
+  percentage: number;
+}
+      </signature>
+      <path>today-app/src/hooks/useActivityLog.ts</path>
+    </interface>
+    <interface>
+      <name>UseActivityLogReturn (extended)</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface UseActivityLogReturn {
+  entries: ActivityEntryWithDuration[];
+  summary: ActivitySummaryItem[];
+  totalDurationMs: number;
+  totalDurationFormatted: string;
+  isLoading: boolean;
+  error: string | null;
+}
+      </signature>
+      <path>today-app/src/hooks/useActivityLog.ts</path>
+    </interface>
+    <interface>
+      <name>ActivitySummaryProps</name>
+      <kind>React component props</kind>
+      <signature>
+interface ActivitySummaryProps {
+  items: ActivitySummaryItem[];
+  totalDurationFormatted: string;
+}
+      </signature>
+      <path>today-app/src/components/time-tracking/ActivitySummary.tsx</path>
+    </interface>
+    <interface>
+      <name>aggregateSummary</name>
+      <kind>function</kind>
+      <signature>function aggregateSummary(entriesWithDuration: ActivityEntryWithDuration[]): ActivitySummaryItem[]</signature>
+      <path>today-app/src/hooks/useActivityLog.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest with @testing-library/react for component tests. Unit tests for pure functions (aggregateSummary), component tests for UI rendering. Follow existing patterns in useActivityLog.test.ts and ActivityLogList.test.tsx. Use describe/it blocks with clear test names. Mock electronBridge for component tests. Aim for comprehensive edge case coverage.
+    </standards>
+    <locations>
+      <location>today-app/src/hooks/useActivityLog.test.ts</location>
+      <location>today-app/src/components/time-tracking/ActivitySummary.test.tsx (new)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC4.3.2">Test aggregateSummary groups entries by appName and sums durations correctly</idea>
+      <idea ac="AC4.3.2">Test aggregateSummary sorts by totalDurationMs descending (most time first)</idea>
+      <idea ac="AC4.3.3">Test aggregateSummary calculates percentage = (appDuration / total) * 100</idea>
+      <idea ac="AC4.3.3">Test ActivitySummary renders app name, duration, and percentage for each item</idea>
+      <idea ac="AC4.3.4">Test ActivitySummary renders progress bar with correct width based on percentage</idea>
+      <idea ac="AC4.3.6">Test duration formatting uses existing formatActivityDuration() patterns ("1h 15m", "5m 32s")</idea>
+      <idea ac="edge">Test aggregateSummary returns empty array for empty input</idea>
+      <idea ac="edge">Test aggregateSummary handles single entry (100% for one app)</idea>
+      <idea ac="edge">Test ActivitySummary handles empty items array (hide or show message)</idea>
+    </ideas>
+  </tests>
+</story-context>
