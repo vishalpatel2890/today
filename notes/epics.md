@@ -932,3 +932,54 @@ So that **I can prioritize my tasks according to my workflow**.
 
 **Total Stories:** 1
 **Estimated Effort:** 3 story points
+
+---
+
+## Epic 8: Deferred View Category Display Fix
+
+**Goal:** Fix the display bug where tasks without a category show "null" instead of "Other" in the Deferred view.
+
+**User Value:** Users see clear, meaningful category labels for all tasks, improving usability and reducing confusion.
+
+**FRs Covered:** Bug fix for FR17 (Deferred view category sections)
+
+**Slug:** `deferred-category-fix`
+
+---
+
+### Story 8.1: Display "Other" for Uncategorized Tasks
+
+As a **user viewing deferred tasks**,
+I want **tasks without a category to be grouped under "Other"**,
+So that **I see a meaningful label instead of the confusing "null" text**.
+
+**Acceptance Criteria:**
+
+**AC #1:** Given a task with `category: null` in the Deferred view, when the view renders, then the task appears under an "Other" category header.
+
+**AC #2:** Given multiple categories including uncategorized tasks, when viewing the Deferred tab, then "Other" appears at the end of the alphabetically sorted category list.
+
+**AC #3:** Given only uncategorized tasks in Deferred view, when the view renders, then only an "Other" section is displayed.
+
+**AC #4:** Given all tasks have categories, when viewing Deferred tab, then no "Other" section appears.
+
+**Prerequisites:** None
+
+**Technical Notes:**
+- Modify `tasksByCategory` grouping logic in DeferredView.tsx
+- Use `task.category ?? 'Other'` instead of `task.category!`
+- Update sort comparator to place "Other" last
+- Add unit tests for null category handling
+
+**Full Story:** [story-deferred-category-fix-1.md](./sprint_artifacts/story-deferred-category-fix-1.md)
+
+---
+
+### Epic 8 Summary
+
+| # | Story | Description | Status |
+|---|-------|-------------|--------|
+| 8.1 | Display "Other" | Show "Other" for null category tasks in Deferred view | TODO |
+
+**Total Stories:** 1
+**Estimated Effort:** 1 story point

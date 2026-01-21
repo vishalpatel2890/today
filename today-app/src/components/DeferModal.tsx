@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
 import { addDays, startOfDay, format, parseISO, isToday, isTomorrow } from 'date-fns'
 import type { Task } from '../types'
 import { DatePicker } from './DatePicker'

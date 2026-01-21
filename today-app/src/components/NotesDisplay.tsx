@@ -1,4 +1,5 @@
-import { Square, CheckSquare } from 'lucide-react'
+import Square from 'lucide-react/dist/esm/icons/square'
+import CheckSquare from 'lucide-react/dist/esm/icons/check-square'
 import type { NoteItem, TaskNotes } from '../types'
 import { LinkChip } from './LinkChip'
 

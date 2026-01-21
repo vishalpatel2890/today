@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import Pencil from 'lucide-react/dist/esm/icons/pencil'
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2'
 import type { TimeEntry } from '../../types/timeTracking'
 import { formatRelativeTimestamp, formatDurationSummary } from '../../lib/timeFormatters'
 import { isElectron } from '../../lib/platform'

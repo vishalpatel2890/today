@@ -1,4 +1,5 @@
-import { CheckCircle2, AlertCircle } from 'lucide-react'
+import CheckCircle2 from 'lucide-react/dist/esm/icons/check-circle-2'
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle'
 import { useToast, type ToastMessage } from '../contexts/ToastContext'
 
 /**

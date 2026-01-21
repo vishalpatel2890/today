@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as Popover from '@radix-ui/react-popover'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left'
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right'
 import {
   format,
   startOfMonth,

@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
 
 export interface FilterChipProps {
   /** Display text for the filter (e.g., "Dec 1 - Dec 15") */

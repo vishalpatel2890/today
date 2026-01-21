@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Mail, CheckCircle, AlertCircle, Loader2, KeyRound } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
+import Mail from 'lucide-react/dist/esm/icons/mail'
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle'
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle'
+import Loader2 from 'lucide-react/dist/esm/icons/loader-2'
+import KeyRound from 'lucide-react/dist/esm/icons/key-round'
 import type { LinkingStatus, OtpStatus } from '../hooks/useAuth'
 import { OtpInput } from './OtpInput'
 

@@ -13,7 +13,8 @@ import {
   parseISO,
   startOfDay,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left'
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right'
 
 interface DatePickerProps {
   selectedDate: string | null

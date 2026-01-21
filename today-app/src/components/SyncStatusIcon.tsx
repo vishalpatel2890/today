@@ -1,4 +1,4 @@
-import { Cloud } from 'lucide-react'
+import Cloud from 'lucide-react/dist/esm/icons/cloud'
 
 interface SyncStatusIconProps {
   isLinked: boolean

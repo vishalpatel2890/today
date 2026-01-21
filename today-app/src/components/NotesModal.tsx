@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Pencil } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
+import Pencil from 'lucide-react/dist/esm/icons/pencil'
 import type { Task, TaskNotes } from '../types'
 import { NotesEditor } from './NotesEditor'
 import { NotesDisplay } from './NotesDisplay'

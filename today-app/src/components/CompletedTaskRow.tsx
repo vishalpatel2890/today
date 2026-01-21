@@ -1,4 +1,5 @@
-import { RotateCcw, FileText } from 'lucide-react'
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw'
+import FileText from 'lucide-react/dist/esm/icons/file-text'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import type { Task } from '../types'
 

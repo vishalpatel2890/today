@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
 import {
   parseISO,
   isToday,

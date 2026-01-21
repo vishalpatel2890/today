@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
 import { useTimeInsights } from '../../hooks/useTimeInsights'
 import { useTimeEntries } from '../../hooks/useTimeEntries'
 import { InsightCard } from './InsightCard'

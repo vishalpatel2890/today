@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react'
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link'
 
 interface LinkChipProps {
   url: string

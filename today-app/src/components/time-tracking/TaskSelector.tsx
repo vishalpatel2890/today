@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import * as Popover from '@radix-ui/react-popover'
-import { ChevronDown, Check, Search } from 'lucide-react'
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down'
+import Check from 'lucide-react/dist/esm/icons/check'
+import Search from 'lucide-react/dist/esm/icons/search'
 import type { Task } from '../../types'
 
 export interface SelectedTask {

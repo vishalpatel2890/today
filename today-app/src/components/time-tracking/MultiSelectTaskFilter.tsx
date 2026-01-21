@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import * as Popover from '@radix-ui/react-popover'
-import { ChevronDown, Check, Search, Minus } from 'lucide-react'
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down'
+import Check from 'lucide-react/dist/esm/icons/check'
+import Search from 'lucide-react/dist/esm/icons/search'
+import Minus from 'lucide-react/dist/esm/icons/minus'
 import type { FilterOption } from './FilterDropdown'
 
 /**

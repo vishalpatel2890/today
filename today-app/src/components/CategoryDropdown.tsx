@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import * as Select from '@radix-ui/react-select'
-import { ChevronDown, Check, Plus } from 'lucide-react'
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down'
+import Check from 'lucide-react/dist/esm/icons/check'
+import Plus from 'lucide-react/dist/esm/icons/plus'
 
 interface CategoryDropdownProps {
   categories: string[]

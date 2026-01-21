@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import X from 'lucide-react/dist/esm/icons/x'
 import { format, parseISO, startOfDay } from 'date-fns'
 import { TaskSelector, type SelectedTask } from './TaskSelector'
 import { DurationInput } from './DurationInput'

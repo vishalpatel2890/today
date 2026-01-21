@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { CloudOff, CloudUpload } from 'lucide-react'
+import CloudOff from 'lucide-react/dist/esm/icons/cloud-off'
+import CloudUpload from 'lucide-react/dist/esm/icons/cloud-upload'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useSyncQueue } from '../hooks/useSyncQueue'
 import { useToast } from '../contexts/ToastContext'

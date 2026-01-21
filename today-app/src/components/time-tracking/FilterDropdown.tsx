@@ -1,5 +1,6 @@
 import * as Select from '@radix-ui/react-select'
-import { ChevronDown, Check } from 'lucide-react'
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down'
+import Check from 'lucide-react/dist/esm/icons/check'
 
 /**
  * Option for filter dropdowns

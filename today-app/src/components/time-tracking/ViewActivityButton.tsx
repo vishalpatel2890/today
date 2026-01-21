@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Activity } from 'lucide-react'
+import Activity from 'lucide-react/dist/esm/icons/activity'
 import { ActivityLogModal } from './ActivityLogModal'
 
 interface ViewActivityButtonProps {

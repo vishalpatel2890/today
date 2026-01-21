@@ -38,11 +38,12 @@ export const DeferredView = ({
 
   // Group pre-filtered tasks by category - memoized for performance
   // Tasks are already filtered by useAutoSurface hook in App.tsx (AC-4.2.5)
+  // AC-8.1.1: Map null categories to "Other" for display
   const tasksByCategory = useMemo(() => {
-    // Group by category
+    // Group by category, using "Other" for null categories
     return tasks.reduce(
       (acc, task) => {
-        const cat = task.category!
+        const cat = task.category ?? 'Other'
         if (!acc[cat]) acc[cat] = []
         acc[cat].push(task)
         return acc
@@ -52,10 +53,13 @@ export const DeferredView = ({
   }, [tasks])
 
   // AC-3.5.6: Get sorted category list (alphabetical)
+  // AC-8.1.2: "Other" always sorts last
   const sortedCategories = useMemo(() => {
-    return Object.keys(tasksByCategory).sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
-    )
+    return Object.keys(tasksByCategory).sort((a, b) => {
+      if (a === 'Other') return 1
+      if (b === 'Other') return -1
+      return a.toLowerCase().localeCompare(b.toLowerCase())
+    })
   }, [tasksByCategory])
 
   // AC-3.5.3: Toggle category expand/collapse

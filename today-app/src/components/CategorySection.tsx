@@ -1,4 +1,5 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down'
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right'
 import { format, parseISO } from 'date-fns'
 import type { Task, TaskNotes } from '../types'
 import { TaskList } from './TaskList'
