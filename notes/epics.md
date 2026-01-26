@@ -983,3 +983,54 @@ So that **I see a meaningful label instead of the confusing "null" text**.
 
 **Total Stories:** 1
 **Estimated Effort:** 1 story point
+
+---
+
+## Epic 9: Mobile Modal Positioning Fix
+
+**Goal:** Fix CSS animation conflict causing modals to render in the bottom-right corner instead of centered on mobile devices.
+
+**User Value:** Users on mobile (PWA) see properly positioned modals that work as intended bottom sheets.
+
+**FRs Covered:** Bug fix for FR30 (Mobile responsive)
+
+**Slug:** `mobile-modal-fix`
+
+---
+
+### Story 9.1: Fix Modal CSS Animation Conflict
+
+As a **mobile user**,
+I want **modals to appear as centered bottom sheets**,
+So that **I can interact with notes, date pickers, and other modals properly**.
+
+**Acceptance Criteria:**
+
+**AC #1:** Given any modal (Notes, Update, Completed Tasks, Time Tracking, etc.) on mobile, when the modal opens, then it renders horizontally centered at the bottom of the screen.
+
+**AC #2:** Given the modal opening animation, when it plays, then the modal slides up smoothly from the bottom without jumping or misalignment.
+
+**AC #3:** Given desktop viewport, when any modal opens, then it renders centered both horizontally and vertically (existing behavior unchanged).
+
+**AC #4:** Given iOS Safari or Chrome Mobile (PWA), when testing modals, then all modals position correctly.
+
+**Prerequisites:** None
+
+**Technical Notes:**
+- Root cause: Tailwind CSS v4 `translate` property conflicts with CSS animation `transform: translate()`
+- Fix: Update `slideUp` and `slideUpDesktop` keyframes in `src/index.css` to use `translateY()` only
+- Let Tailwind handle X-axis centering via `-translate-x-1/2` class
+- No component changes needed - CSS-only fix
+
+**Full Story:** [story-mobile-modal-fix-1.md](./sprint_artifacts/story-mobile-modal-fix-1.md)
+
+---
+
+### Epic 9 Summary
+
+| # | Story | Description | Status |
+|---|-------|-------------|--------|
+| 9.1 | Fix Modal Animation | Update CSS animations to fix mobile positioning | TODO |
+
+**Total Stories:** 1
+**Estimated Effort:** 1 story point
