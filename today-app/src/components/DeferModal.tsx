@@ -118,7 +118,7 @@ export const UpdateModal = ({ task, categories, isOpen, onClose, onCreateCategor
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-surface p-6 shadow-lg focus:outline-none data-[state=open]:animate-slide-up bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-md md:rounded-lg"
+          className="fixed left-0 right-0 z-50 w-full rounded-t-2xl bg-surface p-6 shadow-lg focus:outline-none data-[state=open]:animate-slide-up bottom-0 md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-md md:rounded-lg"
         >
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="font-display text-lg font-semibold text-foreground">

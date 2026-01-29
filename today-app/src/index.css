@@ -101,6 +101,25 @@ body {
   color: var(--foreground);
 }
 
+/* ============================================
+   Tailwind v4 Translate Utility Fix
+
+   Issue: PostCSS strips @property rules for Electron compatibility,
+   which breaks Tailwind v4's translate utilities. The utilities set
+   CSS variables (--tw-translate-x/y) but don't apply the translate property.
+
+   Fix: Explicitly apply the translate property for utilities used in modals.
+   ============================================ */
+.-translate-x-1\/2 {
+  translate: var(--tw-translate-x, -50%) var(--tw-translate-y, 0);
+}
+
+@media (min-width: 768px) {
+  .md\:-translate-y-1\/2 {
+    translate: var(--tw-translate-x, -50%) var(--tw-translate-y, -50%);
+  }
+}
+
 /* Slide-in animation for new tasks */
 @keyframes slideIn {
   from {
